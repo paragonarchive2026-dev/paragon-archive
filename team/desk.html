@@ -1021,9 +1021,79 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   <div class="team-page-head">
     <h1 class="team-page-title">⚙️ SETTINGS <span class="team-role-chip">🔒 Super Admin only</span></h1>
 
-  <!-- P-098 — super-admin coin purchase approvals -->
+  <!-- P-103 — SQL health probe (anon RPC paragon_sql_health when phase3 live) -->
+  <section class="team-dash-section" id="sql-health-section">
+    <h2 class="team-section-title">🩺 Backend SQL health</h2>
+    <p class="team-site-sub">This browser calls your live Supabase project. The coding sandbox often cannot (DNS). Use this to confirm which coin/announcement migrations exist.</p>
+    <div class="team-site-actions" style="margin-bottom:10px">
+      <button type="button" class="team-mini-link" id="probe-sql-health">Probe SQL health now</button>
+    </div>
+    <pre id="sql-health-out" class="team-site-sub" style="white-space:pre-wrap;max-height:280px;overflow:auto;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">Not probed yet.</pre>
+  </section>
+
+  <!-- P-111 — Stage 4 quiz -->
+  <section class="team-dash-section" id="stage4-quiz-section">
+    <h2 class="team-section-title">❓ Stage 4 — Paid quiz &amp; creator prizes</h2>
+    <p class="team-site-sub">Server scores only. Creator cannot receive own prize. Void unfinished paid attempts; award locked prizes to eligible winners.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="stage4-quiz-refresh">Refresh quiz desk</button>
+      <button type="button" class="team-mini-link" id="stage4-prize-award">Award creator prize</button>
+      <button type="button" class="team-mini-link" id="stage4-attempt-void">Void paid attempt</button>
+    </div>
+    <pre id="stage4-quiz-out" class="team-site-sub" style="white-space:pre-wrap;max-height:280px;overflow:auto;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">Click refresh after stage4 SQL.</pre>
+  </section>
+
+  <!-- P-110 — Stage 3 games settle -->
+  <section class="team-dash-section" id="stage3-games-section">
+    <h2 class="team-section-title">⚔️ Stage 3 — 1v1 settle (server only)</h2>
+    <p class="team-site-sub">Browser never referees money. Outcomes: <code>settled_win</code> (5% fee from pool), <code>settled_draw</code> / <code>voided</code> (stakes returned). Awards competitive points on win/draw.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="stage3-games-refresh">Refresh competitions</button>
+      <button type="button" class="team-mini-link" id="stage3-anticheat-flag">Flag user (anti-cheat)</button>
+    </div>
+    <div id="stage3-games-list" class="team-site-list"></div>
+  </section>
+
+  <!-- P-104 — Phase 4 finance desk overview -->
+  <section class="team-dash-section" id="finance-desk-section">
+    <h2 class="team-section-title">💼 Finance desk (Phase 4)</h2>
+    <p class="team-site-sub">Competitions, leaderboard periods, creator prizes, financial cases, risk flags. Server is the referee — this panel is read/ops once SQL phase4 is live. real_money stays OFF until you flip the flag.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="finance-refresh">Refresh finance snapshot</button>
+      <button type="button" class="team-mini-link" id="finance-report-snapshot">Stage 1 finance report</button>
+      <button type="button" class="team-mini-link danger" id="finance-pause-on">Emergency: financial pause ON</button>
+      <button type="button" class="team-mini-link" id="finance-pause-off">Financial pause OFF</button>
+    </div>
+    <pre id="finance-desk-out" class="team-site-sub" style="white-space:pre-wrap;max-height:320px;overflow:auto;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">Click refresh after phase4 SQL is live.</pre>
+  </section>
+
+
+
+  <!-- P-107 — Phase 5 OPay / Moniepoint rails -->
+  <section class="team-dash-section" id="phase5-rails-section">
+    <h2 class="team-section-title">🇳🇬 OPay / Moniepoint rails (Phase 5)</h2>
+    <p class="team-site-sub">Preferred Nigerian wallet path — <strong>not Flutterwave</strong>. After <code>coins-master-phase5.sql</code>, set receive accounts in SQL (public numbers only). Record payouts you send on OPay/Moniepoint here. KYC drafts appear when users save payout details.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="phase5-rails-refresh">Refresh rails snapshot</button>
+      <button type="button" class="team-mini-link" id="phase5-payout-record">Record OPay/Moniepoint payout</button>
+    </div>
+    <pre id="phase5-rails-out" class="team-site-sub" style="white-space:pre-wrap;max-height:320px;overflow:auto;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">Click refresh after phase5 SQL is live.</pre>
+  </section>
+
+  <!-- P-098/P-100 — super-admin coin purchase + withdrawal approvals -->
+  <section class="team-dash-section" id="stage2-reconcile-section">
+    <h2 class="team-section-title">🪙 Stage 2 — Purchase reconcile (server)</h2>
+    <p class="team-site-sub">Open payment intents from Supabase. <strong>Confirm credit</strong> runs <code>paragon_coin_confirm_payment_intent</code> (ledger + available balance). Match event links a provider row first. Device mirrors are fallback only.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="stage2-reconcile-refresh">Refresh open intents</button>
+    </div>
+    <div id="stage2-reconcile-list" class="team-site-list"></div>
+    <pre id="stage2-reconcile-events" class="team-site-sub" style="white-space:pre-wrap;max-height:160px;overflow:auto;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:10px;margin-top:10px">Unmatched events appear after refresh (phase3+).</pre>
+  </section>
+
   <section class="team-dash-section" id="coin-requests-section">
-    <h2 class="team-dash-heading">🪙 COIN PURCHASE REQUESTS (super-admin)</h2>
+    <h2 class="team-dash-heading">🪙 COIN PURCHASE REQUESTS (device mirror fallback)</h2>
+    <p class="team-site-sub">Legacy same-device queue. Prefer Stage 2 server reconcile above when SQL is live.</p>
     <div id="coin-requests-list" class="team-site-list"></div>
   </section>
 
@@ -1037,6 +1107,10 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <div class="team-site-row" id="lb-actions" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;"></div>
     <div class="team-dash-sectitle" style="margin-top:18px;">🛡️ Settlement audit trail</div>
     <div id="lb-audit" class="team-site-list lb-audit-list"></div>
+  <section class="team-dash-section" id="coin-withdrawals-section">
+    <h2 class="team-dash-heading">🏦 COIN WITHDRAWAL REQUESTS (super-admin)</h2>
+    <p class="team-site-sub">Pay naira offline, then mark Paid — coins are deducted via the credit mirror path on the user device / SQL RPC when backend is live.</p>
+    <div id="coin-withdrawals-list" class="team-site-list"></div>
   </section>
   </div>
 

@@ -23,7 +23,7 @@
 
 ## HONEST STARTING INVENTORY (2026-08-18)
 
-Real image files in the project today: **3** — `assets/hub-hero.jpg`, `assets/icons/paragon-192.png`, `assets/icons/paragon-512.png`. Everything else visual is currently emoji or inline SVG in code. Real built products available for REAL screenshots right now: **Paragon Archive (main app), Archive Hub, Paragon Quiz, Team Dashboard** — nothing else is built yet, so nothing else can be screenshotted honestly.
+Real image files grew substantially after P-069+ batches. Achievement badges: **30/30** as of P-105. Starting note was: — `assets/hub-hero.jpg`, `assets/icons/paragon-192.png`, `assets/icons/paragon-512.png`. Everything else visual is currently emoji or inline SVG in code. Real built products available for REAL screenshots right now: **Paragon Archive (main app), Archive Hub, Paragon Quiz, Team Dashboard** — nothing else is built yet, so nothing else can be screenshotted honestly.
 
 ---
 
@@ -89,7 +89,7 @@ Per site: icon 200², card preview 800×400, hero 1200×600, 3–5 detail shots 
 | # | Image | Status |
 |---|---|---|
 | 22 | Default profile avatar | ✅ WIRED — `default-avatar.png` shown for Guest sessions |
-| 23 | Achievement badges | 🎨 GENERATE — **30 achievements exist (6 stages×5)**, owner list says 15+; will produce all 30 as a matched set |
+| 23 | Achievement badges | ✅ **50/50** in `assets/achievement-badges/` + wired in `BADGE_ART` (P-106 ads/leaderboard/engagement 31–50) |
 | 24–27 | Empty bookmarks/history/collections/reviews | 🎨 GENERATE — 4-piece matched illustration set |
 | 28 | Guest mode illustration | 🎨 after logo (uses logo) |
 | 29 | Collection folder icon | 💻 CODE — recolorable SVG folder |

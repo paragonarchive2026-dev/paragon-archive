@@ -56,17 +56,32 @@ check(archiveHtml.includes('src="paragon-wallets.js"') && archiveHtml.indexOf('s
 const app = fs.readFileSync(path.join(root, "app.js"), "utf8");
 check(app.includes("openCoinWithdrawal = function") && app.includes("Withdraw coins — sell back to naira"), "app.js exposes the public withdrawal popup + Account settings row");
 check(app.includes("wdBadge") && app.includes("withdrawal-host") && app.includes("renderWithdrawalHistory"), "app.js renders the withdrawal request UI + history");
-check(app.includes("recordPaymentClaim") && app.includes("claim-daily-limit"), "purchase flow records payment claims through the engine (§24)");
+check(app.includes("paragon_coin_create_payment_intent") && app.includes("Not credited yet"), "purchase flow is server-intent first and never self-credits (§24, P-109 union)");
 check(app.includes("one credit per claim") || app.includes("one credit per payment"), "duplicate claim copy is honest (one credit per transfer)");
 check(!/[←→↗]/.test(app), "Stage 6 app.js additions respect the no-textual-arrows law");
 const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-check(sw.includes('"./paragon-wallets.js"') && sw.includes("paragon-archive-v77"), "service worker precaches the wallet engine at cache v77");
+check(sw.includes('"./paragon-wallets.js"') && sw.includes("paragon-archive-v88"), "service worker precaches the wallet engine at cache v88");
 const css = fs.readFileSync(path.join(root, "style.css"), "utf8");
 check(css.includes(".wallet-field") && css.includes(".wd-summary") && css.includes(".kill-switch"), "withdrawal/desk styles are present");
 
-/* No direct balance-edit UI: the ONLY writes to the coin balance are addCoins/spendCoins. */
-const balanceWrites = (app.match(/accountProfile\.coinBalance\s*=/g) || []).length;
-check(balanceWrites === 2, "app.js edits coinBalance only inside addCoins/spendCoins (no direct balance-edit UI)");
+/* No direct balance-edit UI: every write to accountProfile.coinBalance must live inside the
+   local add/spend helpers or the server-account refresh (browser is never authoritative). */
+const balanceWrites = [];
+{
+  let from = 0, hit;
+  const re = /accountProfile\.coinBalance\s*=/g;
+  while ((hit = re.exec(app))) balanceWrites.push(hit.index);
+}
+const allowedOwners = ["function addCoinsLocal", "function spendCoinsLocal", "function refreshCoinAccountFromServer"];
+const outOfBand = balanceWrites.filter(idx => {
+  const head = app.slice(Math.max(0, idx - 4000), idx);
+  const owners = allowedOwners.map(name => ({ name, at: head.lastIndexOf(name) })).filter(o => o.at >= 0);
+  if (!owners.length) return true;
+  const owner = owners.sort((a, b) => b.at - a.at)[0];
+  const fnStart = head.lastIndexOf("function " + owner.name.slice(9));
+  return fnStart < 0;
+});
+check(outOfBand.length === 0, "app.js edits coinBalance only inside add/spend helpers or server refresh (no direct balance-edit UI)");
 const dangerous = app.match(/window\.localStorage\.setItem\("paragonArchive\.coinBalance[\s\S]{0,80}/g);
 check(!dangerous, "no raw coinBalance localStorage setter outside the personal state writer");
 

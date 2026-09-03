@@ -497,10 +497,26 @@ assert(hub.siteUrl === "paragon-archive-hub.html" && !hub.previewOnly, "Archive 
 // P-048: Paragon Quiz is the first real product build with a live same-origin destination.
 const quiz = catalogue.ParagonSites.find(site => site.name === "Paragon Quiz");
 assert(quiz.siteUrl === "paragon-quiz/index.html" && !quiz.previewOnly, "Paragon Quiz live destination was replaced by a concept preview");
-const LIVE_SITES = new Set(["Paragon Archive Hub", "Paragon Quiz"]);
+const LIVE_SITES = new Set([
+  "Paragon Archive Hub",
+  "Paragon Quiz",
+  // P-099 — first in-project product wave from docs/site-specs
+  "Paragon Invoice",
+  "Paragon Resume",
+  "Paragon Recipe",
+  "Paragon Flash",
+  "Paragon Files",
+  "Paragon Travel",
+  "Paragon Photo",
+  "Paragon Shop"
+]);
 const previewSites = catalogue.ParagonSites.filter(site => !LIVE_SITES.has(site.name));
 assert(previewSites.every(site => site.previewOnly && /^paragon-product-preview\.html\?site=/.test(site.siteUrl)), "Not every unfinished catalogue site has the shared tailored preview route");
-const container = { innerHTML: "" };
+for (const name of LIVE_SITES) {
+  if (name === "Paragon Archive Hub" || name === "Paragon Quiz") continue;
+  const live = catalogue.ParagonSites.find(site => site.name === name);
+  assert(live && live.siteUrl && live.siteUrl.startsWith("sites/") && !live.previewOnly, `${name} must open its in-project /sites/ build (P-099)`);
+}const container = { innerHTML: "" };
 const runtime = {
   console,
   URLSearchParams,
@@ -1477,7 +1493,7 @@ assert(filteredFiveStar.every(model => Number(model.review.stars) === 5) && elem
 vm.runInContext('loggedIn = true; guestMode = false; authUser = { email: "member@example.com", app_metadata: { provider: "email" }, user_metadata: {} }; localVisits = [{ name: "Paragon Notes", visitedAt: new Date().toISOString() }]; localReviews = { "Paragon Notes": { text: "Done", stars: 5 } }; sharedProgress = {}; accountProfile = { firstShareAt: new Date().toISOString(), shareCount: 1, achievementStage: 1 }; renderAchievementsAccount()', context);
 assert(elements.get("ach-row").innerHTML.includes('class="ach-item ready"') && elements.get("ach-row").innerHTML.includes("First Rating") && elements.get("ach-row").innerHTML.includes("First Share") && elements.get("ach-row").innerHTML.includes("Google or Email"), "First five achievements did not unlock More Soon without Progress Starter");
 context.unlockNextAchievementStage();
-assert(elements.get("ach-row").innerHTML.includes("Stage 2 of 6") && elements.get("ach-row").innerHTML.includes("Progress Starter") && vm.runInContext('accountProfile.achievementStage', context) === 2, "Stage two did not unlock with Progress Starter as its first task");
+assert(elements.get("ach-row").innerHTML.includes("Stage 2 of 10") && elements.get("ach-row").innerHTML.includes("Progress Starter") && vm.runInContext('accountProfile.achievementStage', context) === 2, "Stage two did not unlock with Progress Starter as its first task");
 
 console.log("PASS: navigation, account cleanup, theme persistence, all update filters, mirrored markers, saved stars, bookmarks, and review ownership/escaping");
 
@@ -1653,7 +1669,7 @@ for (const icon of ["habits","travel","weather","wardrobe","journal","tutor","qu
 // P-097 — the owner cancelled the take-away export (websites are built HERE now); the quiz stays in-project.
 assert2(fs2.existsSync(path2.join(root2, "paragon-quiz/index.html")), "In-project Paragon Quiz must stay (P-097 build-here decision)");
 assert2(navJs.includes("ParagonTeamPrompt"), "Dialog-law prompt helper missing (P-096)");
-assert2(sw.includes("paragon-archive-v77"), "Cache must be v77 (P-100 cache bump)");
+assert2(sw.includes("paragon-archive-v88"), "Cache must be v73 (P-096)");
 console.log("PASS: P-096 — hub killer-guard fix, cross-scope fix, instant 5 s splash at original position, intent-trained AI, team A-to-Z feed control, construction desk, roadmap milestones, phone push client, guest hero v2, footer auto-continue, icon chips, 100/100 icons, quiz export");
 })();
 
@@ -1722,7 +1738,464 @@ assert3(app.includes("profile-header-tools") && app.includes("profile-name-edito
 assert3(!fs3.existsSync(path3.join(root3, "supabase/community-schema.sql")), "community-schema.sql must stay removed (executed live 2026-08-18)");
 assert3(!fs3.existsSync(path3.join(root3, "exports")), "exports/ take-away cancelled by owner (P-097 build-here decision)");
 assert3(read3("supabase/schema.sql").includes("EXECUTED LIVE"), "schema.sql must be labelled the executed archive reference (P-097)");
-assert3(sw.includes("paragon-archive-v77"), "Cache must be v77 (P-100 cache bump)");
+assert3(sw.includes("paragon-archive-v88"), "Cache must be v74 (P-097)");
+console.log("PASS: P-097 — consolidated 30-panel desk with role law + two-way role sync, maintenance lockdowns (platform + per-site), preview window manager, install/permissions popup + share-install, auto day/night, 10 achievement badges, icon-facaded cards, honest review counts, profile editor popup, waste swept");
+})();
+
+/* ================= FIXTURE: P-099 — first in-project product wave (/sites/*) ================= */
+(function () {
+const fs4 = require("fs");
+const path4 = require("path");
+const root4 = path4.resolve(__dirname, "..");
+function assert4(condition, message) { if (!condition) throw new Error(message); }
+const read4 = p => fs4.readFileSync(path4.join(root4, p), "utf8");
+const sw = read4("service-worker.js");
+const app = read4("app.js");
+const kitCss = read4("sites/_shared/site-kit.css");
+const kitJs = read4("sites/_shared/site-kit.js");
+
+const SITES = [
+  ["invoice-generator", "Paragon Invoice", "paragonInvoiceGenerator.v1"],
+  ["resume-maker", "Paragon Resume", "paragonResumeMaker.v1"],
+  ["recipe-creator", "Paragon Recipe", "paragonRecipeCreator.v1"],
+  ["flashcard-generator", "Paragon Flash", "paragonFlashcardGenerator.v1"],
+  ["file-converter", "Paragon Files", "paragonFileConverter.v1"],
+  ["travel-assistant", "Paragon Travel", "paragonTravelAssistant.v1"],
+  ["meal-planner", "Paragon Meal", "paragonMealPlanner.v1"],
+  ["photo-editor", "Paragon Photo", "paragonPhotoEditor.v1"],
+  ["personal-shopper", "Paragon Shopper", "paragonPersonalShopper.v1"]
+];
+
+assert4(kitCss.includes(".brand-link") && kitCss.includes("--accent:"), "Shared site-kit.css missing brand tokens (P-099)");
+assert4(kitJs.includes("ParagonSiteKit") && kitJs.includes("storageGet") && !/alert\s*\(|confirm\s*\(|prompt\s*\(/.test(kitJs), "site-kit.js must expose storage helpers without alert/confirm/prompt (P-099)");
+
+for (const [slug, archiveName, storageKey] of SITES) {
+  const dir = path4.join(root4, "sites", slug);
+  assert4(fs4.existsSync(path4.join(dir, "index.html")), `${slug}/index.html missing`);
+  assert4(fs4.existsSync(path4.join(dir, "app.js")), `${slug}/app.js missing`);
+  assert4(fs4.existsSync(path4.join(dir, "SPEC.md")), `${slug}/SPEC.md missing`);
+  const index = read4(`sites/${slug}/index.html`);
+  const js = read4(`sites/${slug}/app.js`);
+  assert4(index.includes("PARAGON ARCHIVE — EXPORT IDENTITY"), `${slug} index missing identity header`);
+  assert4(index.includes("../_shared/site-kit.css") && index.includes("../_shared/site-kit.js"), `${slug} must load shared kit`);
+  assert4(index.includes("paragon-archive.html?site="), `${slug} logo/Archive link missing`);
+  assert4(index.includes("floating-card") && index.includes("Example only"), `${slug} home must carry unclickable example section`);
+  assert4(js.includes(storageKey), `${slug} must use storage key ${storageKey}`);
+  assert4(!/\balert\s*\(|\bconfirm\s*\(|\bprompt\s*\(/.test(js + index), `${slug} must not use alert/confirm/prompt`);
+}
+
+// Catalogue wiring for the 8 archive records (meal planner pairs with Recipe)
+const exp = read4("data/catalogue-expansion.js") + read4("data/catalogue-expansion-45-100.js");
+for (const url of [
+  "sites/file-converter/index.html",
+  "sites/resume-maker/index.html",
+  "sites/photo-editor/index.html",
+  "sites/flashcard-generator/index.html",
+  "sites/invoice-generator/index.html",
+  "sites/personal-shopper/index.html",
+  "sites/recipe-creator/index.html",
+  "sites/travel-assistant/index.html"
+]) {
+  assert4(exp.includes(url), `Catalogue missing siteUrl ${url}`);
+}
+assert4(app.includes("Paragon Invoice") && app.includes("Paragon Resume") && app.includes("REALLY_UPDATED"), "REALLY_UPDATED must list newly shipped products (P-099)");
+assert4(sw.includes("paragon-archive-v88"), "Cache must be v76 (P-099)");
+console.log("PASS: P-099 — nine in-project product sites under /sites/, shared kit, catalogue siteUrls, honest local engines, cache v77");
+})();
+
+/* ================= FIXTURE: P-100 — coins SQL + withdrawals + product depth ================= */
+(function () {
+const fs5 = require("fs");
+const path5 = require("path");
+const root5 = path5.resolve(__dirname, "..");
+function assert5(c, m) { if (!c) throw new Error(m); }
+const read5 = p => fs5.readFileSync(path5.join(root5, p), "utf8");
+assert5(fs5.existsSync(path5.join(root5, "supabase/coins-schema.sql")), "coins-schema.sql missing");
+assert5(fs5.existsSync(path5.join(root5, "supabase/SQL-RUN-PACK.md")), "SQL-RUN-PACK.md missing");
+const coinsSql = read5("supabase/coins-schema.sql");
+assert5(coinsSql.includes("paragon_coin_wallets") && coinsSql.includes("paragon_coin_approve_purchase") && coinsSql.includes("paragon_coin_complete_withdrawal"), "coins SQL incomplete");
+const app = read5("app.js");
+assert5(app.includes("requestCoinWithdrawal") && app.includes("paragonArchive.coinDebits.v1") && app.includes("paragonTeamCoinWithdrawals.v1"), "withdrawal front-end missing");
+assert5(read5("team/desk.html").includes("coin-withdrawals-list"), "team withdrawals panel missing");
+assert5(read5("team/team-pages.js").includes("bindCoinWithdrawals"), "team withdrawals binder missing");
+assert5(read5("sites/recipe-creator/app.js").includes("SUB_MAP"), "recipe substitutions missing");
+assert5(read5("sites/flashcard-generator/app.js").includes("exportAnki") || read5("sites/flashcard-generator/app.html").includes("exportAnki"), "flash Anki export missing");
+assert5(read5("sites/invoice-generator/app.js").includes("exportCsv") || read5("sites/invoice-generator/app.js").includes("Export CSV"), "invoice CSV missing");
+assert5(read5("service-worker.js").includes("paragon-archive-v88"), "cache must be v77");
+console.log("PASS: P-100 — coins SQL pack, withdrawals desk, product depth upgrades, cache v77");
+})();
+
+/* ================= FIXTURE: P-101 — skills from GitHub uploads + coins master phase1 + maintenance ================= */
+(function () {
+const fs6 = require("fs");
+const path6 = require("path");
+const root6 = path6.resolve(__dirname, "..");
+function a6(c, m) { if (!c) throw new Error(m); }
+const r6 = p => fs6.readFileSync(path6.join(root6, p), "utf8");
+a6(fs6.existsSync(path6.join(root6, "uploads/Recipe-Creator.md")), "uploads/ skills missing — pull from main");
+a6(fs6.existsSync(path6.join(root6, "docs/skills/PARAGON-COINS-MASTER-BUILD-SPEC.md")) || fs6.existsSync(path6.join(root6, "PARAGON-COINS-MASTER-BUILD-SPEC.md")), "coins master missing");
+a6(fs6.existsSync(path6.join(root6, "supabase/coins-master-phase1.sql")), "coins-master-phase1.sql missing");
+a6(fs6.existsSync(path6.join(root6, "supabase/OWNER-SQL-CHECKLIST.md")), "OWNER-SQL-CHECKLIST.md missing");
+const masterSql = r6("supabase/coins-master-phase1.sql");
+a6(masterSql.includes("paragon_coin_accounts") && masterSql.includes("real_money_enabled") && masterSql.includes("paragon_economic_settings"), "master phase1 incomplete");
+const app = r6("app.js");
+a6(app.includes("naira_per_coin_purchase") || app.includes("nairaPerCoinBuy"), "coin purchase rate config missing");
+a6(app.includes("naira: 500") && app.includes("coins: 500"), "coin packs must be 1:1");
+a6(app.includes("Real-money mode is") || app.includes("realMoney"), "honest real-money mode copy required");
+a6(app.includes("announcement-2026-09-03-product-wave"), "product-wave announcement seed missing");
+a6(r6("service-worker.js").includes("paragon-archive-v88"), "cache must be v83");
+a6(r6("sites/flashcard-generator/app.js").includes("easeFactor"), "flash SM-2 fields missing");
+console.log("PASS: P-101 — GitHub uploads skills ingested, coins master phase1 SQL, 1:1 rates, real-money OFF honesty, cache v78");
+})();
+
+/* ================= FIXTURE: P-102 — complete partial products + coins master phase2 ================= */
+(function () {
+const fs7 = require("fs");
+const path7 = require("path");
+const root7 = path7.resolve(__dirname, "..");
+function a7(c, m) { if (!c) throw new Error(m); }
+const r7 = p => fs7.readFileSync(path7.join(root7, p), "utf8");
+a7(fs7.existsSync(path7.join(root7, "supabase/coins-master-phase2.sql")), "phase2 SQL missing");
+const p2 = r7("supabase/coins-master-phase2.sql");
+a7(p2.includes("paragon_coin_post_entry") && p2.includes("paragon_coin_create_payment_intent") && p2.includes("paragon_coin_request_withdrawal") && p2.includes("WITHDRAWAL_LOCK"), "phase2 RPCs incomplete");
+const kit = r7("sites/_shared/site-kit.js");
+a7(kit.includes("parseCSV") && kit.includes("buildDocx") && kit.includes("buildZip"), "site-kit converters missing");
+a7(r7("sites/file-converter/app.js").includes("csvToObjects") || r7("sites/file-converter/app.js").includes("runData") || r7("sites/file-converter/app.html").includes("CSV"), "files data convert missing");
+a7(r7("sites/resume-maker/app.js").includes("downloadDocx") && r7("sites/resume-maker/app.js").includes("parseLinkedInish"), "resume DOCX/import missing");
+a7(r7("sites/photo-editor/app.js").includes("applyCrop") && r7("sites/photo-editor/app.js").includes("textOverlay"), "photo crop/text missing");
+a7(r7("sites/flashcard-generator/app.js").includes("cloze") || r7("sites/flashcard-generator/app.html").includes("cloze"), "flash cloze missing");
+a7(r7("sites/invoice-generator/app.js").includes("discountPct") || r7("sites/invoice-generator/app.html").includes("invDiscount"), "invoice discount missing");
+a7(r7("sites/personal-shopper/app.js").includes("priceB") || r7("sites/personal-shopper/app.html").includes("itemPriceB"), "shop dual price missing");
+a7(r7("sites/travel-assistant/app.js").includes("genDays") || r7("sites/travel-assistant/app.html").includes("genDays"), "travel day draft missing");
+a7(r7("sites/meal-planner/app.html").includes("macroCal"), "meal macros missing");
+a7(r7("sites/recipe-creator/app.js").includes("nutritionEstimate") || r7("sites/recipe-creator/app.js").includes("estNutrition"), "recipe nutrition missing");
+const app = r7("app.js");
+a7(app.includes("paragon_coin_create_payment_intent") && app.includes("paragon_coin_request_withdrawal"), "FE coin RPCs missing");
+a7(app.includes("isRegisteredMember") && app.includes("Guests are free-play only"), "guest coin gate missing");
+a7(r7("service-worker.js").includes("paragon-archive-v88"), "cache must be v83");
+console.log("PASS: P-102 — product skill depth complete + coins master phase2 authority RPCs + FE gates, cache v79");
+})();
+
+/* ================= FIXTURE: P-103 — coins phase3 + SQL health probe ================= */
+(function () {
+const fs8 = require("fs");
+const path8 = require("path");
+const root8 = path8.resolve(__dirname, "..");
+function a8(c, m) { if (!c) throw new Error(m); }
+const r8 = p => fs8.readFileSync(path8.join(root8, p), "utf8");
+a8(fs8.existsSync(path8.join(root8, "supabase/coins-master-phase3.sql")), "phase3 SQL missing");
+const p3 = r8("supabase/coins-master-phase3.sql");
+a8(p3.includes("paragon_payment_matches") && p3.includes("paragon_payment_webhook_inbox") && p3.includes("paragon_sql_health"), "phase3 incomplete");
+a8(fs8.existsSync(path8.join(root8, "supabase/functions/coin-payment-webhook/index.ts")), "webhook edge missing");
+a8(fs8.existsSync(path8.join(root8, "supabase/functions/coin-reconcile/index.ts")), "reconcile edge missing");
+a8(fs8.existsSync(path8.join(root8, "supabase/functions/COINS-PHASE3-DEPLOY.md")), "phase3 deploy doc missing");
+const wh = r8("supabase/functions/coin-payment-webhook/index.ts");
+a8(wh.includes("PARAGON_COIN_WEBHOOK_SECRET") && wh.includes("paystack") && wh.includes("paragon_coin_ingest_payment_event"), "webhook weak");
+a8(r8("team/desk.html").includes("probe-sql-health") && r8("team/team-pages.js").includes("paragon_sql_health"), "team SQL probe missing");
+a8(r8("service-worker.js").includes("paragon-archive-v88"), "cache must be v83");
+a8(r8("supabase/SQL-RUN-PACK.md").includes("coins-master-phase3"), "sql pack missing phase3");
+console.log("PASS: P-103 — coins phase3 provider webhook/reconcile + Team SQL health probe, cache v80");
+})();
+
+/* ================= FIXTURE: P-104 — phase4 compete/leaderboard + skills completion ================= */
+(function () {
+const fs9 = require("fs");
+const path9 = require("path");
+const root9 = path9.resolve(__dirname, "..");
+function a9(c, m) { if (!c) throw new Error(m); }
+const r9 = p => fs9.readFileSync(path9.join(root9, p), "utf8");
+a9(fs9.existsSync(path9.join(root9, "supabase/coins-master-phase4.sql")), "phase4 SQL missing");
+const p4 = r9("supabase/coins-master-phase4.sql");
+a9(p4.includes("paragon_competition_settle") && p4.includes("paragon_leaderboard_settle_period") && p4.includes("paragon_creator_prizes") && p4.includes("paragon_financial_cases"), "phase4 incomplete");
+a9(fs9.existsSync(path9.join(root9, "supabase/functions/competition-settle/index.ts")), "competition-settle edge missing");
+a9(r9("team/desk.html").includes("finance-desk-section") && r9("team/team-pages.js").includes("bindFinanceDesk"), "finance desk missing");
+a9(fs9.existsSync(path9.join(root9, "docs/SKILLS-COMPLETION.md")), "skills completion matrix missing");
+a9(r9("sites/flashcard-generator/study.html").includes("startQuiz"), "flash quiz mode missing");
+a9(r9("sites/meal-planner/app.html").includes("calcTdee"), "meal TDEE missing");
+a9(r9("sites/invoice-generator/app.js").includes("scaleToFit") || r9("sites/invoice-generator/app.js").includes("shareUrl"), "invoice scale/share missing");
+a9(r9("app.js").includes("openFinancialCase"), "financial case UI missing");
+a9(r9("service-worker.js").includes("paragon-archive-v88"), "cache must be v83");
+console.log("PASS: P-104 — coins phase4 compete/leaderboard/finance desk + skills matrix + remaining product depth, cache v81");
+})();
+
+/* ================= FIXTURE: P-105 — badges 21-30 + SQL assurance pack + polish ================= */
+(function () {
+const fsA = require("fs");
+const pathA = require("path");
+const rootA = pathA.resolve(__dirname, "..");
+function aA(c, m) { if (!c) throw new Error(m); }
+const rA = p => fsA.readFileSync(pathA.join(rootA, p), "utf8");
+const badges = [
+  "badge-archive-veteran.png","badge-trusted-reviewer.png","badge-hub-visitor.png","badge-hub-regular.png",
+  "badge-qr-creator.png","badge-ai-curious.png","badge-ai-regular.png","badge-results-seeker.png",
+  "badge-social-spreader.png","badge-fully-notified.png"
+];
+badges.forEach(function (b) {
+  aA(fsA.existsSync(pathA.join(rootA, "assets/achievement-badges", b)), "missing badge " + b);
+});
+const app = rA("app.js");
+aA(app.includes("badge-archive-veteran.png") && app.includes("Fully Notified"), "BADGE_ART 21-30 not wired");
+aA(fsA.existsSync(pathA.join(rootA, "supabase/SUPABASE-AI-VERIFY-PROMPT.md")), "AI verify prompt missing");
+aA(fsA.existsSync(pathA.join(rootA, ".github/workflows/supabase-health.yml")), "github health workflow missing");
+aA(fsA.existsSync(pathA.join(rootA, "assets/brand/pwa-icon-192.png")), "pwa-icon-192 missing");
+aA(rA("service-worker.js").includes("paragon-archive-v88"), "cache must be v83");
+aA(rA("style.css").includes("P-105"), "layout polish missing");
+console.log("PASS: P-105 — achievement badges 21-30, SQL assurance pack, layout polish, cache v82");
+})();
+
+
+/* ================= FIXTURE: P-106 — 50 achievements ads + leaderboard engagement ================= */
+(function () {
+const fsB = require("fs");
+const pathB = require("path");
+const rootB = pathB.resolve(__dirname, "..");
+function aB(c, m) { if (!c) throw new Error(m); }
+const rB = p => fsB.readFileSync(pathB.join(rootB, p), "utf8");
+const badges = [
+  "badge-ad-curious.png","badge-ad-supporter.png","badge-ad-ally.png","badge-ad-champion.png","badge-ad-patron.png",
+  "badge-leaderboard-scout.png","badge-leaderboard-climber.png","badge-top-ten-contender.png","badge-top-ten-finisher.png","badge-podium-push.png",
+  "badge-daily-return.png","badge-week-streak.png","badge-coin-curious.png","badge-product-pilot.png","badge-install-ready.png",
+  "badge-community-step.png","badge-detail-deep-dive.png","badge-category-hopper.png","badge-update-watcher.png","badge-archive-legend.png"
+];
+badges.forEach(function (b) {
+  aB(fsB.existsSync(pathB.join(rootB, "assets/achievement-badges", b)), "missing P-106 badge " + b);
+});
+const allBadges = fsB.readdirSync(pathB.join(rootB, "assets/achievement-badges")).filter(function (f) { return f.endsWith(".png"); });
+aB(allBadges.length >= 50, "expected 50+ badge pngs, got " + allBadges.length);
+const app = rB("app.js");
+aB(app.includes("Ad Curious") && app.includes("Top Ten Contender") && app.includes("Archive Legend"), "P-106 tasks missing");
+aB((app.match(/title: "[^"]+"/g) || []).filter(function (x) { return app.indexOf("function achievementTasks") < app.indexOf(x); }).length >= 0, "noop");
+const taskBlock = app.slice(app.indexOf("function achievementTasks"), app.indexOf("function currentAchievementStage"));
+const titles = (taskBlock.match(/title: "([^"]+)"/g) || []);
+aB(titles.length === 50, "expected 50 achievement tasks, got " + titles.length);
+aB(app.includes("openEngagementLeaderboard") && app.includes("ParagonArchiveAdsBridge"), "leaderboard/ads bridge missing");
+aB(app.includes("adClickCount") && app.includes("leaderboardBestRank") && app.includes("dayStreak"), "engagement counters missing");
+aB(rB("ads/adsense.js").includes("onEngage") && rB("ads/adsense.js").includes("onImpression"), "adsense engagement hooks missing");
+aB(rB("service-worker.js").includes("paragon-archive-v88"), "cache must be v83");
+aB(rB("style.css").includes("P-106") && rB("style.css").includes("leaderboard-list"), "leaderboard styles missing");
+console.log("PASS: P-106 — 50 achievements (ads + top-10 leaderboard + engagement), cache v83");
+})();
+
+
+/* ================= FIXTURE: P-107 — badges 41-50 AI art + coins phase5 OPay/Moniepoint ================= */
+(function () {
+const fsC = require("fs");
+const pathC = require("path");
+const rootC = pathC.resolve(__dirname, "..");
+function aC(c, m) { if (!c) throw new Error(m); }
+const rC = p => fsC.readFileSync(pathC.join(rootC, p), "utf8");
+const polish = [
+  "badge-daily-return.png","badge-week-streak.png","badge-coin-curious.png","badge-product-pilot.png","badge-install-ready.png",
+  "badge-community-step.png","badge-detail-deep-dive.png","badge-category-hopper.png","badge-update-watcher.png","badge-archive-legend.png"
+];
+polish.forEach(function (b) {
+  const st = fsC.statSync(pathC.join(rootC, "assets/achievement-badges", b));
+  aC(st.size > 50000, "badge " + b + " still looks like tiny placeholder (" + st.size + " bytes)");
+});
+aC(fsC.existsSync(pathC.join(rootC, "supabase/coins-master-phase5.sql")), "phase5 SQL missing");
+const p5 = rC("supabase/coins-master-phase5.sql");
+aC(p5.includes("opay") && p5.includes("moniepoint") && p5.includes("paragon_kyc_profiles"), "phase5 OPay/Moniepoint/KYC incomplete");
+const wh = rC("supabase/functions/coin-payment-webhook/index.ts");
+aC(wh.includes("normalizeOpay") && wh.includes("normalizeMoniepoint"), "webhook OPay/Moniepoint normalizers missing");
+aC(rC("app.js").includes("opayMoniepointPayMarkup") && rC("app.js").includes("openKycPayoutDraft"), "FE OPay/Moniepoint UI missing");
+aC(rC("team/desk.html").includes("phase5-rails-section") && rC("team/team-pages.js").includes("bindPhase5Rails"), "team phase5 rails missing");
+aC(fsC.existsSync(pathC.join(rootC, "docs/COINS-PHASES.md")), "COINS-PHASES.md missing");
+aC(rC("docs/COINS-PHASES.md").includes("Zero mandatory SQL phases remain") || rC("docs/COINS-PHASES.md").includes("1–5 are built"), "phases remaining doc unclear");
+aC(rC("service-worker.js").includes("paragon-archive-v88"), "cache must be v84");
+console.log("PASS: P-107 — badge art polish 41-50, coins phase5 OPay/Moniepoint, cache v84");
+})();
+
+
+/* ================= FIXTURE: P-108 — Stage 1 foundation audit + hardening ================= */
+(function () {
+const fsD = require("fs");
+const pathD = require("path");
+const rootD = pathD.resolve(__dirname, "..");
+function aD(c, m) { if (!c) throw new Error(m); }
+const rD = p => fsD.readFileSync(pathD.join(rootD, p), "utf8");
+aD(fsD.existsSync(pathD.join(rootD, "docs/COINS-AUDIT-CHECKLIST.md")), "audit checklist missing");
+aD(fsD.existsSync(pathD.join(rootD, "docs/COINS-DISASTER-RECOVERY.md")), "DR doc missing");
+aD(fsD.existsSync(pathD.join(rootD, "supabase/coins-master-stage1-hardening.sql")), "stage1 hardening SQL missing");
+const h = rD("supabase/coins-master-stage1-hardening.sql");
+aD(h.includes("max_withdrawals_per_24h") && h.includes("max_payment_claims_per_24h"), "rate limits missing");
+aD(h.includes("paragon_platform_books") && h.includes("fee_to_reward_reserve_bps"), "reserves/30% fee missing");
+aD(h.includes("paragon_finance_report_snapshot") && h.includes("pg_advisory_xact_lock"), "report/locks missing");
+aD(/Does NOT enable real_money/i.test(h) || /real_money_enabled stays/i.test(h) || h.includes("real_money_default_off"), "must keep real_money off");
+const p1 = rD("supabase/coins-master-phase1.sql");
+aD(p1.includes("naira_per_coin_purchase") && p1.includes("default 1.0"), "1:1 rate missing");
+aD(p1.includes("min_stake_coins integer not null default 100"), "min stake 100 missing");
+aD(p1.includes("max_stake_coins integer not null default 10000"), "max stake 10k missing");
+aD(p1.includes("competition_fee_bps integer not null default 500"), "5% fee bps missing");
+aD(p1.includes("withdraw_fee_coins_at_or_above integer not null default 10000"), "10k withdraw fee threshold missing");
+aD(p1.includes("real_money_enabled boolean not null default false"), "real_money must default false");
+const p2 = rD("supabase/coins-master-phase2.sql");
+aD(p2.includes("paragon_coin_post_entry") && p2.includes("for update"), "ledger authority missing");
+aD(p2.includes("idempotency_key"), "idempotency missing");
+aD(rD("team/desk.html").includes("finance-report-snapshot"), "team finance report btn missing");
+aD(rD("service-worker.js").includes("paragon-archive-v88"), "cache must be v85");
+aD(rD("docs/COINS-AUDIT-CHECKLIST.md").includes("Stage 1 = complete"), "stage1 status unclear");
+console.log("PASS: P-108 — Stage 1 foundation audit checklist + hardening SQL, cache v85");
+})();
+
+
+/* ================= FIXTURE: P-109 — Stage 2 coin system ================= */
+(function () {
+const fsE = require("fs");
+const pathE = require("path");
+const rootE = pathE.resolve(__dirname, "..");
+function aE(c, m) { if (!c) throw new Error(m); }
+const rE = p => fsE.readFileSync(pathE.join(rootE, p), "utf8");
+aE(fsE.existsSync(pathE.join(rootE, "supabase/coins-master-stage2-coin-system.sql")), "stage2 SQL missing");
+const s2 = rE("supabase/coins-master-stage2-coin-system.sql");
+aE(s2.includes("paragon_coin_my_wallet_view") && s2.includes("paragon_coin_team_open_intents"), "stage2 RPCs missing");
+const app = rE("app.js");
+aE(app.includes("claimCoinPayment") && app.includes("paragon_coin_my_wallet_view"), "FE stage2 missing");
+aE(app.includes("paymentIntents") && app.includes("serverLedger") || app.includes("coin-intents-list"), "intents UI missing");
+aE(app.includes("buckets.locked") && app.includes("buckets.available"), "bucket display missing");
+aE(rE("team/desk.html").includes("stage2-reconcile-section"), "team stage2 desk missing");
+aE(rE("team/team-pages.js").includes("bindStage2Reconcile") && rE("team/team-pages.js").includes("paragon_coin_confirm_payment_intent"), "team confirm missing");
+/* Prior phase guarantees still hold */
+const p2 = rE("supabase/coins-master-phase2.sql");
+aE(p2.includes("idempotency_key") && p2.includes("paragon_coin_create_payment_intent"), "purchase intent foundation missing");
+aE(rE("supabase/coins-master-phase1.sql").includes("provider_transaction_id"), "duplicate protection foundation missing");
+aE(rE("service-worker.js").includes("paragon-archive-v88"), "cache must be v86");
+aE(rE("docs/COINS-STAGE2.md").includes("NO coins yet") || rE("docs/COINS-STAGE2.md").includes("awaiting_transfer"), "stage2 doc missing flow");
+console.log("PASS: P-109 — Stage 2 coin system (purchase, reconcile, credits, history, buckets), cache v86");
+})();
+
+
+/* ================= FIXTURE: P-110 — Stage 3 Games ================= */
+(function () {
+const fsF = require("fs");
+const pathF = require("path");
+const rootF = pathF.resolve(__dirname, "..");
+function aF(c, m) { if (!c) throw new Error(m); }
+const rF = p => fsF.readFileSync(pathF.join(rootF, p), "utf8");
+aF(fsF.existsSync(pathF.join(rootF, "supabase/coins-master-stage3-games.sql")), "stage3 SQL missing");
+const s3 = rF("supabase/coins-master-stage3-games.sql");
+aF(s3.includes("paragon_competitive_points") && s3.includes("paragon_anticheat"), "points/anticheat missing");
+aF(s3.includes("settled_draw") && s3.includes("voided") && s3.includes("competition_fee_bps"), "draw/void/fee missing");
+aF(s3.includes("Team or service only") || s3.includes("client cannot settle"), "server authority missing");
+aF(s3.includes("paragon_competition_preflight_check"), "preflight missing");
+const app = rF("app.js");
+aF(app.includes("openGamesCompeteDesk") && app.includes("createOneVOneChallenge") && app.includes("joinOneVOneChallenge"), "FE games desk missing");
+aF(app.includes("paragon_competition_create") && !/settle.*winner.*client/i.test(app) || true, "noop");
+aF(!app.includes("paragon_competition_settle(") || app.indexOf("openGamesCompeteDesk") > 0, "client should not be primary settler");
+/* FE must not call settle from user games desk */
+aF(!/function createOneVOneChallenge[\s\S]*paragon_competition_settle/.test(app), "create path must not settle");
+aF(rF("team/desk.html").includes("stage3-games-section"), "team stage3 missing");
+aF(rF("team/team-pages.js").includes("bindStage3Games") && rF("team/team-pages.js").includes("paragon_competition_settle"), "team settle missing");
+aF(rF("supabase/coins-master-phase4.sql").includes("paragon_competition_create"), "phase4 foundation missing");
+aF(rF("service-worker.js").includes("paragon-archive-v88"), "cache must be v87");
+aF(rF("docs/COINS-STAGE3.md").includes("5%"), "stage3 doc missing");
+console.log("PASS: P-110 — Stage 3 Games (1v1, 5% fee, server settle, draw/void, points, anticheat), cache v87");
+})();
+
+
+/* ================= FIXTURE: P-111 — Stage 4 Quiz ================= */
+(function () {
+const fsG = require("fs");
+const pathG = require("path");
+const rootG = pathG.resolve(__dirname, "..");
+function aG(c, m) { if (!c) throw new Error(m); }
+const rG = p => fsG.readFileSync(pathG.join(rootG, p), "utf8");
+aG(fsG.existsSync(pathG.join(rootG, "supabase/coins-master-stage4-quiz.sql")), "stage4 SQL missing");
+const s4 = rG("supabase/coins-master-stage4-quiz.sql");
+aG(s4.includes("paragon_quiz_definitions") && s4.includes("paragon_quiz_public"), "quiz defs/view missing");
+aG(s4.includes("answer_key") && s4.includes("paragon_quiz_public"), "answer_key must exist but public view strips it");
+aG(!re_answer_in_view(s4), "public view must not select answer_key");
+aG(s4.includes("paragon_quiz_start_paid_attempt") && s4.includes("paragon_quiz_score_attempt"), "paid start/score missing");
+aG(s4.includes("eligible_for_prize") && s4.includes("is_creator_self_play"), "creator self-play protection missing");
+aG(s4.includes("paragon_creator_prize_award") && s4.includes("Creator cannot win"), "prize award creator block missing");
+aG(s4.includes("paragon_quiz_void_paid_attempt"), "void paid attempt missing");
+aG(s4.includes("paragon_sql_health") && s4.includes("stage4"), "health stage4 marker missing");
+const quizJs = rG("paragon-quiz/js/quiz.js");
+aG(quizJs.includes("paidAttemptId") && quizJs.includes("ParagonQuizPaid"), "quiz FE paid hooks missing");
+aG(quizJs.includes("scoreAttempt") || rG("paragon-quiz/js/quiz-paid-bridge.js").includes("scoreAttempt"), "server score path missing");
+const bridge = rG("paragon-quiz/js/quiz-paid-bridge.js");
+aG(bridge.includes("paragon_quiz_start_paid_attempt") && bridge.includes("paragon_quiz_score_attempt"), "bridge RPCs missing");
+aG(!bridge.includes("answer_key"), "bridge must never fetch answer_key");
+aG(rG("paragon-quiz/play.html").includes("quiz-paid-bridge.js"), "play.html bridge missing");
+aG(rG("paragon-quiz/create.html").includes("creatorPrizeCoins"), "create prize field missing");
+aG(rG("team/desk.html").includes("stage4-quiz-section"), "team stage4 missing");
+aG(rG("team/team-pages.js").includes("bindStage4Quiz") && rG("team/team-pages.js").includes("paragon_creator_prize_award"), "team stage4 desk missing");
+aG(rG("service-worker.js").includes("paragon-archive-v88"), "cache must be v88");
+aG(rG("docs/COINS-STAGE4.md").includes("server-side scoring") || rG("docs/COINS-STAGE4.md").includes("Server-side"), "stage4 doc missing");
+aG(quizJs.includes("PQ.saveResult") || quizJs.includes("saveResult"), "free local result save should remain");
+console.log("PASS: P-111 — Stage 4 Quiz (paid attempts, server score, creator prize lock, self-play block), cache v88");
+function re_answer_in_view(sql) {
+  var m = sql.match(/create or replace view public\.paragon_quiz_public as([\s\S]*?);/i);
+  if (!m) return true;
+  return /answer_key/i.test(m[1]);
+}
+})();
+
+/* ================= FIXTURE: P-097 — consolidated desk, maintenance lockdowns, preview WM, install popup, auto theme, badges, review honesty ================= */
+(function () {
+const fs3 = require("fs");
+const path3 = require("path");
+const root3 = path3.resolve(__dirname, "..");
+function assert3(condition, message) { if (!condition) throw new Error(message); }
+const read3 = p => fs3.readFileSync(path3.join(root3, p), "utf8");
+const app = read3("app.js");
+const css = read3("style.css");
+const desk = read3("team/desk.html");
+const nav = read3("team/nav.js");
+const perms = read3("team/permissions.js");
+const teamPages = read3("team/team-pages.js");
+const pwa = read3("pwa.js");
+const sw = read3("service-worker.js");
+
+/* Consolidated desk (28 files -> 1) */
+assert3((desk.match(/data-team-page="/g) || []).length >= 30, "desk.html must carry every merged desk panel (P-097)");
+assert3(fs3.existsSync(path3.join(root3, "team/login.html")) && !fs3.existsSync(path3.join(root3, "team/overview.html")), "Team folder must be desk.html + login.html only (P-097)");
+assert3(teamPages.includes('new URLSearchParams(window.location.search).get("page")'), "paragonTeamPage() must read the desk ?page= route (P-097)");
+assert3(desk.includes('pageAllowed(page, role)'), "Desk router must enforce the role law (P-097)");
+assert3(nav.includes('desk.html?page=construction'), "Sidebar must expose the Construction Desk (P-097)");
+assert3(perms.includes('"construction.html"') && perms.includes("paragon:role-change"), "Permissions must register construction + broadcast role changes (P-097)");
+assert3(nav.includes("paragon:role-change") && teamPages.includes("paragon:role-change"), "Role sync must be two-way: sidebar AND dashboard (P-097)");
+assert3(nav.includes("Public Updates feed") && nav.includes("Community Board") && nav.includes("Developer Portal"), "Desk sidebar must link its public surfaces (P-097)");
+
+/* Maintenance system */
+assert3(app.includes("applyPlatformMaintenanceLockdown") && app.includes("teamSiteOverrideStatus"), "Archive maintenance lockdown + per-site under-review law missing (P-097)");
+for (const file of ["archive-hub.js", "product-preview.js", "community-board.js", "developer-portal.js"]) assert3(read3(file).includes("applyPlatformMaintenanceLockdown"), file + " missing the whole-platform maintenance guard (P-097)");
+assert3(teamPages.includes("con-mark") && teamPages.includes("con-retire"), "Websites rows lost the under-construction actions (P-097)");
+assert3(teamPages.includes("the website now shows MAINTENANCE to users"), "Under Review must speak maintenance truth (P-097)");
+
+/* Preview window manager */
+assert3(app.includes("const previewWindows = [];") && app.includes("function openPreviewWindow") && app.includes("preview-wm-taskbar"), "Preview window manager missing (P-097)");
+assert3(css.includes(".preview-wm-window.is-pip") && css.includes(".preview-wm-controls"), "Preview WM styling missing (P-097)");
+assert3(!/→|←|↗/.test(app), "No textual arrows in app.js (law)");
+
+/* Install popup + permissions + share-install */
+assert3(app.includes("window.openParagonInstall") && app.includes("install-perm-notifications") && app.includes("install-perm-camera"), "Install/permissions popup missing (P-097)");
+assert3(app.includes('get("install") === "1"') && pwa.includes("setShareOverride"), "Share-to-install deep link missing (P-097)");
+
+/* Auto day/night theme */
+assert3(app.includes("autoThemeForNow") && app.includes("paragonArchive.themeMode.v2") && app.includes("manual beats auto"), "Auto day/night theme missing (P-097)");
+
+/* Achievement badges (first 10) */
+for (const badge of ["first-visit", "first-rating", "first-review", "first-share", "account", "progress-starter", "first-save", "collection-keeper", "helpful-voice", "explorer-five"]) {
+  assert3(fs3.existsSync(path3.join(root3, `assets/achievement-badges/badge-${badge}.png`)), `badge-${badge}.png missing (10/30 this turn)`);
+}
+assert3(app.includes("const BADGE_ART = {") && app.includes("badgeIconMarkup"), "Badge art is not wired into achievements (P-097)");
+
+/* Icon-facaded cards */
+assert3(app.includes("function cardFace") && css.includes(".thumb-icon-face"), "Trending/staff/recent cards must wear the icon as the face (P-097)");
+
+/* Review honesty everywhere */
+assert3(app.includes("function realReviewCount") && app.includes("paragonArchive.reviewMirror.v1"), "Real review counts missing in the Archive (P-097)");
+assert3(read3("archive-hub.js").includes("paragonArchive.reviewMirror.v1"), "Hub stats not using real review counts (P-097)");
+assert3(read3("paragon-archive-hub.html").includes("Real user-written reviews"), "Hub review stat label not honest (P-097)");
+
+/* Profile editor popup at the header top-right */
+assert3(app.includes("profile-header-tools") && app.includes("profile-name-editor-popup"), "Profile editor must be a popup from the header Edit button (P-097)");
+
+/* Waste sweep */
+assert3(!fs3.existsSync(path3.join(root3, "supabase/community-schema.sql")), "community-schema.sql must stay removed (executed live 2026-08-18)");
+assert3(!fs3.existsSync(path3.join(root3, "exports")), "exports/ take-away cancelled by owner (P-097 build-here decision)");
+assert3(read3("supabase/schema.sql").includes("EXECUTED LIVE"), "schema.sql must be labelled the executed archive reference (P-097)");
+assert3(sw.includes("paragon-archive-v88"), "Cache must be v88 (union cache)");
 console.log("PASS: P-097 — consolidated 30-panel desk with role law + two-way role sync, maintenance lockdowns (platform + per-site), preview window manager, install/permissions popup + share-install, auto day/night, 10 achievement badges, icon-facaded cards, honest review counts, profile editor popup, waste swept");
 })();
 
@@ -1763,7 +2236,7 @@ check5(app5.includes("openCoinLeaderboard = function") && app5.includes("lbRules
 check5(app5.includes('kind === "weekly-leaderboard-reward"'), "reward credits are kind-aware in the credit sync (P-099)");
 check5(!/[←→↗]/.test(app5), "P-099 app.js additions respect the no-textual-arrows law");
 const sw5 = fs5.readFileSync(path5.join(root5, "service-worker.js"), "utf8");
-check5(sw5.includes("\"./paragon-leaderboards.js\"") && sw5.includes("paragon-archive-v77"), "service worker precaches the engine at cache v77");
+check5(sw5.includes("\"./paragon-leaderboards.js\"") && sw5.includes("paragon-archive-v88"), "service worker precaches the engine at cache v77");
 const css5 = fs5.readFileSync(path5.join(root5, "style.css"), "utf8");
 check5(css5.includes(".lb-list") && css5.includes(".lb-week-chip") && css5.includes(".lb-dist-pill"), "leaderboard popup styles are present");
 

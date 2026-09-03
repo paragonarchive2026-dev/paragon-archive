@@ -1,0 +1,48 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: shop.html
+  EXPECTED PROJECT PATH: /sites/meal-planner/shop.html
+  ROLE: Shopping list from meal plan.
+  RESTORE-LOAD NOTE: In-project product site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Meal — Shopping</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Recipe">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-recipe.png" alt="">
+        <span class="brand-name">Paragon Meal</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link">Planner</a>
+      <a href="shop.html" class="nav-link active">Shopping</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page" style="max-width:640px">
+    <h1 class="page-title">Shopping list</h1>
+    <p class="page-sub">Built from your meal names/notes or added by hand.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="panel">
+      <div class="field-row">
+        <div class="field"><label for="shopItem">Item</label><input id="shopItem"></div>
+        <div class="field" style="display:flex;align-items:flex-end"><button type="button" class="btn btn-primary btn-block" id="addShop">Add</button></div>
+      </div>
+    </div>
+    <div id="shopList" class="empty"><strong>List empty</strong>Add items or generate from the planner.</div>
+  </main>
+  <footer class="footer"><p><a href="app.html">Planner</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

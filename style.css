@@ -3766,3 +3766,155 @@ html.light .hub-topbar.legal-topbar { background: rgba(243,242,239,0.85); }
 .kill-switch small { color: var(--text-faint); font-size: 11px; line-height: 1.5; }
 .fin-toggle-on { border-color: rgba(239,68,68,0.5) !important; color: #ef4444 !important; }
 .site-maintenance-banner { margin: 0 0 12px; padding: 10px 13px; border: 1px solid rgba(239,68,68,0.45); background: rgba(239,68,68,0.08); border-radius: 12px; color: #ef4444; font-size: 12px; font-weight: 700; line-height: 1.6; }
+
+/* =====================================================================
+   P-105 — maintenance polish: denser account strip, badge art, coin shop,
+   achievement grid readability, soft surfaces
+   ===================================================================== */
+/* P-105 — maintenance polish */
+.ach-badge-art {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto 6px;
+  filter: drop-shadow(0 4px 10px rgba(108, 92, 231, 0.25));
+}
+.ach-item .emoji {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+}
+.ach-item.locked {
+  opacity: 0.55;
+  filter: grayscale(0.35);
+}
+.ach-item.ready {
+  box-shadow: 0 0 0 1px rgba(162, 155, 254, 0.45), 0 8px 24px rgba(108, 92, 231, 0.18);
+}
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 12px;
+}
+@media (min-width: 720px) {
+  .ach-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+.account-achievement-strip {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.08), rgba(37, 99, 235, 0.05));
+}
+.install-popup-card header h2 {
+  letter-spacing: -0.02em;
+}
+.install-perm-row {
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.install-perm-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+html.light .install-perm-row:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+.team-dash-section {
+  scroll-margin-top: 72px;
+}
+#sql-health-out, #finance-desk-out {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  background: rgba(0, 0, 0, 0.22);
+}
+html.light #sql-health-out,
+html.light #finance-desk-out {
+  background: rgba(0, 0, 0, 0.04);
+}
+/* Product sites — slightly calmer page rhythm */
+
+
+/* P-106 — engagement leaderboard + ad support polish */
+.leaderboard-card { max-width: 440px; }
+.leaderboard-you {
+  margin: 10px 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(162, 155, 254, 0.35);
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.16), rgba(37, 99, 235, 0.08));
+  font-size: 13px;
+}
+.leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  max-height: 360px;
+  overflow: auto;
+}
+.leaderboard-list li {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+}
+.leaderboard-list li.is-you {
+  border-color: rgba(162, 155, 254, 0.55);
+  box-shadow: 0 0 0 1px rgba(108, 92, 231, 0.25);
+  background: rgba(108, 92, 231, 0.12);
+  font-weight: 700;
+}
+.leaderboard-list .lb-rank { color: var(--accent); font-weight: 850; }
+.leaderboard-list .lb-score { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.paragon-ad-slot {
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+[data-paragon-ad][role="button"]:hover .paragon-ad-slot,
+[data-paragon-ad][role="button"]:focus-visible .paragon-ad-slot {
+  border-color: rgba(162, 155, 254, 0.55);
+  color: var(--text-dim);
+  background: rgba(108, 92, 231, 0.08);
+}
+
+
+/* P-107 — OPay / Moniepoint pay rails in coin shop */
+.coin-rails-grid { display: grid; gap: 8px; margin-top: 8px; }
+@media (min-width: 520px) { .coin-rails-grid { grid-template-columns: 1fr 1fr; } }
+.coin-rail-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  background: rgba(45, 212, 191, 0.06);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.coin-rail-number {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+  color: var(--text);
+}
+
+
+/* P-109 — Stage 2 coin shop intents + history */
+.coin-intent-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 12px;
+}
+.coin-claim-btn { padding: 6px 10px; font-size: 11px; }
+.coin-stage2-block h4 { font-size: 13px; letter-spacing: 0.02em; }
+.coin-history-list li { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
