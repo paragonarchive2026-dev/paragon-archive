@@ -10,34 +10,53 @@
 **Project ref:** `qnylhlyyzpwlfftiygcn`  
 **Where:** Supabase Dashboard → **SQL** → New query → paste file → **Run**
 
-> Sandbox cannot reach Supabase DNS. After running, paste VERIFY results from `OWNER-SQL-CHECKLIST.md`.
+## Confirm what is live
 
-## Status board
+### A) From your browser (recommended)
+1. Open **Team desk → Settings** (or the desk section **Backend SQL health**).
+2. Click **Probe SQL health now**.
+3. ✅ / ❌ lines show which tables and RPCs exist.
 
-| # | File | Action |
-|---|------|--------|
+### B) From SQL Editor
+Paste VERIFY from `OWNER-SQL-CHECKLIST.md`.
+
+### C) From this coding sandbox
+**Usually fails** with `Name or service not known` (no DNS to `*.supabase.co`). Do not treat sandbox failure as “SQL not run.”
+
+---
+
+## Run order
+
+| # | File | Purpose |
+|---|------|---------|
 | 0 | `schema.sql` | **DO NOT RE-RUN** (live 2026-08-18) |
-| 1 | `announcements-schema.sql` | Run if announcements missing |
-| 2 | `coins-schema.sql` | Run if wallets/RPCs missing |
-| 3 | `coins-master-phase1.sql` | Run if accounts/flags/settings missing |
-| 4 | `coins-master-phase2.sql` | **NEW P-102** — authority RPCs (post entry, payment intents, withdrawals lock/settle, admin adjust) |
+| 1 | `announcements-schema.sql` | Announcements + team members |
+| 2 | `coins-schema.sql` | Wallets, legacy ledger, purchase RPCs |
+| 3 | `coins-master-phase1.sql` | Multi-bucket accounts, flags, economy, intents |
+| 4 | `coins-master-phase2.sql` | Authority RPCs (post, lock, confirm, withdraw) |
+| 5 | `coins-master-phase3.sql` | Matches, webhook inbox, provider settings, `paragon_sql_health` |
 
-**VERIFY first** — see `OWNER-SQL-CHECKLIST.md`.
+Skip any step whose objects already show ✅ on the probe.
 
-## Economics (honest)
+## Phase 3 Edge (after SQL #5)
+
+See `supabase/functions/COINS-PHASE3-DEPLOY.md`:
+
+- `coin-payment-webhook` — Paystack / Flutterwave / manual bank relay
+- `coin-reconcile` — health, open intents, manual match
+
+Secrets: `PARAGON_COIN_WEBHOOK_SECRET`, optional `PAYSTACK_SECRET_KEY` / `FLUTTERWAVE_SECRET_KEY`.
+
+## Economics
 
 | Rule | Value |
 |------|-------|
-| Redeemable | 1 coin = ₦1 |
+| 1 coin | ₦1 redeemable target |
 | Packs | ₦500 / ₦1,000 / ₦5,000 |
 | Min withdraw | 500 coins |
-| Fee | 50 coins if ≥ 10,000 coins |
-| Real-money | **OFF** until `paragon_feature_flags.real_money_enabled = true` |
+| Fee | 50 coins if ≥ 10,000 |
+| `real_money_enabled` | **false** until you flip it |
 
-## Phase 2 RPCs (after #4)
+## Still not SQL
 
-User: `paragon_coin_create_payment_intent`, `paragon_coin_claim_payment`, `paragon_coin_request_withdrawal`, `paragon_coin_my_account`, `paragon_coin_my_ledger`, `paragon_coin_lock_stake`  
-Team: `paragon_coin_confirm_payment_intent`, `paragon_coin_complete_withdrawal_v2`, `paragon_coin_reject_withdrawal_v2`, `paragon_coin_admin_adjust`  
-Public: `paragon_public_coin_config`
-
-Payment **provider webhooks** are still owner Phase 3 (not SQL).
+Brevo SMTP, production domain, gaming licence/KYC, provider account signup.

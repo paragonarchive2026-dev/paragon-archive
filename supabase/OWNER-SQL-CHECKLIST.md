@@ -37,6 +37,10 @@ select 'paragon_coin_config' as object,
   to_regclass('public.paragon_coin_config') is not null as exists;
 select 'paragon_economic_settings' as object,
   to_regclass('public.paragon_economic_settings') is not null as exists;
+select 'paragon_payment_matches' as object,
+  to_regclass('public.paragon_payment_matches') is not null as exists;
+select 'paragon_payment_webhook_inbox' as object,
+  to_regclass('public.paragon_payment_webhook_inbox') is not null as exists;
 select 'paragon_feature_flags' as object,
   to_regclass('public.paragon_feature_flags') is not null as exists;
 select 'paragon_coin_post_entry_fn' as object,
@@ -130,3 +134,14 @@ Already executed live 2026-08-18. File is an archive reference.
 - Free play works without any of the coin SQL.  
 - **Redeemable / real naira** stays **OFF** until `paragon_feature_flags.real_money_enabled = true` **and** payment provider + licence path are ready.  
 - LocalStorage coin UI is a **display / offline prototype** until the ledger is the authority (master spec §2).
+
+
+### 5. Coins Phase 3 — provider + health (if `paragon_payment_matches` / `paragon_sql_health` missing)
+**File:** `supabase/coins-master-phase3.sql`  
+**Action:** paste entire file → Run  
+**Adds:** payment matches, webhook inbox, provider settings, `paragon_coin_match_and_confirm`, `paragon_coin_ingest_payment_event`, **`paragon_sql_health()`** (Team desk probe).
+
+**Then:** deploy Edge functions per `supabase/functions/COINS-PHASE3-DEPLOY.md`.
+
+### Browser probe (easiest confirm)
+Team desk → **Probe SQL health now** → paste the pre block back to the agent if you want confirmation logged.

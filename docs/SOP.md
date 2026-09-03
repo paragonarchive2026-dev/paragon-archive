@@ -506,6 +506,8 @@ Use the applicable subset for each change:
 | D-216 | 2026-09-03 | Skill complete = all browser-capable engines; native/server rows stay honest not-faked. | Free build law. | Confirmed |
 | D-217 | 2026-09-03 | Coins Phase 2 = ledger RPCs + FE gates; provider webhooks deferred to owner Phase 3. | Master spec. | Confirmed |
 | D-218 | 2026-09-03 | buildProgress 80–92 after depth; 100 only after owner demo. | Site Build Kit. | Confirmed |
+| D-219 | 2026-09-03 | Sandbox cannot DNS-resolve Supabase; Team desk probe / Dashboard is SQL truth. | Network limit. | Confirmed |
+| D-220 | 2026-09-03 | Phase 3 webhooks provider-agnostic; secrets only in Edge; real_money stays gated. | Master §44–46. | Confirmed |
 | D-205 | 2026-08-26 | PARAGON COINS CORE: balance in personal state, Account coin stat + styled shop popup (₦500/₦1,000/₦5,000 packs at placeholder ₦1=2), buy requests -> Team settings panel (super-admin approve/reject) -> paragonArchive.coinCredits.v1 mirror -> user's device credits with a toast; addCoins/spendCoins helpers + history. Full economics + games/quiz integration rules + the owner's ChatGPT heads-up prompt recorded in docs/COIN-SYSTEM.md (creator-quiz no-win rule, bet-only leaderboards, weekly top-10 rewards, withdrawal flow). | Owner's P-098 coin order. | Confirmed |
 | D-204 | 2026-08-26 | SITE SPECS FROM OWNER SKILLS: all 9 uploaded skill files (recipe-creator, meal-planner, file-converter, invoice-generator, flashcard-generator, personal-shopper, photo-editor, resume-maker, travel-assistant) merged into docs/site-specs/<slug>.md — verbatim use/never-use rules + the FREE adaptation law (vanilla HTML/CSS/JS + localStorage engines replacing the skills' full-stack/API/React architecture; adapters ready for free APIs). Websites build in-project under /sites/<slug>/ in the quiz layout family. | Owner's P-098 skill uploads. | Confirmed |
 | D-203 | 2026-08-26 | RxLife Network + Pharmapaedia added to the catalogue as honest Deployed-family Paragon products (0% build, preview route, no fake progress; AI Brain rows added). | Owner's P-098 order. | Confirmed |
@@ -2632,3 +2634,9 @@ Use the applicable subset for each change:
 - D-218: buildProgress may rise into the 80–92 band after depth passes; 100 only after owner demo per Site Build Kit.
 
 **Delivered:** product depth P-102, coins-master-phase2.sql, FE coin authority path, cache v79, EOP v0.96.0.
+
+### P-103 — 2026-09-03 — Coins Phase 3 + live SQL confirmation path
+
+**D-219:** Sandbox DNS cannot reach Supabase; owner browser Team probe / Dashboard VERIFY is source of truth for “SQL ran”.
+**D-220:** Phase 3 = provider-agnostic webhook + reconcile; never credit from client-only claims.
+**Delivered:** phase3 SQL, Edge pair, Team probe, deploy doc, cache v80, EOP v0.97.0.

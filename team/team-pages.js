@@ -4644,7 +4644,7 @@ if (paragonTeamPage() === "settings.html") {
     host.innerHTML = list.length ? list.map(function (request) {
       return '<article class="team-site-row ' + (request.status === "paid" ? "st-live" : request.status === "rejected" ? "st-archived" : "st-review") + '">' +
         '<div class="team-site-copy">' +
-          '<div class="team-site-title"><strong>' + escapeHTML(request.displayName || request.user) + '</strong><span class="team-site-badge ' + (request.status === "paid" ? "st-live" : "st-review") + '">' + (request.status === "paid" ? "✅ PAID" : request.status === "rejected" ? "❌ REJECTED" : "🟡 PENDING") + '</span><span class="team-site-cat">' + Number(request.coins || 0).toLocaleString() + ' coins → ~₦' + Number(request.naira || 0).toLocaleString() + '</span></div>' +
+          '<div class="team-site-title"><strong>' + escapeHTML(request.displayName || request.user) + '</strong><span class="team-site-badge ' + (request.status === "paid" ? "st-live" : "st-review") + '">' + (request.status === "paid" ? "✅ PAID" : request.status === "rejected" ? "❌ REJECTED" : "🟡 PENDING") + '</span><span class="team-site-cat">' + Number(request.coins || 0).toLocaleString() + ' coins to ~₦' + Number(request.naira || 0).toLocaleString() + '</span></div>' +
           '<div class="team-site-sub">' + escapeHTML(request.user || "—") + ' · ' + escapeHTML(request.createdAt || "—") + '</div>' +
           '<div class="team-site-sub">Payout details: ' + escapeHTML(request.bank || "—") + '</div>' +
         '</div>' +
@@ -4654,6 +4654,66 @@ if (paragonTeamPage() === "settings.html") {
       '</article>';
     }).join("") : '<p class="team-site-sub">No withdrawal requests yet — real zero.</p>';
   }
+
+  function bindSqlHealthProbe() {
+    var btn = document.getElementById("probe-sql-health");
+    var out = document.getElementById("sql-health-out");
+    if (!btn || !out) return;
+    btn.addEventListener("click", function () {
+      out.textContent = "Probing…";
+      var cfg = window.ParagonConfig || {};
+      var base = String(cfg.supabaseUrl || "").replace(/\/$/, "");
+      var key = cfg.supabaseAnonKey || "";
+      if (!base || !key || typeof fetch !== "function") {
+        out.textContent = "Missing ParagonConfig supabaseUrl/anon key.";
+        return;
+      }
+      fetch(base + "/rest/v1/rpc/paragon_sql_health", {
+        method: "POST",
+        headers: {
+          apikey: key,
+          Authorization: "Bearer " + key,
+          "Content-Type": "application/json"
+        },
+        body: "{}"
+      }).then(function (r) {
+        return r.text().then(function (text) {
+          var data = null;
+          try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
+          if (!r.ok) {
+            throw new Error((data && data.message) || (data && data.hint) || ("HTTP " + r.status + " — " + String(text).slice(0, 200)));
+          }
+          return data;
+        });
+      }).then(function (data) {
+        var lines = ["SQL health @ " + new Date().toISOString(), ""];
+        if (!data || typeof data !== "object") {
+          out.textContent = "Unexpected response: " + JSON.stringify(data);
+          return;
+        }
+        Object.keys(data).sort().forEach(function (k) {
+          if (k === "flags") {
+            lines.push("flags: " + JSON.stringify(data.flags));
+            return;
+          }
+          var v = data[k];
+          var mark = v === true ? "✅" : v === false ? "❌" : "·";
+          lines.push(mark + " " + k + " = " + JSON.stringify(v));
+        });
+        lines.push("");
+        lines.push("Legend: ✅ table/RPC exists · ❌ missing (run SQL pack) · flags show real_money_enabled etc.");
+        out.textContent = lines.join("\n");
+        try { showToast("SQL health probe finished."); } catch (e) {}
+      }).catch(function (err) {
+        var msg = String(err && err.message || err);
+        out.textContent = "Probe failed: " + msg +
+          "\n\nIf this says could not find function paragon_sql_health → run supabase/coins-master-phase3.sql" +
+          "\nIf network/CORS error → check project URL and that the RPC is granted to anon." +
+          "\nSandbox agents may fail DNS; your browser on a normal network should work.";
+      });
+    });
+  }
+
   function bindCoinRequests() {
     var host = document.getElementById("coin-requests-list");
     if (!host) return;
@@ -4820,6 +4880,7 @@ if (paragonTeamPage() === "settings.html") {
     document.addEventListener("DOMContentLoaded", function () {
     bindCoinRequests();
     bindCoinWithdrawals();
+  bindSqlHealthProbe();
       if (!document.getElementById("set-flags")) return;
       var settings = readSettings();
       document.getElementById("set-idle").value = settings.sessionIdleMinutes;

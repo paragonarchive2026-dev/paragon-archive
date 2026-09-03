@@ -1021,6 +1021,16 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   <div class="team-page-head">
     <h1 class="team-page-title">⚙️ SETTINGS <span class="team-role-chip">🔒 Super Admin only</span></h1>
 
+  <!-- P-103 — SQL health probe (anon RPC paragon_sql_health when phase3 live) -->
+  <section class="team-dash-section" id="sql-health-section">
+    <h2 class="team-section-title">🩺 Backend SQL health</h2>
+    <p class="team-site-sub">This browser calls your live Supabase project. The coding sandbox often cannot (DNS). Use this to confirm which coin/announcement migrations exist.</p>
+    <div class="team-site-actions" style="margin-bottom:10px">
+      <button type="button" class="team-mini-link" id="probe-sql-health">Probe SQL health now</button>
+    </div>
+    <pre id="sql-health-out" class="team-site-sub" style="white-space:pre-wrap;max-height:280px;overflow:auto;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">Not probed yet.</pre>
+  </section>
+
   <!-- P-098/P-100 — super-admin coin purchase + withdrawal approvals -->
   <section class="team-dash-section" id="coin-requests-section">
     <h2 class="team-dash-heading">🪙 COIN PURCHASE REQUESTS (super-admin)</h2>

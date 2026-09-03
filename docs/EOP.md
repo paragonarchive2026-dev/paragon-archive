@@ -5486,3 +5486,18 @@ Owner has a clear SQL VERIFY + run order. Financial engine foundation matches th
 ### Remaining owner actions
 - Run VERIFY + SQL order 1→4 in OWNER-SQL-CHECKLIST / SQL-RUN-PACK.
 - Choose payment provider before enabling real_money.
+
+## v0.97.0 — 2026-09-03 — Coins Phase 3 + SQL health probe (P-103)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Authored `coins-master-phase3.sql` (matches, webhook inbox, provider settings, ingest/match RPCs, `paragon_sql_health`).
+2. Edge functions `coin-payment-webhook` + `coin-reconcile` + deploy guide (provider-agnostic; secrets in Edge only).
+3. Team desk **Probe SQL health now** so owner browser can confirm live SQL (sandbox DNS still blocked).
+4. Re-probed Supabase from sandbox: still `Name or service not known` — cannot auto-confirm runs from agent network.
+
+### Owner
+- Run SQL 1→5 as needed; click Probe; paste results.
+- Deploy Edge + set `PARAGON_COIN_WEBHOOK_SECRET` before real provider traffic.
+- Keep `real_money_enabled=false` until ready.

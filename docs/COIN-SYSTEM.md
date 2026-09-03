@@ -53,6 +53,12 @@
 > fairness disclaimers for a skill-based (not luck-based) coin system in Nigeria. Keep
 > everything free-to-play friendly: no user ever needs to pay to enjoy the platform.
 
+## Phase 3 provider path (P-103)
+- SQL: `coins-master-phase3.sql` — matches, webhook inbox, provider settings, `paragon_sql_health`.
+- Edge: `coin-payment-webhook`, `coin-reconcile` (secrets only in Supabase).
+- Team desk: **Probe SQL health now** confirms live objects from *your* browser.
+- Auto-match only when exactly one open intent shares the paid naira amount; else needs_review.
+
 ## Phase 2 authority (P-102)
 - SQL: `supabase/coins-master-phase2.sql` — `paragon_coin_post_entry`, payment intents, withdrawal lock/settle, admin adjust.
 - FE: registered users only for buy/withdraw; attempts RPCs then falls back to team desk queue.

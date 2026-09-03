@@ -3269,7 +3269,8 @@ window.openCoinShop = function() {
         <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Bank details</label>
         <textarea id="coin-withdraw-bank" rows="2" placeholder="Bank · Account name · Account number" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit"></textarea>
         <button type="button" class="secondary-action" onclick="requestCoinWithdrawal()">Request withdrawal</button>
-        <small class="install-popup-note" style="display:block;margin-top:8px;">Redeemable target ₦${cfg.nairaPerCoinOut}/coin; fee ${cfg.feeCoins} coins if ≥ ${cfg.feeAt.toLocaleString()} coins. Server ledger is authority when SQL Phase 2 is live.</small>
+        <small class="install-popup-note" style="display:block;margin-top:8px;">Redeemable target ₦${cfg.nairaPerCoinOut}/coin; fee ${cfg.feeCoins} coins if ≥ ${cfg.feeAt.toLocaleString()} coins. Server ledger is authority when SQL Phase 2+ is live.</small>
+        ${((window.ParagonCoinPublicConfig||{}).provider||{}).bank_transfer_instructions ? `<div class="install-popup-note" style="margin-top:10px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.08)"><b>How to pay</b><br>${String(((window.ParagonCoinPublicConfig||{}).provider||{}).bank_transfer_instructions).replace(/[<>]/g,"")}</div>` : `<div class="install-popup-note" style="margin-top:10px">Pay by bank transfer using details the team shares after you request. Coins credit only after confirmation — never from this click alone.</div>`}
       </div>
       <div style="margin-top:8px"><b>Recent (this device)</b><ul style="margin:8px 0 0 18px;padding:0;font-size:13px">${history}</ul></div>
       <div class="install-popup-actions">
