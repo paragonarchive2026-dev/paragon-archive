@@ -948,9 +948,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderStaffPicks();
   renderRecentlyAdded();
   renderUpdates();
-  fetchLiveAnnouncements(); // P-094
+  fetchLiveAnnouncements(); // P-094 — pull managed announcements from the live backend (silent, cached fallback)
   fetchPublicCoinConfig(); // P-101 — silent; applies economy when SQL phase1b is live
- — pull managed announcements from the live backend (silent, cached fallback)
   renderAccount();
   bindNav();
   bindUpdateFilters();
