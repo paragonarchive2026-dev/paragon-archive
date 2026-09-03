@@ -1058,8 +1058,19 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   </section>
 
   <!-- P-098/P-100 — super-admin coin purchase + withdrawal approvals -->
+  <section class="team-dash-section" id="stage2-reconcile-section">
+    <h2 class="team-section-title">🪙 Stage 2 — Purchase reconcile (server)</h2>
+    <p class="team-site-sub">Open payment intents from Supabase. <strong>Confirm credit</strong> runs <code>paragon_coin_confirm_payment_intent</code> (ledger + available balance). Match event links a provider row first. Device mirrors are fallback only.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="stage2-reconcile-refresh">Refresh open intents</button>
+    </div>
+    <div id="stage2-reconcile-list" class="team-site-list"></div>
+    <pre id="stage2-reconcile-events" class="team-site-sub" style="white-space:pre-wrap;max-height:160px;overflow:auto;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:10px;margin-top:10px">Unmatched events appear after refresh (phase3+).</pre>
+  </section>
+
   <section class="team-dash-section" id="coin-requests-section">
-    <h2 class="team-dash-heading">🪙 COIN PURCHASE REQUESTS (super-admin)</h2>
+    <h2 class="team-dash-heading">🪙 COIN PURCHASE REQUESTS (device mirror fallback)</h2>
+    <p class="team-site-sub">Legacy same-device queue. Prefer Stage 2 server reconcile above when SQL is live.</p>
     <div id="coin-requests-list" class="team-site-list"></div>
   </section>
   <section class="team-dash-section" id="coin-withdrawals-section">

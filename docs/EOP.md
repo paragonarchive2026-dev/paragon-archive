@@ -5564,3 +5564,13 @@ Paste Script A from `supabase/SUPABASE-AI-VERIFY-PROMPT.md` results into chat.
 
 ### Owner
 Run SQL including `coins-master-stage1-hardening.sql`. Paste **Stage 2** when ready.
+
+## v1.03.0 — 2026-09-03 — Stage 2 coin system wire-up (P-109)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Audited Stage 2 list — core SQL already in phase2–3; filled FE/Team + wallet view RPCs.
+2. Purchase request → claim → team confirm credit path end-to-end in UI.
+3. Transaction history from server ledger; locked/available/pending/restricted shown.
+4. real_money remains OFF; request click never credits.

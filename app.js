@@ -3323,16 +3323,78 @@ function supabaseRest(path, options) {
 
 function refreshCoinAccountFromServer() {
   if (!isRegisteredMember()) return Promise.resolve(null);
-  return supabaseRest("/rest/v1/rpc/paragon_coin_my_account", { method: "POST", body: "{}" })
-    .then(account => {
-      if (!account) return null;
-      accountProfile.coinAccount = account;
-      accountProfile.coinBalance = Math.max(0, Math.round(Number(account.available_coins) || 0));
-      persistPersonalState();
-      return account;
-    })
-    .catch(() => null);
+  /* Stage 2: prefer wallet view (account + ledger + intents); fall back to my_account */
+  return supabaseRest("/rest/v1/rpc/paragon_coin_my_wallet_view", {
+    method: "POST",
+    body: JSON.stringify({ p_ledger_limit: 40 })
+  }).then(view => {
+    if (!view || !view.account) {
+      return supabaseRest("/rest/v1/rpc/paragon_coin_my_account", { method: "POST", body: "{}" })
+        .then(account => {
+          if (!account) return null;
+          accountProfile.coinAccount = account;
+          accountProfile.coinBalance = Math.max(0, Math.round(Number(account.available_coins) || 0));
+          persistPersonalState();
+          return account;
+        });
+    }
+    accountProfile.coinAccount = view.account;
+    accountProfile.coinBalance = Math.max(0, Math.round(Number(view.available_coins) || 0));
+    accountProfile.serverLedger = Array.isArray(view.ledger) ? view.ledger : [];
+    accountProfile.paymentIntents = Array.isArray(view.payment_intents) ? view.payment_intents : [];
+    /* Merge server ledger into display history (server wins) */
+    accountProfile.coinHistory = (accountProfile.serverLedger || []).map(row => ({
+      at: row.created_at,
+      amount: Number(row.amount) || 0,
+      reason: String(row.entry_type || "ledger") + (row.reference_type ? " · " + row.reference_type : ""),
+      source: "server",
+      bucket: row.bucket,
+      idempotency_key: row.idempotency_key || null
+    })).concat(
+      (accountProfile.coinHistory || []).filter(h => h.source === "local")
+    ).slice(0, 60);
+    persistPersonalState();
+    return view;
+  }).catch(() =>
+    supabaseRest("/rest/v1/rpc/paragon_coin_my_account", { method: "POST", body: "{}" })
+      .then(account => {
+        if (!account) return null;
+        accountProfile.coinAccount = account;
+        accountProfile.coinBalance = Math.max(0, Math.round(Number(account.available_coins) || 0));
+        persistPersonalState();
+        return account;
+      })
+      .catch(() => null)
+  );
 }
+
+window.claimCoinPayment = function(intentId) {
+  if (!isRegisteredMember()) {
+    showToast("Sign in to claim a payment.", "warning");
+    return;
+  }
+  if (!intentId) { showToast("Missing purchase request id.", "warning"); return; }
+  const ref = window.prompt("OPay/Moniepoint receipt or transfer reference", "") || "";
+  if (ref.trim().length < 3) {
+    showToast("Enter a real transfer reference (min 3 characters).", "warning");
+    return;
+  }
+  supabaseRest("/rest/v1/rpc/paragon_coin_claim_payment", {
+    method: "POST",
+    body: JSON.stringify({
+      p_intent_id: intentId,
+      p_claim_ref: ref.trim().slice(0, 200),
+      p_claim_note: "User claimed transfer from coin shop"
+    })
+  }).then(() => {
+    showToast("Claim recorded — coins credit only after team/provider confirms. Not credited yet.");
+    refreshCoinAccountFromServer().finally(() => openCoinShop());
+  }).catch(err => {
+    const msg = String(err?.message || err || "");
+    if (/limit/i.test(msg)) showToast("Claim limit: max 5 payment claims per 24 hours.", "warning");
+    else showToast("Claim failed — run Stage 2 SQL or try again. " + msg.slice(0, 120), "warning");
+  });
+};
 
 window.requestCoinPurchase = function(nairaAmount) {
   const cfg = coinConfigFlags();
@@ -3359,13 +3421,23 @@ window.requestCoinPurchase = function(nairaAmount) {
         user: authUser.email,
         displayName: accountProfile.displayName || authUser.email,
         naira, coins,
-        status: "pending",
+        status: intent?.status || "awaiting_transfer",
         backend: true,
         createdAt: new Date().toISOString()
       });
       window.localStorage.setItem("paragonTeamCoinRequests.v1", JSON.stringify(list));
     } catch (_) {}
-    showToast(`Request recorded — ${coins.toLocaleString()} coins after team confirms your ₦${naira.toLocaleString()} transfer. Not credited yet.`);
+    if (intent?.id) {
+      accountProfile.paymentIntents = [
+        { id: intent.id, naira, coins, status: intent.status || "awaiting_transfer", created_at: new Date().toISOString() },
+        ...(accountProfile.paymentIntents || [])
+      ].slice(0, 15);
+      persistPersonalState();
+    }
+    showToast(`Purchase request recorded — ${coins.toLocaleString()} coins after confirm of ₦${naira.toLocaleString()}. Not credited yet. Claim with your OPay/Moniepoint receipt when paid.`);
+    refreshCoinAccountFromServer().finally(() => {
+      try { openCoinShop(); } catch (_) {}
+    });
   }).catch(() => {
     try {
       const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");
@@ -3523,11 +3595,22 @@ window.openCoinShop = function() {
     document.getElementById("coin-shop-overlay")?.remove();
     const cfg = coinConfigFlags();
     const buckets = coinBalanceBuckets();
-    const history = (accountProfile.coinHistory || []).slice(0, 8).map(entry => {
+    const history = (accountProfile.coinHistory || []).slice(0, 12).map(entry => {
       const sign = Number(entry.amount) >= 0 ? "+" : "";
       const when = entry.at ? new Date(entry.at).toLocaleString() : "";
-      return `<li><b>${sign}${Number(entry.amount).toLocaleString()}</b> · ${String(entry.reason || "").replace(/[<>]/g, "")} <small>${when}</small></li>`;
-    }).join("") || "<li><small>No movements yet — balance starts at real zero.</small></li>";
+      const src = entry.source === "server" ? "server" : "local";
+      const buck = entry.bucket ? ` · ${entry.bucket}` : "";
+      return `<li><b>${sign}${Number(entry.amount).toLocaleString()}</b> · ${String(entry.reason || "").replace(/[<>]/g, "")} <small>${when}${buck} · ${src}</small></li>`;
+    }).join("") || "<li><small>No movements yet — balance starts at real zero. Server ledger appears after SQL Stage 2.</small></li>";
+    const intents = (accountProfile.paymentIntents || []).slice(0, 8).map(intent => {
+      const st = String(intent.status || "pending");
+      const claimable = ["awaiting_transfer", "created", "claimed"].includes(st);
+      const id = String(intent.id || "").replace(/'/g, "");
+      return `<li class="coin-intent-row">
+        <span>₦${Number(intent.naira || 0).toLocaleString()} to ${Number(intent.coins || 0).toLocaleString()}c · <b>${st.replace(/[<>]/g, "")}</b></span>
+        ${claimable && id ? `<button type="button" class="secondary-action coin-claim-btn" onclick="claimCoinPayment('${id}')">I paid — claim</button>` : ""}
+      </li>`;
+    }).join("") || "<li><small>No purchase requests yet. Pick a pack below — request never auto-credits.</small></li>";
     const packs = cfg.packs.map(p => {
       const naira = Number(p.naira) || 0;
       const coins = Number(p.coins) || Math.round(naira * cfg.nairaPerCoinBuy);
@@ -3540,9 +3623,11 @@ window.openCoinShop = function() {
     <div class="install-popup-card" style="width:min(560px,96vw);max-height:90vh;overflow:auto;" role="dialog" aria-modal="true">
       <header><h2>🪙 Paragon Coins</h2>
         <p>Free-to-play always works. <b>Real-money mode is ${cfg.realMoney ? "ON" : "OFF"}</b>${cfg.pause ? " · FINANCIAL PAUSE" : ""}.
-        Guests cannot buy or withdraw. Available: <b>${buckets.available.toLocaleString()}</b>
-        ${buckets.locked ? ` · locked ${buckets.locked.toLocaleString()}` : ""}
-        ${buckets.pending ? ` · pending ${buckets.pending.toLocaleString()}` : ""}
+        Available <b>${buckets.available.toLocaleString()}</b>
+        · locked <b>${buckets.locked.toLocaleString()}</b>
+        · pending <b>${buckets.pending.toLocaleString()}</b>
+        · restricted <b>${buckets.restricted.toLocaleString()}</b>
+        <br><small>Server ledger is authority when SQL is live. localStorage is display cache only. Guests: free-play — no buy/withdraw.</small>
         </p>
       </header>
       <div class="install-perm-list">
@@ -3562,6 +3647,13 @@ window.openCoinShop = function() {
         <button type="button" class="secondary-action" onclick="requestCoinWithdrawal()">Request withdrawal</button>
         <small class="install-popup-note" style="display:block;margin-top:8px;">Redeemable target ₦${cfg.nairaPerCoinOut}/coin; fee ${cfg.feeCoins} coins if ≥ ${cfg.feeAt.toLocaleString()} coins. Server ledger is authority when SQL Phase 2+ is live.</small>
 ${opayMoniepointPayMarkup()}
+        <div class="coin-stage2-block">
+          <h4 style="margin:14px 0 6px">Purchase requests</h4>
+          <ul class="coin-intents-list" style="list-style:none;padding:0;margin:0;display:grid;gap:6px">${intents}</ul>
+          <h4 style="margin:14px 0 6px">Transaction history</h4>
+          <ul class="coin-history-list" style="list-style:none;padding:0;margin:0;display:grid;gap:4px;max-height:180px;overflow:auto;font-size:12px">${history}</ul>
+          <p class="install-popup-note" style="margin-top:8px">Credits post only after team/provider confirmation (idempotent). Duplicate provider references are rejected. Request click never mints coins.</p>
+        </div>
       </div>
       <div style="margin-top:8px"><b>Recent (this device)</b><ul style="margin:8px 0 0 18px;padding:0;font-size:13px">${history}</ul></div>
       <div class="install-popup-actions">

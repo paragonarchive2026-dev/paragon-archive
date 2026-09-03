@@ -92,3 +92,19 @@ coins-master-phase5.sql             ← OPay/Moniepoint
 - Gaming licence / legal pack (🔒 you only)
 
 **After you accept Stage 1, paste Stage 2** and we only build what is still open.
+
+---
+
+## Stage 2 — Coin system (P-109)
+
+| Item | Status |
+|------|--------|
+| Purchase requests | ✅ create intent RPC + FE request + my intents list + claim |
+| Payment reconciliation architecture | ✅ match/confirm + Team Stage 2 reconcile desk + webhook ingest |
+| Coin credits | ✅ only via confirm/match → PURCHASE_CREDIT ledger (never on request click) |
+| Transaction history | ✅ server ledger via `paragon_coin_my_wallet_view` + shop history |
+| Locked/available balances | ✅ multi-bucket account + shop bucket strip |
+| Idempotency | ✅ intent/ledger keys; confirm key `purchase:<id>` |
+| Duplicate-payment protection | ✅ unique (provider, provider_transaction_id) |
+
+**SQL:** `coins-master-stage2-coin-system.sql` after phase2 (+ stage1-hardening recommended).

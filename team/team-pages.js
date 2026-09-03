@@ -4884,6 +4884,110 @@ if (paragonTeamPage() === "settings.html") {
     });
   }
 
+
+  function bindStage2Reconcile() {
+    var listHost = document.getElementById("stage2-reconcile-list");
+    var eventsOut = document.getElementById("stage2-reconcile-events");
+    var btn = document.getElementById("stage2-reconcile-refresh");
+    if (!listHost || !btn) return;
+
+    function load() {
+      listHost.innerHTML = "<p class='team-site-sub'>Loading open purchase intents…</p>";
+      if (eventsOut) eventsOut.textContent = "Loading unmatched payment events…";
+      Promise.all([
+        financeRest("/rest/v1/rpc/paragon_coin_team_open_intents", {
+          method: "POST",
+          body: JSON.stringify({ p_limit: 50 })
+        }).catch(function (e) { return { error: String(e.message || e) }; }),
+        financeRest("/rest/v1/rpc/paragon_coin_team_unmatched_events", {
+          method: "POST",
+          body: JSON.stringify({ p_limit: 30 })
+        }).catch(function () { return []; })
+      ]).then(function (parts) {
+        var intents = parts[0];
+        var events = parts[1];
+        if (intents && intents.error) {
+          listHost.innerHTML = "<p class='team-site-sub'>Server intents unavailable: " + intents.error +
+            "<br>Run coins-master-stage2-coin-system.sql (after phase2). Falling back to device mirror list below.</p>";
+        } else if (!intents || !intents.length) {
+          listHost.innerHTML = "<p class='team-site-sub'>No open server purchase intents.</p>";
+        } else {
+          listHost.innerHTML = intents.map(function (row) {
+            return "<article class='team-site-card' data-intent-id='" + row.id + "'>" +
+              "<strong>₦" + Number(row.naira || 0).toLocaleString() + " → " + Number(row.coins || 0).toLocaleString() + " coins</strong>" +
+              "<div class='team-site-sub'>" + (row.user_email || "") + " · " + (row.status || "") +
+              (row.user_claim_ref ? " · claim ref: " + row.user_claim_ref : "") + "</div>" +
+              "<div class='team-site-actions' style='margin-top:8px;display:flex;flex-wrap:wrap;gap:6px'>" +
+              "<button type='button' class='team-mini-link' data-s2act='confirm' data-id='" + row.id + "'>Confirm credit (ledger)</button>" +
+              "<button type='button' class='team-mini-link' data-s2act='match' data-id='" + row.id + "'>Match event + confirm</button>" +
+              "</div></article>";
+          }).join("");
+        }
+        if (eventsOut) {
+          if (!events || !events.length) {
+            eventsOut.textContent = "No unmatched payment events (or phase3 tables not live).";
+          } else if (events.error) {
+            eventsOut.textContent = "Events: " + events.error;
+          } else {
+            eventsOut.textContent = events.map(function (ev) {
+              return (ev.provider || "?") + " · " + (ev.provider_transaction_id || "") +
+                " · ₦" + (ev.amount_naira || 0) + " · " + (ev.status || "") + " · id=" + (ev.id || "");
+            }).join("\n");
+          }
+        }
+      });
+    }
+
+    btn.addEventListener("click", load);
+
+    listHost.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-s2act]");
+      if (!button) return;
+      var id = button.dataset.id;
+      if (!id) return;
+      if (button.dataset.s2act === "confirm") {
+        window.ParagonTeamConfirm({
+          icon: "🪙",
+          title: "Confirm purchase credit?",
+          lines: [
+            "Posts PURCHASE_CREDIT to the server ledger (available bucket).",
+            "Idempotent key purchase:<intent id> — safe to retry.",
+            "Only after real OPay/Moniepoint/bank funds received."
+          ],
+          confirmLabel: "Confirm credit"
+        }).then(function (c) {
+          if (!c.ok) return;
+          financeRest("/rest/v1/rpc/paragon_coin_confirm_payment_intent", {
+            method: "POST",
+            body: JSON.stringify({ p_intent_id: id, p_team_note: "Team desk Stage 2 confirm" })
+          }).then(function () {
+            showToast("Credited on server ledger.");
+            load();
+          }).catch(function (e) {
+            showToast("Confirm failed: " + e.message);
+          });
+        });
+      }
+      if (button.dataset.s2act === "match") {
+        var eventId = window.prompt("Payment event UUID to match (from unmatched list), or leave blank to confirm without event", "") || "";
+        financeRest("/rest/v1/rpc/paragon_coin_match_and_confirm", {
+          method: "POST",
+          body: JSON.stringify({
+            p_intent_id: id,
+            p_event_id: eventId.trim() || null,
+            p_match_method: eventId.trim() ? "manual" : "admin_force",
+            p_note: "Stage 2 desk match"
+          })
+        }).then(function () {
+          showToast("Matched and confirmed (if SQL phase3+ live).");
+          load();
+        }).catch(function (e) {
+          showToast("Match failed: " + e.message + " — try Confirm credit alone.");
+        });
+      }
+    });
+  }
+
   function bindCoinRequests() {
     var host = document.getElementById("coin-requests-list");
     if (!host) return;
@@ -4902,8 +5006,22 @@ if (paragonTeamPage() === "settings.html") {
           var mirrors = readJSON("paragonArchive.coinCredits.v1", []);
           mirrors.push({ for: request.user, coins: request.coins, at: request.approvedAt, id: request.id });
           writeJSON("paragonArchive.coinCredits.v1", mirrors);
-          renderCoinRequests();
-          showToast("Approved — the user's balance updates when their device syncs.");
+          /* Stage 2: if id looks like server intent UUID, confirm on ledger too */
+          if (request.backend && request.id && /^[0-9a-f-]{36}$/i.test(String(request.id))) {
+            financeRest("/rest/v1/rpc/paragon_coin_confirm_payment_intent", {
+              method: "POST",
+              body: JSON.stringify({ p_intent_id: request.id, p_team_note: "Mirror desk approve + server confirm" })
+            }).then(function () {
+              showToast("Approved on server ledger + device mirror.");
+              renderCoinRequests();
+            }).catch(function () {
+              showToast("Approved device mirror only — server confirm failed (run Stage 2 SQL).");
+              renderCoinRequests();
+            });
+          } else {
+            renderCoinRequests();
+            showToast("Approved — the user's balance updates when their device syncs (mirror).");
+          }
         });
       }
       if (button.dataset.coinact === "reject") {
@@ -5048,7 +5166,8 @@ if (paragonTeamPage() === "settings.html") {
 
   if (typeof document !== "undefined" && document.addEventListener) {
     document.addEventListener("DOMContentLoaded", function () {
-    bindCoinRequests();
+    bindStage2Reconcile();
+  bindCoinRequests();
     bindCoinWithdrawals();
   bindSqlHealthProbe();
   bindFinanceDesk();

@@ -75,3 +75,9 @@ Secrets: `PARAGON_COIN_WEBHOOK_SECRET`, optional `PAYSTACK_SECRET_KEY` / `FLUTTE
 ## Still not SQL
 
 Brevo SMTP, production domain, gaming licence/KYC, provider account signup.
+
+
+## Stage 2 coin system
+
+After phase2 (+ stage1-hardening): run `coins-master-stage2-coin-system.sql`.
+See `docs/COINS-STAGE2.md`.

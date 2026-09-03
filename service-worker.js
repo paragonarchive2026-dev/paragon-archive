@@ -6,7 +6,7 @@
   RESTORE/LOAD NOTE: Keep at project root so its scope covers all path-based Paragon assets.
 */
 
-const CACHE_NAME = "paragon-archive-v85";
+const CACHE_NAME = "paragon-archive-v86";
 const APP_SHELL = [
   "./paragon-archive.html",
   "./paragon-archive-hub.html",

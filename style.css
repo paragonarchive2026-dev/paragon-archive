@@ -3817,3 +3817,21 @@ html.light #finance-desk-out {
   margin-top: 4px;
   color: var(--text);
 }
+
+
+/* P-109 — Stage 2 coin shop intents + history */
+.coin-intent-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 12px;
+}
+.coin-claim-btn { padding: 6px 10px; font-size: 11px; }
+.coin-stage2-block h4 { font-size: 13px; letter-spacing: 0.02em; }
+.coin-history-list li { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
