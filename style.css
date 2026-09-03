@@ -3795,11 +3795,11 @@ html.light .hub-topbar.legal-topbar { background: rgba(243,242,239,0.85); }
 }
 .ach-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
-@media (min-width: 720px) {
-  .ach-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 380px) {
+  .ach-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 }
 .account-achievement-strip {
   background: linear-gradient(135deg, rgba(108, 92, 231, 0.08), rgba(37, 99, 235, 0.05));
@@ -3918,3 +3918,195 @@ html.light #finance-desk-out {
 .coin-claim-btn { padding: 6px 10px; font-size: 11px; }
 .coin-stage2-block h4 { font-size: 13px; letter-spacing: 0.02em; }
 .coin-history-list li { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+/* =====================================================================
+   P-112 — ACCOUNT STAT BOXES (9 boxes, 3×3) + POPUP PANELS
+   The account body is now: profile head -> boxes -> settings. Every box
+   opens a popup carrying the feature it belongs to; the six classic
+   account sections stay in-DOM as hidden content masters (guest data
+   merges into the account on sign-in, D-union rule).
+   ===================================================================== */
+#account-data-sections { display: none; }
+.account-box-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.account-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  text-align: left;
+  padding: 12px 13px 11px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: linear-gradient(160deg, rgba(255,255,255,0.045), rgba(255,255,255,0.012));
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color .15s ease, transform .15s ease, background .15s ease;
+  min-height: 96px;
+  overflow: hidden;
+}
+.account-box:hover, .account-box:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+}
+.account-box .ab-top { display: flex; align-items: center; gap: 8px; width: 100%; }
+.account-box .ab-icon { font-size: 17px; line-height: 1; }
+.account-box .ab-value {
+  font-size: 19px;
+  font-weight: 850;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+  line-height: 1;
+}
+.account-box .ab-label { font-size: 12.5px; font-weight: 800; color: var(--text); margin-top: 6px; }
+.account-box .ab-hint { font-size: 10px; color: var(--text-faint); line-height: 1.35; opacity: .9; }
+.account-box.ab-featured { border-color: rgba(245,158,11,0.45); background: linear-gradient(160deg, rgba(245,158,11,0.10), rgba(255,255,255,0.015)); }
+.account-box.ab-featured:hover { border-color: rgba(245,158,11,0.8); }
+html.light .account-box { background: linear-gradient(160deg, rgba(0,0,0,0.045), rgba(0,0,0,0.012)); }
+html.light .account-box.ab-featured { background: linear-gradient(160deg, rgba(245,158,11,0.14), rgba(0,0,0,0.02)); }
+
+/* Account-box popup panels */
+.account-box-panel { width: min(640px, 96vw); }
+.account-box-panel .ab-body { padding: 4px 2px 2px; max-height: 62vh; overflow: auto; }
+.ab-panel-note { color: var(--text-faint); font-size: 11px; line-height: 1.5; margin: 10px 2px 4px; }
+
+/* Wallet tabs (Coin box) + Leaderboard hub tabs */
+.wallet-tabbar {
+  display: flex;
+  gap: 8px;
+  padding: 2px 2px 10px;
+  border-bottom: 1px solid var(--border);
+  margin: 2px 0 12px;
+}
+.wallet-tab {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.wallet-tab.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(37,99,235,0.10);
+}
+.wallet-tab small { display: block; font-size: 9.5px; font-weight: 600; opacity: .8; margin-top: 1px; }
+
+/* =====================================================================
+   P-112 — AD SPACES v2: swipeable multi-ad carousel (team + Google)
+   ===================================================================== */
+[data-paragon-ad] { width: 100%; }
+.paragon-ad-frame {
+  position: relative;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.02);
+  margin: 18px auto;
+  overflow: hidden;
+}
+.paragon-ad-viewport { overflow: hidden; }
+.paragon-ad-track {
+  display: flex;
+  transition: transform .38s cubic-bezier(.22,.61,.36,1);
+  will-change: transform;
+}
+.paragon-ad-slide { flex: 0 0 100%; min-width: 100%; }
+.paragon-ad-slot, .paragon-ad-creative, .paragon-ad-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 92px;
+  color: var(--text-faint);
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-align: center;
+  padding: 14px 46px;
+}
+.paragon-ad-creative {
+  flex-direction: column;
+  gap: 5px;
+  letter-spacing: 0;
+  border-radius: 0;
+  cursor: pointer;
+  color: var(--text);
+  text-decoration: none;
+}
+.paragon-ad-creative .ad-copy { font-size: 12.5px; font-weight: 800; letter-spacing: .1px; color: var(--text); }
+.paragon-ad-creative .ad-sub { font-size: 11px; letter-spacing: .2px; color: var(--text-faint); max-width: 520px; line-height: 1.45; }
+.paragon-ad-creative .ad-cta {
+  margin-top: 2px; padding: 5px 14px; border-radius: 999px;
+  background: rgba(37,99,235,0.14); border: 1px solid rgba(37,99,235,0.35);
+  color: var(--accent); font-size: 10.5px; font-weight: 800; letter-spacing: .4px;
+}
+.paragon-ad-creative .ad-tag {
+  position: absolute; top: 6px; left: 10px;
+  font-size: 8.5px; letter-spacing: .8px; text-transform: uppercase;
+  color: var(--text-faint); opacity: .85;
+}
+.paragon-ad-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--border); background: rgba(10,10,14,0.55);
+  color: var(--text); font-size: 14px; line-height: 1;
+  cursor: pointer; display: none; align-items: center; justify-content: center;
+  z-index: 3;
+}
+.paragon-ad-nav.prev { left: 8px; }
+.paragon-ad-nav.next { right: 8px; }
+[data-paragon-ad-multi] .paragon-ad-nav { display: flex; }
+.paragon-ad-dots {
+  position: absolute; bottom: 4px; left: 0; right: 0;
+  display: none; justify-content: center; gap: 5px; padding: 3px;
+}
+[data-paragon-ad-multi] .paragon-ad-dots { display: flex; }
+.paragon-ad-dots button {
+  width: 6px; height: 6px; border-radius: 50%;
+  border: none; background: var(--border-strong); opacity: .7; cursor: pointer; padding: 0;
+}
+.paragon-ad-dots button.active { background: var(--accent); opacity: 1; width: 16px; border-radius: 999px; }
+
+/* P-112 — grouped Updates (per website) */
+.timeline-group-entry .timeline-card { padding: 10px 14px; }
+.tg-head { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.tg-thumb { width: 40px; height: 40px; border-radius: 12px; overflow: hidden; flex: none; background: var(--surface); display: grid; place-items: center; font-size: 22px; }
+.tg-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.tg-title { flex: 1; min-width: 0; }
+.tg-title b { display: block; color: var(--text); font-size: 13.5px; }
+.tg-title small { color: var(--text-faint); font-size: 11px; }
+.tg-count { font-size: 10px; font-weight: 800; color: var(--accent); border: 1px solid rgba(37,99,235,0.35); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.tg-body { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 8px; display: grid; gap: 6px; }
+.tg-row { display: flex; gap: 8px; align-items: baseline; font-size: 12px; color: var(--text-faint); line-height: 1.45; }
+.tg-row b { color: var(--text); font-size: 12px; white-space: nowrap; }
+.tg-row a, .tg-row .tg-open { color: var(--accent); font-weight: 700; cursor: pointer; }
+.timeline-group-entry[open] .tg-chev { transform: rotate(180deg); }
+.tg-chev { transition: transform .15s ease; margin-left: auto; color: var(--text-faint); }
+details.timeline-group-entry summary { list-style: none; }
+details.timeline-group-entry summary::-webkit-details-marker { display: none; }
+
+/* P-112 — grouped Updates feed rows keep the compact one-line rhythm */
+.timeline-group-entry { position: relative; margin-bottom: 16px; scroll-margin-top: 84px; }
+.timeline-group-entry .timeline-dot-left { left: calc(-1 * var(--timeline-gutter)); }
+.timeline-group-entry .timeline-dot-right { right: calc(-1 * var(--timeline-gutter)); }
+.timeline-group-entry .tg-head { flex-wrap: wrap; }
+.timeline-group-entry .tg-head .saved-update-star { flex: none; }
+.timeline-group-entry .tg-body { gap: 9px; }
+.tg-row { min-width: 0; }
+.tg-row .tg-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.tg-row .tg-text b { font-weight: 800; color: var(--text); }
+.tg-row .tg-time { color: var(--text-faint); font-size: 11px; white-space: nowrap; flex: none; }
+.tg-row .update-badge { flex: none; }
+.tg-row .t-image-art { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; flex: none; cursor: zoom-in; }
+.tg-row .timeline-link-pill { flex: none; }

@@ -2201,6 +2201,76 @@ function syncUpdateCategoryOptions(events = buildUpdateEvents()) {
   select.value = activeUpdateCategory;
 }
 
+/* P-112 — the Updates feed is grouped PER WEBSITE so repeated activity for the same
+   site collapses into one compact card (fewer repeated thumbs/headers = shorter feed).
+   Announcements with no website share one "Announcements" group. Each event stays a
+   fully addressable row (same id / data-update-type / viewer hooks as before). */
+function timelineGroupsMarkup(updates) {
+  const byDay = new Map();
+  updates.forEach(update => {
+    const key = localDateKey(update.date);
+    if (!byDay.has(key)) byDay.set(key, []);
+    byDay.get(key).push(update);
+  });
+  const parts = [];
+  for (const dayEvents of byDay.values()) {
+    parts.push(`<div class="divider-date">${updateDateHeading(dayEvents[0].date)}</div>`);
+    const buckets = [];
+    const seen = new Map();
+    for (const update of dayEvents) {
+      const key = update.siteName || "\u0000archive-wide";
+      let bucket = seen.get(key);
+      if (!bucket) { bucket = { siteName: update.siteName, rows: [] }; seen.set(key, bucket); buckets.push(bucket); }
+      bucket.rows.push(update);
+    }
+    for (const bucket of buckets) parts.push(updatesGroupCard(bucket.siteName, bucket.rows));
+  }
+  return parts.join("");
+}
+
+function updatesGroupCard(siteName, rows) {
+  const site = siteName ? sites.find(item => item.name === siteName) : null;
+  const label = siteName || "Announcements";
+  const thumb = rows[0].image
+    ? `<img src="${rows[0].image}" alt="" loading="lazy">`
+    : site ? paragonTile(siteName, 120, 120)
+    : `<span aria-hidden="true">${rows[0].icon || "📣"}</span>`;
+  const isSaved = Boolean(loggedIn && siteName && bookmarkedSites.has(siteName));
+  const first = rows[0];
+  const sub = site ? `${site.category}` : (first.type === "special" ? "Archive-wide announcement" : "Archive-wide update");
+  return `
+    <details class="timeline-group-entry" open>
+      <span class="timeline-dot timeline-dot-left" aria-hidden="true"></span>
+      <span class="timeline-dot timeline-dot-right" aria-hidden="true"></span>
+      <summary class="tg-head">
+        <span class="tg-thumb">${thumb}</span>
+        <span class="tg-title"><b>${escapeHTML(label)}</b><small>${escapeHTML(sub)}</small></span>
+        ${isSaved ? `<span class="saved-update-star" aria-label="Update for one of your saved websites" title="Saved website">★</span>` : ""}
+        <span class="tg-count">${rows.length}</span>
+        <span class="tg-chev">⌄</span>
+      </summary>
+      <div class="tg-body">
+        ${rows.map(updatesGroupRow).join("")}
+      </div>
+    </details>`;
+}
+
+function updatesGroupRow(update) {
+  const definition = updateTypeDefinitions[update.type] || { badgeText: update.type, badgeClass: "badge-neutral" };
+  const canOpen = Boolean(update.siteName && sites.some(site => site.name === update.siteName));
+  const title = update.type === "new" && update.title === update.siteName ? "" : update.title;
+  const lead = title ? `<b>${escapeHTML(title)}</b>${update.desc ? ` · ` : ""}` : "";
+  return `
+    <div class="tg-row" id="${updateElementId(update.id)}" data-update-id="${escapeHTML(update.id)}" data-update-type="${update.type}" tabindex="-1">
+      <span class="update-badge ${definition.badgeClass}">${definition.badgeText}</span>
+      <span class="tg-text">${lead}${escapeHTML(update.desc || "")}</span>
+      <time class="tg-time" datetime="${update.date.toISOString()}">${update.date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</time>
+      ${update.image ? `<img class="t-image-art" src="${update.image}" alt="Announcement image" loading="lazy" style="cursor:zoom-in" onclick="openUpdateImageViewer('${updateElementId(update.id)}')" tabindex="0" role="button" aria-label="View announcement image full size">` : ""}
+      ${canOpen ? `<a class="tg-open" href="#" onclick="openDetail('${escapeHTML(update.siteName)}'); return false;">Open</a>` : ""}
+      ${update.linkUrl ? `<a class="timeline-link-pill" href="${escapeHTML(update.linkUrl)}" target="_blank" rel="noopener noreferrer">Link</a>` : ""}
+    </div>`;
+}
+
 function renderUpdates() {
   const container = document.getElementById("updates-timeline");
   const summary = document.getElementById("updates-filter-summary");
@@ -2234,15 +2304,7 @@ function renderUpdates() {
     if (pagination) pagination.hidden = true;
     return filtered;
   }
-  const groups = new Map();
-  visible.forEach(update => {
-    const key = localDateKey(update.date);
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(update);
-  });
-  container.innerHTML = [...groups.values()].map(group => `
-    <div class="divider-date">${updateDateHeading(group[0].date)}</div>
-    ${group.map(timelineItem).join("")}`).join("");
+  container.innerHTML = timelineGroupsMarkup(visible);
   setupTimelineDisclosures();
   const hasPrevious = updatePageIndex > 0;
   const hasNext = updatePageIndex < totalPages - 1;
@@ -2554,6 +2616,358 @@ function communityMembershipRecord() {
   catch (error) { return null; }
 }
 
+/* =====================================================================
+   P-112 — ACCOUNT BOXES: every stat box opens the feature it belongs to.
+   9 boxes in a 3×3 grid under the profile head; settings follow last.
+   Boxes: Paragon Coins (front) · Recently Visited · Reviews Written ·
+   Saved Websites · Products in Progress · Leaderboard · Achievements ·
+   Collections & Playlists · Coin Shop (buy / sell tabs).
+   The six classic account sections stay in-DOM (hidden) as content
+   masters, so guest -> account sync on sign-in keeps working unchanged.
+   ===================================================================== */
+let walletActiveTab = "buy";
+let accountBoxKind = "";
+
+function closeAccountBox() {
+  ["account-box-overlay", "leaderboard-hub-overlay"].forEach(id => {
+    const overlay = document.getElementById(id);
+    if (overlay) overlay.remove();
+  });
+  if (!document.querySelector(".install-popup-overlay.active, .utility-overlay.active")) {
+    document.body.classList.remove("popup-lock");
+  }
+  accountBoxKind = "";
+}
+
+function closeWalletOverlay() {
+  document.getElementById("coin-shop-overlay")?.remove();
+  if (!document.querySelector(".install-popup-overlay.active, .utility-overlay.active")) {
+    document.body.classList.remove("popup-lock");
+  }
+}
+
+function accountMasterRow(kind) {
+  const map = {
+    visited: "visited-row", reviews: "reviews-row", saved: "saved-row",
+    progress: "progress-row", collections: "collections-row", achievements: "ach-row"
+  };
+  return document.getElementById(map[kind] || "");
+}
+
+function accountMasterRender(kind) {
+  const renders = {
+    visited: renderVisitedAccount, reviews: renderAccountReviews, saved: renderSavedAccount,
+    progress: renderProgressAccount, collections: renderCollectionsAccount, achievements: renderAchievementsAccount
+  };
+  const fn = renders[kind];
+  if (fn) { try { fn(); } catch (error) { /* keep master as-is */ } }
+}
+
+function engagementSnapForBox() {
+  try { return computeMyLeaderboardRank(engagementScore()); } catch (error) { return { rank: 0, score: 0, board: [], best: 0 }; }
+}
+
+function coinsWeekRankForBox() {
+  try {
+    const engine = lbEngine();
+    const me = lbCurrentUser();
+    if (!engine || !me) return null;
+    const key = engine.currentWeekKey();
+    const view = engine.standingsForView(key);
+    const rows = Array.isArray(view.rows) ? view.rows : [];
+    const mine = rows.filter(row => row.player === me)[0];
+    return mine ? { rank: Number(mine.rank) || 0, points: Number(mine.points) || 0 } : null;
+  } catch (error) { return null; }
+}
+
+function accountBoxValues() {
+  const eng = engagementSnapForBox();
+  const coinWeek = coinsWeekRankForBox();
+  const allTasks = typeof achievementTasks === "function" ? achievementTasks() : [];
+  const done = allTasks.filter(task => task.complete).length;
+  return {
+    coins: coinBalance().toLocaleString(),
+    coinsShop: coinBalance().toLocaleString(),
+    visited: localVisits.length,
+    reviews: Object.values(localReviews || {}).reduce((total, list) => total + (list || []).length, 0),
+    saved: bookmarkedSites.size,
+    progress: Object.keys(sharedProgress || {}).length,
+    leaderboard: eng.rank ? `#${eng.rank}` : "—",
+    achievements: `${done}/${allTasks.length}`,
+    collections: userCollections.length
+  };
+}
+
+function accountBoxFaces() {
+  const v = accountBoxValues();
+  const coinWeek = coinsWeekRankForBox();
+  return [
+    { kind: "coins", icon: "🪙", value: v.coins, label: "Paragon Coins", hint: "Front row · wallet, buy, sell & withdraw" },
+    { kind: "visited", icon: "🕐", value: v.visited, label: "Recently Visited", hint: "Tap to open a visited site again" },
+    { kind: "reviews", icon: "📝", value: v.reviews, label: "Reviews Written", hint: "My reviews · edit or delete" },
+    { kind: "saved", icon: "🔖", value: v.saved, label: "Saved Websites", hint: "Bookmarks across Paragon" },
+    { kind: "progress", icon: "📈", value: v.progress, label: "Products in Progress", hint: "Progress across Paragon tools" },
+    { kind: "leaderboard", icon: "🏆", value: v.leaderboard, label: "Leaderboard", hint: coinWeek ? `Engagement rank #${v.leaderboard.replace("#", "")} · Coins weekly #${coinWeek.rank}` : "Engagement rank · weekly coin rewards" },
+    { kind: "achievements", icon: "🏅", value: v.achievements, label: "Achievements", hint: `${doneCountLabel(v.achievements)} · badges & stages` },
+    { kind: "collections", icon: "📂", value: v.collections, label: "Collections & Playlists", hint: "My collections and playlists" },
+    { kind: "coinsShop", icon: "🛍️", value: v.coinsShop, label: "Coin Shop", hint: "Coins Leaderboard — weekly top 3 + ranks 4–10 rewards (staked results only) · buy / sell tabs" }
+  ];
+}
+
+function doneCountLabel(fraction) {
+  const [a, b] = String(fraction).split("/");
+  return `${a} of ${b} done`;
+}
+
+function renderAccountBoxes() {
+  const host = document.getElementById("stats-row");
+  if (!host) return;
+  const boxes = accountBoxFaces().map(box => `
+    <button type="button" class="account-box ${box.kind === "coins" ? "ab-featured" : ""}" onclick="openAccountBox('${box.kind}')">
+      <span class="ab-top"><span class="ab-icon">${box.icon}</span><span class="ab-value">${escapeHTML(String(box.value))}</span></span>
+      <span class="ab-label">${box.label}</span>
+      <span class="ab-hint">${escapeHTML(box.hint)}</span>
+    </button>`).join("");
+  host.innerHTML = `<div class="account-box-grid">${boxes}</div>`;
+}
+
+/* ---------- box popups (snapshot of the hidden content masters) ---------- */
+window.openAccountBox = function(kind) {
+  if (kind === "coins" || kind === "coinsShop") { openCoinWallet(kind === "coinsShop" ? "buy" : walletActiveTab); return; }
+  if (kind === "leaderboard") { openLeaderboardHub(); return; }
+  const master = accountMasterRow(kind);
+  if (!master) { showToast("This panel is unavailable yet.", "warning"); return; }
+  accountMasterRender(kind);
+  closeAccountBox();
+  document.getElementById("coin-shop-overlay")?.remove();
+  const titles = {
+    visited: ["🕐 Recently Visited", "Everything you opened recently — tap one to reopen its detail."],
+    reviews: ["📝 My Reviews", "Every review you wrote across Paragon — edit or delete any of them."],
+    saved: ["🔖 Saved & Bookmarked", "Your saved websites across every Paragon product."],
+    progress: ["📈 Products in Progress", "Where you are across Paragon courses and tools."],
+    achievements: ["🏅 Achievements", "Real tracked milestones — complete tasks to unlock badges and stages."],
+    collections: ["📂 My Collections / Playlists", "Your collections and playlists across the archive."]
+  }[kind] || ["Paragon", ""];
+  const overlay = document.createElement("div");
+  overlay.id = "account-box-overlay";
+  overlay.className = "utility-overlay active install-overlay";
+  overlay.innerHTML = `
+    <div class="install-popup-card account-box-panel" role="dialog" aria-modal="true" aria-label="${titles[0]}">
+      <header><h2>${titles[0]}</h2>
+        ${kind === "achievements" ? '<button type="button" class="icon-btn-small" onclick="openAchievementsAbout()" aria-label="About achievements" title="About achievements">ℹ️</button>' : ""}
+        <button type="button" class="icon-btn-small" onclick="closeAccountBox()" aria-label="Close">×</button>
+      </header>
+      <div class="ab-body" id="ab-content"></div>
+      <small class="ab-panel-note">${escapeHTML(titles[1])}${kind === "collections" ? " Guest collections merge into your account when you sign in while the session is still alive." : ""}</small>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.classList.add("popup-lock");
+  overlay.addEventListener("click", event => { if (event.target === overlay) closeAccountBox(); });
+  accountBoxKind = kind;
+  const content = overlay.querySelector("#ab-content");
+  content.innerHTML = master.innerHTML;
+  /* Close-before-action for flows that open their own views/editors; refresh after mutations. */
+  overlay.addEventListener("click", event => {
+    const action = event.target.closest("[onclick], button, a");
+    if (!action) return;
+    const attr = String(action.getAttribute && action.getAttribute("onclick") || "");
+    if (/openDetail\(|openCollectionView\(|openReviewComposer\(|openCollectionComposer\(|openAchievementsAbout\(/.test(attr)) {
+      const delayClose = attr.startsWith("openAchievementsAbout");
+      if (!delayClose) closeAccountBox();
+    }
+    if (/deleteLocalReview\(|deleteCollection\(/.test(attr)) {
+      window.setTimeout(() => { accountMasterRender(kind); const host2 = document.getElementById("ab-content"); if (host2) host2.innerHTML = accountMasterRow(kind).innerHTML; }, 140);
+    }
+    if (/unlockNextAchievementStage\(/.test(attr)) {
+      window.setTimeout(() => { accountMasterRender(kind); const host2 = document.getElementById("ab-content"); if (host2) host2.innerHTML = accountMasterRow(kind).innerHTML; }, 140);
+    }
+  }, true);
+};
+
+/* ---------- Coin wallet popup with two tabs (Buy / Sell & Withdraw) ---------- */
+function coinWalletTabs() {
+  return `
+    <div class="wallet-tabbar" role="tablist" aria-label="Coin wallet">
+      <button type="button" class="wallet-tab ${walletActiveTab === "buy" ? "active" : ""}" role="tab" aria-selected="${walletActiveTab === "buy"}" onclick="openCoinWallet('buy')">🛒 Buy coins<small>Request a pack — team confirms first</small></button>
+      <button type="button" class="wallet-tab ${walletActiveTab === "sell" ? "active" : ""}" role="tab" aria-selected="${walletActiveTab === "sell"}" onclick="openCoinWallet('sell')">💸 Sell / Withdraw<small>Withdraw coins — sell back to naira (weekly rewards + redemptions)</small></button>
+    </div>`;
+}
+
+function coinShopPaneHTML() {
+  const cfg = coinConfigFlags();
+  const buckets = coinBalanceBuckets();
+  const history = (accountProfile.coinHistory || []).slice(0, 12).map(entry => {
+    const sign = Number(entry.amount) >= 0 ? "+" : "";
+    const when = entry.at ? new Date(entry.at).toLocaleString() : "";
+    const src = entry.source === "server" ? "server" : "local";
+    const buck = entry.bucket ? ` · ${entry.bucket}` : "";
+    return `<li><b>${sign}${Number(entry.amount).toLocaleString()}</b> · ${String(entry.reason || "").replace(/[<>]/g, "")} <small>${when}${buck} · ${src}</small></li>`;
+  }).join("") || "<li><small>No movements yet — balance starts at real zero. Server ledger appears after SQL Stage 2.</small></li>";
+  const intents = (accountProfile.paymentIntents || []).slice(0, 8).map(intent => {
+    const st = String(intent.status || "pending");
+    const claimable = ["awaiting_transfer", "created", "claimed"].includes(st);
+    const id = String(intent.id || "").replace(/'/g, "");
+    return `<li class="coin-intent-row">
+      <span>₦${Number(intent.naira || 0).toLocaleString()} to ${Number(intent.coins || 0).toLocaleString()}c · <b>${st.replace(/[<>]/g, "")}</b></span>
+      ${claimable && id ? `<button type="button" class="secondary-action coin-claim-btn" onclick="claimCoinPayment('${id}')">I paid — claim</button>` : ""}
+    </li>`;
+  }).join("") || "<li><small>No purchase requests yet. Pick a pack below — request never auto-credits.</small></li>";
+  const packs = cfg.packs.map(p => [Number(p.naira) || 0, Number(p.coins) || Math.round((Number(p.naira) || 0) * cfg.nairaPerCoinBuy), p.label || ""]);
+  return `
+    <p style="margin:0 0 10px;font-size:12px;color:var(--text-faint);line-height:1.5">
+      Free-to-play always works. <b>Real-money mode is ${cfg.realMoney ? "ON" : "OFF"}</b>${cfg.pause ? " · FINANCIAL PAUSE" : ""}.
+      Available <b>${buckets.available.toLocaleString()}</b> · locked <b>${buckets.locked.toLocaleString()}</b> · pending <b>${buckets.pending.toLocaleString()}</b> · restricted <b>${buckets.restricted.toLocaleString()}</b>.
+      Server ledger is authority when SQL is live; this device is display cache only.
+    </p>
+    <div class="install-perm-list">
+      ${packs.map(([naira, coins, label]) => `
+        <label class="install-perm-row" style="cursor:pointer" onclick="requestCoinPurchase(${naira});">
+          <div><b>₦${naira.toLocaleString()}${label ? " · " + String(label).replace(/[<>]/g, "") : ""}</b>
+            <small>to ${coins.toLocaleString()} coins after team confirms your transfer. Nothing is credited from this click alone.</small></div>
+          <span class="primary-action" style="pointer-events:none;">Request</span>
+        </label>`).join("")}
+    </div>
+    ${opayMoniepointPayMarkup()}
+    <div class="coin-stage2-block">
+      <h4 style="margin:14px 0 6px">Purchase requests</h4>
+      <ul class="coin-intents-list" style="list-style:none;padding:0;margin:0;display:grid;gap:6px">${intents}</ul>
+      <h4 style="margin:14px 0 6px">Transaction history</h4>
+      <ul class="coin-history-list" style="list-style:none;padding:0;margin:0;display:grid;gap:4px;max-height:170px;overflow:auto;font-size:12px">${history}</ul>
+      <p class="install-popup-note" style="margin-top:8px">Credits post only after team/provider confirmation (idempotent). Duplicate provider references are rejected. A request click never mints coins.</p>
+    </div>
+    <div class="install-popup-actions" style="margin-top:12px">
+      <button type="button" class="secondary-action" onclick="openKycPayoutDraft()">OPay / Moniepoint payout details</button>
+      <button type="button" class="secondary-action" onclick="openFinancialCase('payment','Problem with a coin purchase or withdrawal')">Report a money problem</button>
+    </div>`;
+}
+
+function coinSellPaneHTML() {
+  const engine = walletEngine();
+  if (!engine) return `<p class="ab-panel-note">Withdrawals are unavailable on this page — the wallet engine did not load.</p>`;
+  if (!hasPersonalSession()) {
+    return `<div class="lb-empty" style="margin-top:8px">Sign in to withdraw coins to naira. Guests are free-play only — no real-money moves.</div>
+      <button type="button" class="primary-action" style="margin-top:12px" onclick="requirePersonalSession('withdraw coins')">Sign in to withdraw</button>`;
+  }
+  applyWithdrawalStatuses();
+  return `
+    <div class="lb-pool-grid">
+      <div class="lb-pool-stat"><b>${coinBalance().toLocaleString()} coins</b><small>available · sold back to naira through the Team payout desk (pendingBackendSync)</small></div>
+    </div>
+    <div id="withdrawal-host"></div>
+    <div class="install-popup-actions" style="margin-top:12px">
+      <button type="button" class="secondary-action" onclick="openFinancialCase('withdrawal','Problem with a withdrawal')">Report a problem</button>
+    </div>`;
+}
+
+window.renderWalletTab = function() {
+  const body = document.getElementById("wallet-body");
+  if (!body) return;
+  if (walletActiveTab === "sell") {
+    body.innerHTML = coinSellPaneHTML();
+    renderWithdrawalHost();
+    return;
+  }
+  body.innerHTML = coinShopPaneHTML();
+};
+
+window.openCoinWallet = function(tab) {
+  if (tab === "sell" || tab === "buy") walletActiveTab = tab;
+  if (typeof document.createElement !== "function") return;
+  if (!hasPersonalSession()) { requirePersonalSession("open your coin wallet"); return; }
+  syncApprovedCoinCredits();
+  const done = () => {
+    document.getElementById("coin-shop-overlay")?.remove();
+    closeAccountBox();
+    const cfg = coinConfigFlags();
+    const overlay = document.createElement("div");
+    overlay.id = "coin-shop-overlay";
+    overlay.className = "utility-overlay active install-overlay";
+    overlay.innerHTML = `
+      <div class="install-popup-card" style="width:min(560px,96vw);max-height:90vh;overflow:auto;" role="dialog" aria-modal="true" aria-label="Coin wallet">
+        <header><h2>🪙 Paragon Coins — Wallet</h2>
+          <p>Balance <b>${coinBalance().toLocaleString()} coins</b> · real-money ${cfg.realMoney ? "ON" : "OFF"}${cfg.pause ? " · FINANCIAL PAUSE" : ""}. Server ledger is the authority when SQL is live.</p>
+        </header>
+        ${coinWalletTabs()}
+        <div id="wallet-body"></div>
+        <div class="install-popup-actions">
+          <button type="button" class="secondary-action" onclick="closeWalletOverlay()">Close</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.body.classList.add("popup-lock");
+    overlay.addEventListener("click", event => { if (event.target === overlay) closeWalletOverlay(); });
+    renderWalletTab();
+  };
+  return refreshCoinAccountFromServer().finally(done);
+};
+
+window.afterCoinIntent = function() {
+  if (document.getElementById("wallet-body")) { renderWalletTab(); return; }
+  try { openCoinShop(); } catch (error) { /* dormant */ }
+};
+
+/* ---------- Leaderboard hub popup (Engagement + Coins weekly tabs) ---------- */
+function leaderboardHubTabs(active) {
+  return `
+    <div class="wallet-tabbar" role="tablist" aria-label="Leaderboards">
+      <button type="button" class="wallet-tab ${active === "eng" ? "active" : ""}" onclick="showLeaderboardHubTab('eng')">⚡ Engagement board<small>Practice rank from real activity — Top 10</small></button>
+      <button type="button" class="wallet-tab ${active === "coins" ? "active" : ""}" onclick="showLeaderboardHubTab('coins')">🪙 Coins weekly board<small>Coins Leaderboard — weekly top 3 + ranks 4–10 rewards (staked results only)</small></button>
+    </div>`;
+}
+
+let leaderboardHubActive = "eng";
+window.showLeaderboardHubTab = function(tab) {
+  if (tab !== "coins" && tab !== "eng") return;
+  leaderboardHubActive = tab;
+  const engPane = document.getElementById("lb-hub-eng");
+  const coinsPane = document.getElementById("lb-hub-coins");
+  const tabsHost = document.getElementById("lb-hub-tabs");
+  if (tabsHost) tabsHost.innerHTML = leaderboardHubTabs(leaderboardHubActive);
+  if (engPane) engPane.style.display = tab === "eng" ? "block" : "none";
+  if (coinsPane) {
+    coinsPane.style.display = tab === "coins" ? "block" : "none";
+    if (tab === "coins") { try { renderCoinLeaderboard(); } catch (error) { coinsPane.innerHTML = `<div class="lb-empty">The coins leaderboard engine is not available on this page yet.</div>`; } }
+  }
+};
+
+function engagementBoardPaneHTML() {
+  const snap = recordLeaderboardCheck ? (recordLeaderboardCheck(false) || computeMyLeaderboardRank(engagementScore())) : computeMyLeaderboardRank(engagementScore());
+  return `
+    <div class="leaderboard-you">Your score <strong>${Number(snap.score).toLocaleString()}</strong> · Rank <strong>#${snap.rank}</strong> · Best <strong>#${snap.best || snap.rank}</strong></div>
+    <ol class="leaderboard-list">
+      ${(snap.board || []).map((row, index) => `
+        <li class="${row.isYou ? "is-you" : ""}">
+          <span class="lb-rank">#${index + 1}</span>
+          <span>${escapeHTML(row.name)}${row.isYou ? " <small>(you)</small>" : ""}</span>
+          <span class="lb-score">${Number(row.score).toLocaleString()}</span>
+        </li>`).join("")}
+    </ol>`;
+}
+
+window.openLeaderboardHub = function() {
+  if (!requirePersonalSession("view the leaderboards")) return;
+  recordLeaderboardCheck(true);
+  document.getElementById("leaderboard-hub-overlay")?.remove();
+  document.getElementById("leaderboard-overlay")?.remove();
+  const overlay = document.createElement("div");
+  overlay.id = "leaderboard-hub-overlay";
+  overlay.className = "utility-overlay active install-overlay";
+  overlay.innerHTML = `
+    <div class="install-popup-card lb-card" role="dialog" aria-modal="true" aria-label="Leaderboards">
+      <header><h2>🏆 Leaderboard</h2><p>Engagement practice rank from real Archive activity, and the weekly coins board with team-approved rewards. Coin competitions stay server-settled.</p></header>
+      <div id="lb-hub-tabs">${leaderboardHubTabs("eng")}</div>
+      <div id="lb-hub-eng">${engagementBoardPaneHTML()}</div>
+      <div id="lb-hub-coins" style="display:none"><div id="coin-leaderboard-host"></div></div>
+      <div class="install-popup-actions">
+        <button type="button" class="secondary-action" onclick="document.getElementById('leaderboard-hub-overlay').remove(); document.body.classList.remove('popup-lock'); openCoinWallet('buy')">🪙 Buy coins</button>
+        <button type="button" class="secondary-action" onclick="document.getElementById('leaderboard-hub-overlay').remove(); document.body.classList.remove('popup-lock')">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.classList.add("popup-lock");
+  overlay.addEventListener("click", event => { if (event.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); } });
+};
+
 function renderAccount() {
   syncApprovedCoinCredits?.(); /* P-098 — pick up approved purchases */
   applyWithdrawalStatuses?.(); /* P-100 — refund failed withdrawals / mark paid ones seen */
@@ -2617,15 +3031,7 @@ function renderAccount() {
   const allTasks = achievementTasks();
   const completedTasks = allTasks.filter(task => task.complete).length;
   const achievementPercent = allTasks.length ? Math.round((completedTasks / allTasks.length) * 100) : 0;
-  document.getElementById("stats-row").innerHTML = `
-    <div class="stats-4">
-      <div class="stat-box"><div class="num">${localVisits.length}</div><div class="lab">Recently Visited</div></div>
-      <div class="stat-box"><div class="num">${Object.values(localReviews).flat().length}</div><div class="lab">Reviews Written</div></div>
-      <div class="stat-box"><div class="num">${bookmarkedSites.size}</div><div class="lab">Saved Websites</div></div>
-      <div class="stat-box"><div class="num">${Object.keys(sharedProgress || {}).length}</div><div class="lab">Products in Progress</div></div>
-      <div class="stat-box"><div class="num">🪙 ${coinBalance().toLocaleString()}</div><div class="lab">Paragon Coins</div></div>
-    </div>
-`;
+    renderAccountBoxes();
 
   renderProgressAccount();
   renderAchievementsAccount();
@@ -2642,10 +3048,6 @@ function renderAccount() {
       <div class="row"><div><h4>🔔 Notifications</h4><p>${guestMode ? "Temporary for this session." : "Sync notification preferences."}</p></div><label><input type="checkbox" class="toggle" ${notificationsOn ? "checked" : ""} onchange="toggleNotificationsPreference(this)" aria-label="Notifications"></label></div>
       ${loggedIn && providerLabel(authUser) === "Email" ? `<div class="row"><button type="button" class="settings-link" onclick="openPasswordUpdate()"><span>🔑 Change Password</span></button></div>` : ""}
       <div class="row"><button type="button" class="settings-link" onclick="openParagonInstall()"><span>📲 Install Paragon Archive &amp; app permissions</span></button></div>
-      <div class="row"><button type="button" class="settings-link" onclick="openCoinShop()"><span>🪙 Paragon Coins — balance ${coinBalance().toLocaleString()} · buy (real-money OFF)</span></button></div>
-      <div class="row"><button type="button" class="settings-link" onclick="openCoinWithdrawal()"><span>💸 Withdraw coins — sell back to naira (weekly rewards + redemptions)</span></button></div>
-      <div class="row"><button type="button" class="settings-link" onclick="openCoinLeaderboard()"><span>🏅 Coins Leaderboard — weekly top 3 + ranks 4–10 rewards (staked results only)</span></button></div>
-      <div class="row"><button type="button" class="settings-link" onclick="openEngagementLeaderboard()"><span>🏆 Engagement leaderboard — climb to Top 10</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openGamesCompeteDesk()"><span>⚔️ 1v1 competitive stake (server settle · free play separate)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="shareParagonApp()"><span>📤 Share Paragon Archive (install link)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openCommunityEntry()"><span>${communityMembershipRecord() ? "👥 Paragon Community · Open the Board" : "👥 Paragon Community"}</span></button></div>
@@ -3772,7 +4174,7 @@ window.claimCoinPayment = function(intentId) {
       })
     }).then(() => {
     showToast("Claim recorded — coins credit only after team/provider confirms. Not credited yet.");
-    refreshCoinAccountFromServer().finally(() => openCoinShop());
+    refreshCoinAccountFromServer().finally(afterCoinIntent);
   }).catch(err => {
     const msg = String(err?.message || err || "");
     if (/limit/i.test(msg)) showToast("Claim limit: max 5 payment claims per 24 hours.", "warning");
@@ -3820,9 +4222,7 @@ window.requestCoinPurchase = function(nairaAmount) {
       persistPersonalState();
     }
     showToast(`Purchase request recorded — ${coins.toLocaleString()} coins after confirm of ₦${naira.toLocaleString()}. Not credited yet. Claim with your OPay/Moniepoint receipt when paid.`);
-    refreshCoinAccountFromServer().finally(() => {
-      try { openCoinShop(); } catch (_) {}
-    });
+    refreshCoinAccountFromServer().finally(afterCoinIntent);
   }).catch(() => {
     try {
       const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");

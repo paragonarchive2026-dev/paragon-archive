@@ -1396,12 +1396,15 @@ assert(!session.has("paragonArchive.guestState.v1") && !session.has("paragonArch
 context.guestLogin();
 
 context.renderUpdates();
-assert(elements.get("updates-timeline").innerHTML.includes("timeline-entry"), "Updates timeline did not render generated events");
-assert((elements.get("updates-timeline").innerHTML.match(/timeline-entry/g) || []).length === 10 && elements.get("updates-pagination").hidden === false, "Updates did not start with exactly ten visible entries");
+assert(elements.get("updates-timeline").innerHTML.includes("timeline-group-entry"), "Updates timeline did not render generated events");
+// P-112 — the feed is grouped PER WEBSITE: each page still carries its ten events, but as
+// compact per-site group rows (timeline-group-entry cards containing tg-row event lines).
+const firstGroupCount = (elements.get("updates-timeline").innerHTML.match(/class="tg-row"/g) || []).length;
+assert(firstGroupCount === 10 && elements.get("updates-timeline").innerHTML.includes("timeline-group-entry") && elements.get("updates-pagination").hidden === false, "Updates did not start with exactly ten grouped event rows");
 const firstUpdatePage = elements.get("updates-timeline").innerHTML;
 context.showMoreUpdates();
 const secondUpdatePage = elements.get("updates-timeline").innerHTML;
-assert((secondUpdatePage.match(/timeline-entry/g) || []).length === 10 && secondUpdatePage !== firstUpdatePage && elements.get("updates-previous").hidden === false, "View more did not replace the first ten with the next ten");
+assert((secondUpdatePage.match(/class="tg-row"/g) || []).length === 10 && secondUpdatePage !== firstUpdatePage && elements.get("updates-previous").hidden === false, "View more did not replace the first ten grouped rows with the next ten");
 context.showPreviousUpdates();
 assert(elements.get("updates-timeline").innerHTML === firstUpdatePage, "Previous did not restore the prior ten updates");
 vm.runInContext('updatePageIndex = 0; renderUpdates()', context);
@@ -1990,7 +1993,13 @@ const polish = [
 ];
 polish.forEach(function (b) {
   const st = fsC.statSync(pathC.join(rootC, "assets/achievement-badges", b));
-  aC(st.size > 50000, "badge " + b + " still looks like tiny placeholder (" + st.size + " bytes)");
+  // P-112 art pipeline: badges are authored/quantized at 256×256 PNG8, so real art now
+  // weighs ~35–45 KB. The old >50 KB floor is replaced by a dimension + sane-size bound.
+  const raw = fsC.readFileSync(pathC.join(rootC, "assets/achievement-badges", b));
+  aC(raw.length > 8 && raw.length > 1000 && raw.length < 120000, "badge " + b + " size out of optimized-art range (" + st.size + " bytes)");
+  if (raw.length > 24) {
+    aC(raw.readUInt32BE(16) === 256 && raw.readUInt32BE(20) === 256, "badge " + b + " must be authored at 256×256 (" + raw.readUInt32BE(16) + "×" + raw.readUInt32BE(20) + ")");
+  }
 });
 aC(fsC.existsSync(pathC.join(rootC, "supabase/coins-master-phase5.sql")), "phase5 SQL missing");
 const p5 = rC("supabase/coins-master-phase5.sql");
@@ -2337,4 +2346,129 @@ check5(reopen5.ok && R5.periodState("2026-08-03").state === "review" && !R5.peri
 
 console.log(`\nPASS: ${passed5} checks — P-099 Stage 5 leaderboards (weekly ranking, top-3 + ranks 4–10, revenue-funded pool, anti-farming, settlement)`);
 
+})();
+
+/* ================= FIXTURE: P-112 — 3×3 account boxes, box popups, coin wallet tabs, per-website Updates groups ================= */
+(function () {
+const fsH = require("fs");
+const pathH = require("path");
+const vmH = require("vm");
+const rootH = pathH.resolve(__dirname, "..");
+function aH(c, m) { if (!c) throw new Error(m); }
+const rH = p => fsH.readFileSync(pathH.join(rootH, p), "utf8");
+const appSource = rH("app.js");
+const cssSource = rH("style.css");
+const htmlSource = rH("paragon-archive.html");
+
+/* Static wiring */
+aH(htmlSource.includes('id="account-data-sections" hidden'), "Hidden account content masters are not wrapped (P-112)");
+aH(cssSource.includes(".account-box-grid") && cssSource.includes(".ab-featured"), "3×3 account box grid styles missing (P-112)");
+aH(cssSource.includes(".timeline-group-entry") && cssSource.includes(".tg-row .tg-text"), "Grouped-updates feed styles missing (P-112)");
+aH(appSource.includes("function renderAccountBoxes") && appSource.includes("window.openAccountBox") && appSource.includes("window.openCoinWallet") && appSource.includes("window.openLeaderboardHub"), "P-112 box/wallet/leaderboard engine missing");
+aH(appSource.includes("timelineGroupsMarkup") && appSource.includes("updatesGroupRow"), "Per-website Updates grouping missing (P-112)");
+aH(!/[←→↗]/.test(appSource), "P-112 additions violate the no-textual-arrows law");
+
+function classListH(initial = []) {
+  const values = new Set(initial);
+  return { add: (...n) => n.forEach(x => values.add(x)), remove: (...n) => n.forEach(x => values.delete(x)), contains: n => values.has(n), toggle: (n, f) => { const on = f === undefined ? !values.has(n) : Boolean(f); if (on) values.add(n); else values.delete(n); return on; } };
+}
+const storageH = new Map(), sessionH = new Map(), elementsH = new Map(), bodyChildrenH = [];
+function elH(id) {
+  const handlers = {};
+  const value = { id, hidden: false, innerHTML: "", textContent: "", value: "", checked: false, style: {}, dataset: {}, tabIndex: 0,
+    classList: classListH(), offsetParent: {}, scrollTop: 0, setAttribute() {}, getAttribute() { return null; }, removeAttribute() {},
+    addEventListener(t, h) { handlers[t] = h; }, querySelector() { return null; }, querySelectorAll() { return []; },
+    appendChild(c) { value.children = value.children || []; value.children.push(c); },
+    remove() { const at = bodyChildrenH.indexOf(value); if (at >= 0) bodyChildrenH.splice(at, 1); }, focus() {} };
+  elementsH.set(id, value); return value;
+}
+["account-hero", "account-private", "stats-row", "progress-row", "ach-row", "saved-row", "collections-row", "visited-row", "reviews-row", "settings-row",
+  "ab-content", "wallet-body", "lb-hub-tabs", "lb-hub-eng", "lb-hub-coins", "coin-leaderboard-host", "withdrawal-host", "toast-region",
+  "updates-timeline", "updates-pagination", "updates-previous", "updates-view-more", "updates-pagination-status"].forEach(elH);
+const contextH = {
+  console,
+  localStorage: { getItem: k => storageH.get(k) ?? null, setItem: (k, v) => storageH.set(k, v), removeItem: k => storageH.delete(k) },
+  sessionStorage: { getItem: k => sessionH.get(k) ?? null, setItem: (k, v) => sessionH.set(k, v), removeItem: k => sessionH.delete(k) },
+  history: { replaceState() {} }, location: { href: "https://example.test/archive/", origin: "https://example.test", pathname: "/archive/", search: "", hash: "" },
+  navigator: {}, URL, URLSearchParams, structuredClone: global.structuredClone,
+  fetch: async () => ({ ok: false, status: 0, async json() { return {}; } }),
+  setInterval: () => 1, clearInterval() {}, setTimeout: cb => cb(), clearTimeout() {}, requestAnimationFrame: cb => cb(),
+  innerHeight: 800, scrollY: 0, addEventListener() {}, scrollTo() {}, open() {}, matchMedia: () => ({ matches: true }),
+  CustomEvent: class { constructor(t, i) { this.type = t; this.detail = i && i.detail; } }
+};
+contextH.window = contextH;
+contextH.document = {
+  activeElement: null,
+  body: { classList: classListH(), style: {} },
+  documentElement: { classList: classListH(), scrollHeight: 3000, style: { setProperty() {} } },
+  addEventListener() {},
+  createElement() { return elH("dyn-" + Math.random().toString(36).slice(2)); },
+  getElementById: id => elementsH.get(id) || null,
+  querySelector(sel) { const m = sel.match(/^#(.+)$/); return m ? (elementsH.get(m[1]) || null) : null; },
+  querySelectorAll() { return []; }
+};
+contextH.document.body.appendChild = function (child) {
+  if (child && child.id) elementsH.set(child.id, child);
+  child.querySelector = sel => { const m = sel.match(/^#(.+)$/); return m ? (elementsH.get(m[1]) || null) : null; };
+  bodyChildrenH.push(child);
+};
+vmH.createContext(contextH);
+for (const file of ["config/supabase.js", "auth/supabase-auth.js", "auth/paragon-sync.js", "data/sites.js", "data/catalogue-expansion.js",
+  "data/catalogue-expansion-45-100.js", "data/updates.js", "data/metrics.js", "paragon-wallets.js", "pwa.js", "privacy.js", "vendor/qrcode.min.js", "app.js"]) {
+  vmH.runInContext(rH(file), contextH, { filename: file });
+}
+
+(async () => {
+  vmH.runInContext("identityLoading = false; loggedIn = false; guestMode = false", contextH);
+  contextH.guestLogin();
+  contextH.renderAccount();
+  const stats = elementsH.get("stats-row").innerHTML;
+  const boxCount = (stats.match(/class="account-box /g) || []).length;
+  aH(boxCount === 9, "expected 9 account boxes, got " + boxCount);
+  aH(stats.includes("account-box-grid"), "3×3 grid container missing");
+  const firstBox = stats.slice(stats.indexOf("account-box"), stats.indexOf("account-box") + 130);
+  aH(firstBox.includes("ab-featured") && stats.includes(">🪙<"), "Paragon Coins must be the featured front box");
+  for (const label of ["Recently Visited", "Reviews Written", "Saved Websites", "Products in Progress", "Leaderboard", "Achievements", "Collections & Playlists", "Coin Shop"])
+    aH(stats.includes(label), "missing box label: " + label);
+  aH(stats.indexOf("Paragon Coins") < stats.indexOf("Recently Visited"), "Paragon Coins must be first (front row)");
+  aH(!elementsH.get("settings-row").innerHTML.includes("openCoinShop()") && !elementsH.get("settings-row").innerHTML.includes("openCoinWithdrawal()"), "Coin rows must leave Settings for the 3×3 boxes (P-112)");
+
+  vmH.runInContext("renderVisitedAccount(); renderAccountReviews(); renderAchievementsAccount()", contextH);
+  const visitedMaster = elementsH.get("visited-row").innerHTML;
+  contextH.openAccountBox("visited");
+  const overlayOne = elementsH.get("account-box-overlay");
+  aH(overlayOne && overlayOne.innerHTML.includes("Recently Visited"), "visited popup missing");
+  aH(elementsH.get("ab-content").innerHTML === visitedMaster, "visited popup did not snapshot the master row");
+  contextH.openAccountBox("reviews");
+  const overlayTwo = elementsH.get("account-box-overlay");
+  aH(overlayTwo !== overlayOne && overlayTwo.innerHTML.includes("My Reviews"), "reviews popup was not recreated");
+  contextH.openAccountBox("achievements");
+  aH(elementsH.get("account-box-overlay").innerHTML.includes("About achievements"), "achievements about button missing");
+  contextH.openAccountBox("saved");
+  aH(elementsH.get("ab-content").innerHTML === elementsH.get("saved-row").innerHTML, "saved popup snapshot mismatch");
+  contextH.openAccountBox("collections");
+  aH(elementsH.get("ab-content").innerHTML === elementsH.get("collections-row").innerHTML, "collections popup snapshot mismatch");
+
+  await vmH.runInContext("window.openCoinWallet('buy')", contextH);
+  const walletOverlay = elementsH.get("coin-shop-overlay");
+  aH(walletOverlay && walletOverlay.innerHTML.includes("Wallet"), "coin wallet overlay missing");
+  aH(walletOverlay.innerHTML.includes("Buy") && walletOverlay.innerHTML.includes("Withdraw"), "wallet tabs missing");
+  aH(/real-money (OFF|ON)/i.test(walletOverlay.innerHTML), "real-money honesty line missing");
+  const buyPane = elementsH.get("wallet-body").innerHTML;
+  aH(buyPane.includes("Real-money mode is OFF") && buyPane.includes("₦500"), "buy pane packs/honesty missing");
+  vmH.runInContext("walletActiveTab = 'sell'; window.renderWalletTab()", contextH);
+  aH(elementsH.get("wallet-body").innerHTML.includes("withdrawal-host"), "sell pane must host the withdrawal engine");
+  contextH.openLeaderboardHub();
+  aH(elementsH.get("leaderboard-hub-overlay") && elementsH.get("leaderboard-hub-overlay").innerHTML.includes("lb-hub-tabs"), "leaderboard hub missing");
+  vmH.runInContext("window.showLeaderboardHubTab('coins')", contextH);
+  aH(vmH.runInContext("leaderboardHubActive", contextH) === "coins", "coins tab not activated");
+  contextH.closeAccountBox();
+  aH(!bodyChildrenH.includes(elementsH.get("leaderboard-hub-overlay")) || !elementsH.get("account-box-overlay") || !bodyChildrenH.includes(elementsH.get("account-box-overlay")), "P-112 overlays did not close cleanly");
+
+  contextH.renderUpdates();
+  aH(elementsH.get("updates-timeline").innerHTML.includes("timeline-group-entry"), "Updates feed not grouped per website");
+  aH((elementsH.get("updates-timeline").innerHTML.match(/class="tg-row"/g) || []).length === 10, "Grouped page must still carry ten event rows");
+
+  console.log("PASS: P-112 — 3×3 account boxes with popups, coin wallet buy/sell tabs, leaderboard hub, per-website Updates grouping, Settings rows moved into boxes");
+})().catch(error => { console.error(error); process.exitCode = 1; });
 })();
