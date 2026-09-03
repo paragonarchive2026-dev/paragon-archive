@@ -39,6 +39,24 @@ agent does its part: **every turn, a changed-files list is written to `docs/CHAN
      files/folders (keep the same folder paths!) → Commit.
 5. Vercel/Netlify **redeploys automatically** on every commit — zero extra steps.
 
+## 3b. Downloading the WHOLE project as a ZIP from GitHub (easiest backup / SPCK copy)
+The ZIP is just your files — GitHub **excludes the hidden .git history**, so what you get is
+the clean project (~6.5 MB of code + images; smaller than two phone photos).
+- **On a computer (browser):** open `https://github.com/<you>/paragon-archive` → tap the
+  green **"Code"** button (top-right above the file list) → **"Download ZIP"**. Your phone
+  or PC saves `paragon-archive-main.zip` → open it with your file manager to unzip.
+- **Direct link (no clicking needed):** `https://github.com/<you>/paragon-archive/archive/refs/heads/main.zip`
+  — replace `<you>` with your GitHub username, and `main` with your branch name if yours is
+  different (the dropdown under "Code" shows it, e.g. `master`). Paste the link in any
+  browser and the download starts immediately.
+- **In SPCK:** the same web steps work inside SPCK's browser, or unzip on the phone with
+  Files by Google / ZArchiver, then open the folder — keep the folder paths identical when
+  replacing files in your SPCK project.
+- **Why it's small (not large):** the whole project content is ~6.5 MB across ~283 files.
+  The biggest files are the single consolidated code files (app.js ~327 KB, team-pages.js
+  ~373 KB, style.css ~345 KB) and the docs — all by design after the file-count reduction.
+  GitHub's per-file limit is 100 MB, so nothing here is anywhere near a problem.
+
 ## 4. How many files can you upload to the agent per turn?
 Honest practical guidance (varies by platform limits, file size ~tens of MB each):
 - **Comfortable: about 10–20 files per message.** Beyond that reliability drops.

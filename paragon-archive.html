@@ -426,7 +426,9 @@
 
     <div id="account-private" hidden>
       <div id="stats-row" aria-label="Account statistics"></div>
-      <section class="account-section" aria-label="Cross-product progress">
+      <!-- P-112 — these six account panels live inside their stat-box popups now; kept in-DOM (hidden) as the live content masters (guests sync to account on sign-in). -->
+      <div id="account-data-sections" hidden>
+        <section class="account-section" aria-label="Cross-product progress">
         <div class="account-section-head"><h2>📈 Progress Across Paragon</h2><button type="button" data-notice="Each Paragon product can save progress through the shared account progress API.">How it works</button></div>
         <div id="progress-row"></div>
       </section>
@@ -450,6 +452,8 @@
         <div class="account-section-head"><h2>📝 My Reviews</h2><button type="button" data-notice="Reviews saved on this device appear below.">About reviews</button></div>
         <div id="reviews-row"></div>
       </section>
+      
+      </div>
       <section class="account-section" aria-label="Settings">
         <div class="account-section-head"><h2>⚙️ Settings</h2></div>
         <div id="settings-row"></div>
@@ -511,6 +515,8 @@
 <script src="pwa.js" defer></script>
 <script src="privacy.js" defer></script>
 <script src="vendor/qrcode.min.js" defer></script>
+<script src="paragon-leaderboards.js" defer></script>
+<script src="paragon-wallets.js" defer></script>
 <script src="app.js" defer></script>
 <script src="ads/adsense.js" defer></script>
 <script defer>

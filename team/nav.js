@@ -41,6 +41,16 @@
       { icon: "📣", label: "Promotions", href: "desk.html?page=promotions" },
       { icon: "🗺️", label: "Roadmap", href: "desk.html?page=roadmap" }
     ] },
+    /* P-100 — Stage 7 finance desks (permissions.js PAGE_ACCESS hides each by role). */
+    { title: "FINANCE", items: [
+      { icon: "💰", label: "Financial Dashboard", href: "desk.html?page=finance" },
+      { icon: "🔎", label: "Payment Reconciliation", href: "desk.html?page=finance-payments" },
+      { icon: "💸", label: "Withdrawal Desk", href: "desk.html?page=finance-withdrawals" },
+      { icon: "🚩", label: "Risk & Fraud", href: "desk.html?page=finance-risk" },
+      { icon: "🛡️", label: "Audit Log", href: "desk.html?page=finance-audit" },
+      { icon: "📑", label: "Financial Reports", href: "desk.html?page=finance-reports" },
+      { icon: "🛑", label: "Emergency Controls", href: "desk.html?page=finance-emergency" }
+    ] },
     { title: "ANALYTICS", items: [
       { icon: "📈", label: "Platform Stats", href: "desk.html?page=analytics" },
       { icon: "🌐", label: "Website Stats", href: "desk.html?page=analytics-websites" },

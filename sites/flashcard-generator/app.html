@@ -1,0 +1,74 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: app.html
+  EXPECTED PROJECT PATH: /sites/flashcard-generator/app.html
+  ROLE: Paragon Flash — deck manager + note-to-cards generator.
+  RESTORE-LOAD NOTE: In-project product site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Flash — Decks</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Flash">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-flash.png" alt="">
+        <span class="brand-name">Paragon Flash</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link active">Decks</a>
+      <a href="study.html" class="nav-link">Study</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page">
+    <h1 class="page-title">Decks</h1>
+    <p class="page-sub">Paste notes to generate cards, or add cards manually. Not for deep research or data analysis.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="split">
+      <div class="panel">
+        <h2 class="panel-title">New deck / generate</h2>
+        <div class="field"><label for="deckName">Deck name</label><input id="deckName" placeholder="Biology midterm"></div>
+        <div class="field"><label for="notesIn">Paste notes (lines or Term: definition)</label><textarea id="notesIn" rows="8" placeholder="Mitochondria: powerhouse of the cell&#10;Photosynthesis — plants make food from light"></textarea></div>
+        <div class="field"><label for="genMode">Generate mode</label>
+          <select id="genMode">
+            <option value="basic">Basic Q→A (Term: def / line split)</option>
+            <option value="cloze">Cloze (wrap key terms with {{c1::term}})</option>
+            <option value="reverse">Basic + reversed pairs</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="genDeck">Generate cards from notes</button>
+          <button type="button" class="btn btn-secondary" id="saveEmpty">Create empty deck</button>
+          <button type="button" class="btn btn-outline" id="genClozeHelp">Cloze tip</button>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:18px 0">
+        <h2 class="panel-title">Add card to selected deck</h2>
+        <div class="field"><label for="cardFront">Front</label><input id="cardFront"></div>
+        <div class="field"><label for="cardBack">Back</label><textarea id="cardBack" rows="3"></textarea></div>
+        <button type="button" class="btn btn-outline" id="addCard">Add card</button>
+        <div class="actions" style="margin-top:12px">
+          <button type="button" class="btn btn-secondary btn-sm" id="exportAnki">Export Anki TSV</button>
+          <button type="button" class="btn btn-outline btn-sm" id="exportJson">Export JSON</button>
+          <button type="button" class="btn btn-outline btn-sm" id="exportGuide">Study guide</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2 class="panel-title">Your decks</h2>
+        <div id="deckList" class="empty"><strong>No decks yet</strong>Generate from notes or create an empty deck.</div>
+      </div>
+    </div>
+  </main>
+  <footer class="footer"><p><a href="../../paragon-archive.html?site=Paragon%20Flash">Archive detail</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

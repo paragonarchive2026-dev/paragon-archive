@@ -1,0 +1,113 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: app.html
+  EXPECTED PROJECT PATH: /sites/file-converter/app.html
+  ROLE: Paragon Files — multi-format local convert (images, CSV/JSON/YAML-lite, text, ZIP).
+  RESTORE-LOAD NOTE: No server upload. Pandoc/ffmpeg/HEIC remain guide-only until browser engines exist.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Files — Convert</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Files">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-files.png" alt="">
+        <span class="brand-name">Paragon Files</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link active">Convert</a>
+      <a href="guide.html" class="nav-link">Guide</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page">
+    <h1 class="page-title">Convert</h1>
+    <p class="page-sub">Everything runs in your browser. HEIC / audio / pandoc / server PDF engines are listed honestly in Guide — not faked here.</p>
+    <div id="msg" class="notice" hidden></div>
+
+    <div class="split">
+      <div class="panel">
+        <h2 class="panel-title">Image convert / resize</h2>
+        <div class="field"><label for="imgFile">Image file</label><input id="imgFile" type="file" accept="image/*" multiple></div>
+        <div class="field-row">
+          <div class="field"><label for="outType">Output</label>
+            <select id="outType"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select>
+          </div>
+          <div class="field"><label for="quality">Quality (JPEG/WebP)</label><input id="quality" type="number" min="0.1" max="1" step="0.05" value="0.85"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="maxW">Max width px (0 = original)</label><input id="maxW" type="number" min="0" value="1280"></div>
+          <div class="field"><label for="maxH">Max height px</label><input id="maxH" type="number" min="0" value="0"></div>
+        </div>
+        <canvas id="workCanvas" hidden></canvas>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="convertImg">Convert & download</button>
+          <button type="button" class="btn btn-outline" id="convertZip">Batch → ZIP</button>
+        </div>
+        <div id="imgPreview" class="muted" style="margin-top:12px"></div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Data: CSV ↔ JSON ↔ TSV</h2>
+        <div class="field"><label for="dataFile">Load CSV / JSON / TSV</label><input id="dataFile" type="file" accept=".csv,.json,.tsv,.txt,text/*,application/json"></div>
+        <div class="field"><label for="dataIn">Or paste data</label><textarea id="dataIn" rows="8" placeholder='[{"name":"Ada","age":30}]  or  name,age&#10;Ada,30'></textarea></div>
+        <div class="field"><label for="dataMode">Convert to</label>
+          <select id="dataMode">
+            <option value="json">JSON (array of objects)</option>
+            <option value="csv">CSV</option>
+            <option value="tsv">TSV</option>
+            <option value="yaml">YAML-lite</option>
+            <option value="jsonl">JSONL</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="runData">Convert & download</button>
+          <button type="button" class="btn btn-secondary" id="previewData">Preview in box</button>
+        </div>
+        <pre id="dataOut" class="muted" style="margin-top:12px;max-height:180px;overflow:auto;white-space:pre-wrap;font-size:12px"></pre>
+      </div>
+    </div>
+
+    <div class="split" style="margin-top:16px">
+      <div class="panel">
+        <h2 class="panel-title">Text / Markdown helpers</h2>
+        <div class="field"><label for="textIn">Text</label><textarea id="textIn" rows="8" placeholder="Paste text…"></textarea></div>
+        <div class="field"><label for="textName">Filename</label><input id="textName" value="note.txt"></div>
+        <div class="field-row">
+          <button type="button" class="btn btn-secondary" id="dlText">Download text</button>
+          <button type="button" class="btn btn-outline" id="mdToHtml">MD → HTML file</button>
+          <button type="button" class="btn btn-outline" id="htmlToMd">HTML → MD (simple)</button>
+        </div>
+        <div class="field" style="margin-top:12px"><label for="textFile">Load .txt / .md / .csv / .json / .html</label><input id="textFile" type="file" accept=".txt,.md,.csv,.json,.html,.htm,text/*"></div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">ZIP pack / unpack (local)</h2>
+        <p class="muted" style="font-size:13px;margin-bottom:10px">Pack multiple text/JSON files into a ZIP, or list entries from a simple STORE-method ZIP. Compressed/deflate ZIPs may not fully unpack here — use a desktop tool then.</p>
+        <div class="field"><label for="zipFiles">Files to pack</label><input id="zipFiles" type="file" multiple></div>
+        <div class="field"><label for="zipName">ZIP name</label><input id="zipName" value="paragon-pack.zip"></div>
+        <button type="button" class="btn btn-primary" id="makeZip">Build ZIP</button>
+        <div class="field" style="margin-top:16px"><label for="zipIn">Inspect ZIP (STORE)</label><input id="zipIn" type="file" accept=".zip,application/zip"></div>
+        <pre id="zipList" class="muted" style="margin-top:8px;font-size:12px;max-height:140px;overflow:auto"></pre>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2 class="panel-title">Recent jobs (this device)</h2>
+      <div id="jobLog" class="muted">No jobs yet — counters start at real zero.</div>
+    </div>
+  </main>
+  <footer class="footer"><p><a href="../../paragon-archive.html?site=Paragon%20Files">Archive detail</a> · <a href="guide.html">Honest limits</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

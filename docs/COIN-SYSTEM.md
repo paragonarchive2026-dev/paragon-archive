@@ -6,34 +6,110 @@
         creator quizzes, weekly rewards, withdrawals — plus the owner's "heads-up" prompt
         to paste into ChatGPT for the economic/logistics details still to come.
   RESTORE-LOAD NOTE: The front-end core is BUILT (balance, buy requests, team approval,
-        credit mirror). Games/quiz integration lands as each product is built.
+        credit mirror) and STAGE 5 LEADERBOARDS is BUILT (P-099/D-207: weekly ranking
+        engine + public popup + super-admin settlement desk + prepared backend SQL).
+        STAGES 6+7 FINANCE are BUILT (P-100/D-208: withdrawal requests + payout state
+        machine + claims/reconciliation + typed ledger + Team finance desks + prepared
+        supabase/finance-schema.sql — activates ONLY when the owner flips real-money
+        infrastructure on; the device layer never claims a live payout).
+        Games/quiz betting integration lands as each product is built and calls
+        `ParagonLeaderboards.recordResult(...)` for eligible staked results only.
 -->
 
 # 🪙 Paragon Coins — The Complete Design
 
+## What is ALREADY BUILT (P-098 + P-100)
+- **Withdrawals UI** (P-100): Account coin shop → sell-back form → `paragonTeamCoinWithdrawals.v1` → Team settings desk marks Paid → `paragonArchive.coinDebits.v1` deducts on user device.
+- **SQL backend** (P-100): `supabase/coins-schema.sql` — wallets, ledger, purchase/withdraw tables, approve/spend RPCs. Run via `supabase/SQL-RUN-PACK.md`.
+- **History** shown inside the coin shop popup.
+
 ## What is ALREADY BUILT (P-098)
 - **Balance** in the personal state (`accountProfile.coinBalance`, account-synced; guest = session).
 - **Account tab**: coin stat box + "🪙 Paragon Coins — balance … · buy coins" row → styled shop popup.
-- **Buy flow**: pick a pack (₦500/₦1,000/₦5,000 at the placeholder rate ₦1 = 2 coins) →
+- **Buy flow**: pick a pack (₦500/₦1,000/₦5,000 at the placeholder rate ₦1 = 1 coin (master-spec target; was placeholder 2)) →
   request lands in `paragonTeamCoinRequests.v1` → **Team desk (settings panel) super-admin
   approves** → `paragonArchive.coinCredits.v1` mirror → the user's device credits on next
   Account view with a toast. All real on-device; `pendingBackendSync`.
 - Helpers for products: `addCoins(amount, reason)`, `spendCoins(amount, reason)`,
   `coinBalance()` + a 50-entry history.
 
+## STAGE 5 — LEADERBOARDS is ALREADY BUILT (P-099 / D-207)
+- **Engine `paragon-leaderboards.js`** (loaded before app.js on the Archive and before
+  team-pages.js on the desk): `window.ParagonLeaderboards` — Monday-starting weekly periods,
+  eligibility + performance scoring, standings/ranks, realized-fee ledger, 30% pool,
+  the spec distribution table, the §12.1 settlement state machine, and an append-only audit.
+- **Weekly ranking**: eligible BET results only → points by game performance (accuracy mode
+  today; per-game rules are config). Ties share ranks (1,1,3…).
+- **Anti-farming (enforced)**: guest play, free play, login/purchase/promo activity earn
+  nothing; 1 coin staked is never 1 point (stake only proves eligibility); creator can never
+  earn points/prizes from their own quiz; duplicates and impossible scores are rejected;
+  rapid-fire / repeated-opponent signals flag rows for review — flags never auto-punish.
+- **Revenue-funded reward pool**: 30% of eligible REALIZED competition-fee revenue per week
+  (`paragonCompetitionFeeLedger.v1`); pool 0 = ₦0 = nothing paid — never an invented prize.
+- **Top 3 + ranks 4–10**: distribution `30/20/15/10/7/5/4/3/2/4` (#1–#10, total 100%);
+  remainder coins go to #1 so the whole pool pays out.
+- **Reward settlement (§12.1)**: Team desk settings panel → "🏆 Weekly leaderboard & reward
+  settlement" — close & freeze → anti-abuse review (disqualify/restore with notes, reopens
+  a finalized week) → final ranking → prize calculation → **approve & credit** through the
+  SAME `paragonArchive.coinCredits.v1` approval → mirror flow (`kind:
+  "weekly-leaderboard-reward"`, toast + history on the winner's device).
+- **Public UI**: Account → "🏆 Coins Leaderboard — weekly top 3 + ranks 4–10 rewards" popup
+  (or from the coin shop) — live standings, state chip, pool + distribution, eligibility/
+  anti-farming rules, week selector. Honest real-zero states everywhere.
+- **Backend prepared**: `supabase/leaderboards-schema.sql` (periods, entries, fees, rewards,
+  append-only audit, economic settings + RLS + public standings RPC) — RUN ONCE when the
+  betting stage lands (see SOP §13 B). Until then the device engine + desk are the working
+  layer and nothing claims otherwise.
+
+
+## STAGES 6+7 — WITHDRAWALS + FINANCE DESKS are ALREADY BUILT (P-100 / D-208)
+- **Engine `paragon-wallets.js`** (loaded before app.js on the Archive and before
+  team-pages.js on the desk): `window.ParagonWallets` —
+  - **Your ₦10,000 fee rule (§22.1):** below ₦10,000 = NO Paragon fee; ₦10,000+ carries the
+    50-coin fee, tracked separately and never treated as profit. Placeholder rate ₦1 = 2 coins.
+  - **Limits (§23):** max 2 requests per rolling 24 h and 5 per rolling 7 days (configurable);
+    they never trap funds — every failure/cancel refunds its locked coins (FAILED → COINS_UNLOCKED).
+  - **Payout state machine (§25):** REQUESTED → ELIGIBILITY_CHECK → RISK_CHECK → LOCKED →
+    PAYOUT_PENDING → PROVIDER_SUBMITTED → PROVIDER_CONFIRMED → PAID, with RETRYING / UNKNOWN /
+    RECONCILIATION branches. One unique provider payout reference per payout — a delayed
+    provider response can never cause a second payment.
+  - **Payment claims (§18/§19/§24):** each purchase carries a transfer reference; the same
+    reference can only ever be claimed once (max 5 claims per 24 h); desk confirms → credits
+    through the Settings approval flow.
+  - **Typed append-only ledger (§15–§16),** correlation IDs on every request, risk cases,
+    payout accounts (user-owned, change = verification hold), financial pause + per-game
+    kill switches (§30), append-only audit (§37).
+- **Public UI (Archive, Account):** 💸 "Withdraw coins" popup — balance ≈ naira, amount chips
+  + live fee/needed summary, bank/account/name fields, history with state badges + cancel &
+  unlock, automatic refund claim + paid marking on every Account view.
+- **Team desks (Stage 7):** Financial Dashboard · Payment Reconciliation · Withdrawal Desk
+  (full per-state action row + timeline) · Risk & Fraud Cases · Financial Audit Log (+CSV) ·
+  Financial Reports (+CSV) · Emergency Controls (pause + kill switches). Permission law:
+  sa/admin (+ analyst read views); payouts/pause/emergency = super-admin (permissions.js).
+- **Backend prepared:** `supabase/finance-schema.sql` (wallets, typed ledger, payout accounts,
+  withdrawals, claims, risk cases, audit, controls, economic settings, UNIQUE provider pairs,
+  negative-balance guards) — RUN ONLY when the owner activates real-money infrastructure
+  (see SOP §13 B). Until then the device engine + desks are the working layer and no UI ever
+  claims a payout was made.
+
 ## The full mechanics (owner's rules, implemented as products are built)
 1. **Free vs Bet:** every game is fully playable FREE. Betting is optional and costs coins.
 2. **Betting:** player sets a coin stake + pays an entry fee (shown in ₦, charged in coins
    at the current rate). Winner takes both stakes — balance moves instantly.
 3. **Leaderboards:** ONLY bet games award leaderboard points. Free play never climbs.
-   Quiz leaderboard works the same way (bet entry = points eligibility).
+   Quiz leaderboard works the same way (bet entry = points eligibility). **BUILT in
+   Stage 5 (P-099)** — engine/UI/desk ready; it fills as betting lands per product.
 4. **Creator quizzes:** a creator stakes coins from their own balance as the prize; the
    creator MAY play their own quiz but can NEVER win its prize or earn leaderboard points
-   from it (prevents answer-farming the weekly rewards).
+   from it (prevents answer-farming the weekly rewards). **Enforced by the engine.**
 5. **Weekly/monthly rewards:** top 3 get the big coin prizes, ranks 4–10 get smaller ones —
-   paid by the team through the same approval → credit mirror flow.
-6. **Withdrawals/selling coins back to Paragon:** user requests → team verifies → pays naira
-   minus the team's fee → coins deducted. (Front-end hook ready; rates/fees = owner.)
+   paid by the team through the same approval → credit mirror flow. **Settlement desk
+   built (Stage 5):** close → freeze → review → final ranking → prizes → approve & credit.
+6. **Withdrawals/selling coins back to Paragon:** user requests → coins lock → team verifies
+   → pays naira to the user's own verified account → coins close the loop. **BUILT in Stages
+   6+7 (P-100):** request UI, ₦10,000+ 50-coin fee rule, rolling limits, payout state machine,
+   claims/reconciliation, dup protection, finance desks — real on-device, honest labels,
+   backend SQL prepared for owner activation. (Real rate/fees/provider = owner.)
 
 ## ❓ HEADS-UP PROMPT — paste into ChatGPT to design the economics
 > I run a free web platform (Paragon Archive) with mini-games and quizzes using a virtual
@@ -48,7 +124,36 @@
 > fairness disclaimers for a skill-based (not luck-based) coin system in Nigeria. Keep
 > everything free-to-play friendly: no user ever needs to pay to enjoy the platform.
 
+## Phase 5 OPay / Moniepoint (P-107)
+- SQL: `coins-master-phase5.sql` — preferred rails `opay`/`moniepoint`, KYC draft, payout rail events.
+- Webhook: `?provider=opay|moniepoint|manual_bank` (Flutterwave **not** required).
+- FE: coin shop shows OPay/Moniepoint pay cards from public config.
+- Team: Phase 5 rails snapshot + record payout.
+- Details: `docs/COINS-PHASES.md`, `supabase/functions/COINS-PHASE5-OPAY-MONIEPOINT.md`.
+
+## Phase 4 compete / leaderboard (P-104)
+- SQL: competition create/join/settle, leaderboard settle, creator prizes, financial cases, risk flags, pause.
+- Edge: `competition-settle`.
+- Team: Finance desk snapshot + emergency pause.
+- Free play unchanged; staked paths gated by flags.
+
+## Phase 3 provider path (P-103)
+- SQL: `coins-master-phase3.sql` — matches, webhook inbox, provider settings, `paragon_sql_health`.
+- Edge: `coin-payment-webhook`, `coin-reconcile` (secrets only in Supabase).
+- Team desk: **Probe SQL health now** confirms live objects from *your* browser.
+- Auto-match only when exactly one open intent shares the paid naira amount; else needs_review.
+
+## Phase 2 authority (P-102)
+- SQL: `supabase/coins-master-phase2.sql` — `paragon_coin_post_entry`, payment intents, withdrawal lock/settle, admin adjust.
+- FE: registered users only for buy/withdraw; attempts RPCs then falls back to team desk queue.
+- Browser balance = display/cache. No credit on “Request” click alone.
+
+## Real-money gate (P-101)
+- Server flag `paragon_feature_flags.real_money_enabled` defaults **false**.
+- Purchases/withdrawals/compete stay disabled until the owner flips flags after provider + compliance.
+- UI must never claim bank money moved while the flag is off.
+
 ## Still needed from the owner (CTA)
 - The real ₦→coin rate, entry fees, prize amounts, withdrawal fee, payment channels
-  (transfer/OPay/Paystack free tier?), and reward schedule — then the placeholder numbers
+  (**OPay / Moniepoint preferred**; Paystack optional; Flutterwave not required), and reward schedule — then the placeholder numbers
   are replaced everywhere in one pass.

@@ -5392,3 +5392,273 @@ One calm desk, honest numbers everywhere, maintenance that means it, previews th
 
 ### Result
 The owner's skill library is now a buildable spec library, the coin economy has a real working core, and the deployment path to a live HTTPS domain is a documented 15-minute job.
+
+## v0.93.0 — 2026-09-03 — First in-project product wave: nine /sites/ builds + catalogue wiring
+1. **Workspace restored** from GitHub `main` into session branch `arena/01a065d9-paragon-archive` after the renamed-zip upload path failed.
+2. **Read law docs** (NEXT-AGENT, EOP tail, SOP CTA, SITE-BUILD-KIT, nine site-specs) and continued from the P-098 handoff: *build the first websites under /sites/<slug>/*.
+3. **Shared kit** `sites/_shared/site-kit.css` + `site-kit.js` — quiz-family tokens, Paragon bar, theme auto/manual, storage helpers, no alert/confirm/prompt.
+4. **Nine product sites** (vanilla HTML/CSS/JS, localStorage engines, identity headers, unclickable home examples, Archive logo links):
+   - `sites/invoice-generator` → catalogue **Paragon Invoice**
+   - `sites/resume-maker` → **Paragon Resume**
+   - `sites/recipe-creator` → **Paragon Recipe**
+   - `sites/flashcard-generator` → **Paragon Flash**
+   - `sites/file-converter` → **Paragon Files**
+   - `sites/travel-assistant` → **Paragon Travel**
+   - `sites/meal-planner` → pairs with **Paragon Recipe** (meal board + shopping)
+   - `sites/photo-editor` → **Paragon Photo**
+   - `sites/personal-shopper` → **Paragon Shop** (shortlist desk; honest no-checkout)
+5. **Catalogue wiring** in `data/catalogue-expansion.js` + `data/catalogue-expansion-45-100.js`: real `siteUrl` under `sites/…`, `previewOnly: false`, honest `buildProgress` 55–80 (not 100 until owner demo pass), `live: true`. Merge paths now clear `previewOnly` when a real URL is set.
+6. **REALLY_UPDATED** list extended in `app.js` for the eight newly opened catalogue products.
+7. **Cache** `paragon-archive-v76`; P-099 fixture; LIVE_SITES set updated so unfinished-preview law still holds for the rest.
+8. **File tree** regenerated (314 files · ~6.2 MB). Governance: SOP P-099, NEXT-AGENT stop point, CHANGES rewritten.
+
+### Result
+The Archive now opens eight real same-origin product builds (plus Meal as a Recipe companion tool) instead of concept previews. Each site is local-first, free, and family-styled.
+
+### Remaining
+- Owner demo pass before any `buildProgress → 100`.
+- Badges 21–30; more skills → more specs → more /sites/.
+- Brevo account hold; announcements SQL; production domain.
+
+## v0.94.0 — 2026-09-03 — Coins backend SQL, withdrawals, product-site depth (P-100)
+
+**Request reference:** SOP §11, Prompt P-100  
+**Status:** `[x]` completed
+
+### Context
+Owner re-attached 10 skill/coin master files; Arena upload path did not materialise files on disk again. Build proceeded from in-repo COIN-SYSTEM + site-specs (same source family as the uploads) and delivered the SQL pack the owner asked to run immediately.
+
+### Executed actions
+1. Authored `supabase/coins-schema.sql` (wallets, ledger, purchases, withdrawals, config, RPCs) + `supabase/SQL-RUN-PACK.md`.
+2. Extended Paragon Coins front-end: shop history, withdrawal requests, team Paid desk, debit mirror sync.
+3. Deepened all 9 `/sites/` products (substitutions, Anki export, invoice CSV/share link, resume cover letter, travel entry checks, photo overlay/rotate, meal←recipe import, shopper compare, files job log).
+4. Cache v77; P-100 fixture; governance updated.
+
+### Result
+Owner can run announcements + coins SQL today. Coins buy/withdraw loop is complete on-device; SQL makes it multi-device-ready. Product sites closer to skill fidelity without paid APIs.
+
+### Remaining
+- Owner runs SQL pack; owner economics rates replace placeholders.
+- When full skill MD files land on disk/GitHub, merge any extra rules still missing.
+- Badges 21–30; Brevo hold.
+
+## v0.95.0 — 2026-09-03 — Skills from GitHub uploads; coins master Phase 1b; site maintenance (P-101)
+
+**Request reference:** SOP §11, Prompt P-101  
+**Status:** `[x]` completed
+
+### Executed actions
+1. Pulled `uploads/*` + `PARAGON-COINS-MASTER-BUILD-SPEC.md` from origin/main into the session branch; mirrored to `docs/skills/`.
+2. Authored `supabase/coins-master-phase1.sql` (accounts, economic settings ₦1=1, feature flags real_money=false, payments, withdrawals v2, competition/leaderboard stubs, audit) + `OWNER-SQL-CHECKLIST.md` with VERIFY SQL (sandbox cannot DNS-reach Supabase — owner must run VERIFY).
+3. Coin UI: packs 1:1, real-money OFF copy, withdrawal fee ≥10000 → 50 coins, min withdraw 500.
+4. Updates: product-wave announcement seed; quiz free/compete honesty; product depth (SM-2, ratios, travel pacing, files roadmap).
+5. Cache v78; suites green; SQL run pack updated.
+
+### Result
+Owner has a clear SQL VERIFY + run order. Financial engine foundation matches the master build spec without enabling real money. Nine product sites continue to deepen against skill files.
+
+### Remaining owner actions
+- Paste OWNER-SQL-CHECKLIST VERIFY results.
+- Run any SQL still false (announcements → coins-schema → coins-master-phase1).
+- Brevo, domain, payment provider, badges 21–30.
+
+## v0.96.0 — 2026-09-03 — Complete skill partials + coins master Phase 2 (P-102)
+
+**Request reference:** SOP §11, Prompt P-102  
+**Status:** `[x]` completed
+
+### Executed actions
+1. Completed browser-local skill depth for all 9 product sites (Files/Resume/Photo/Flash/Invoice/Shop/Meal/Recipe/Travel) via real engines — no fake codecs or checkout.
+2. Authored `coins-master-phase2.sql` authority RPCs (ledger post, payment intents, withdrawal lock/settle, admin adjust) per master build spec; FE guest gates + RPC wiring with honest offline fallback.
+3. Catalogue feature lists + buildProgress updated honestly (high 80s–low 90s, not 100).
+4. Cache v79; suites green including P-102 fixture.
+
+### Honesty boundary
+- Coins real-money remains **OFF** until owner flips flag after provider + compliance + SQL live.
+- Browser balance is display/cache; server ledger is authority when Phase 2 SQL is run.
+- File skill items needing pandoc/ffmpeg/HEIC stay guide-only.
+
+### Remaining owner actions
+- Run VERIFY + SQL order 1→4 in OWNER-SQL-CHECKLIST / SQL-RUN-PACK.
+- Choose payment provider before enabling real_money.
+
+## v0.97.0 — 2026-09-03 — Coins Phase 3 + SQL health probe (P-103)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Authored `coins-master-phase3.sql` (matches, webhook inbox, provider settings, ingest/match RPCs, `paragon_sql_health`).
+2. Edge functions `coin-payment-webhook` + `coin-reconcile` + deploy guide (provider-agnostic; secrets in Edge only).
+3. Team desk **Probe SQL health now** so owner browser can confirm live SQL (sandbox DNS still blocked).
+4. Re-probed Supabase from sandbox: still `Name or service not known` — cannot auto-confirm runs from agent network.
+
+### Owner
+- Run SQL 1→5 as needed; click Probe; paste results.
+- Deploy Edge + set `PARAGON_COIN_WEBHOOK_SECRET` before real provider traffic.
+- Keep `real_money_enabled=false` until ready.
+
+## v0.98.0 — 2026-09-03 — Phase 4 + skills completion matrix (P-104)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Honest audit of all 10 uploads files; matrix at `docs/SKILLS-COMPLETION.md`.
+2. Coins Phase 4 SQL: competition create/join/settle, leaderboard settle, creator prizes, financial cases, risk flags, pause RPC; Edge `competition-settle`; Team Finance desk.
+3. Remaining browser skill depth: Flash quiz mode, Meal TDEE, Invoice scale+share URL, Photo heal/square, Shop gift checklist, Travel planning standards, Files JSONL, Recipe print, Resume tips, coin shop “Report a money problem”.
+4. Sandbox still cannot DNS-confirm live SQL.
+
+### Owner
+- SQL run order through **phase4** (`coins-master-phase4.sql`).
+- Deploy Edge functions; keep real_money OFF until ready.
+- Demo products before claiming 100% catalogue progress.
+
+## v0.99.0 — 2026-09-03 — Badges 21–30, SQL assurance path, maintenance (P-105)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Confirmed agent still cannot DNS-reach Supabase; documented easiest full-assurance path (SQL Script A / Supabase AI / Team probe / GitHub Actions anon).
+2. Generated + wired achievement badges **21–30** (full 30/30 set).
+3. Fixed missing `pwa-icon-192.png`; layout polish CSS; IMAGE-REQUIREMENTS + file tree + docs.
+4. Suites + cache v82.
+
+### Owner for SQL assurance
+Paste Script A from `supabase/SUPABASE-AI-VERIFY-PROMPT.md` results into chat.
+
+## v1.00.0 — 2026-09-03 — 50 achievements: ads + top-10 leaderboard engagement (P-106)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Expanded achievements **30 → 50** (10 stages × 5).
+2. Ad path: view slots + tap reserved/live ads → counters; honest copy until Google approval.
+3. Engagement leaderboard: device board with Top 10 / podium badges; not a money referee.
+4. Retention + product engagement badges (streak, coins shop, products, install, community, details, categories, updates).
+5. Suites + cache v83.
+
+## v1.01.0 — 2026-09-03 — Badge polish 41–50 + Coins Phase 5 OPay/Moniepoint (P-107)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Regenerated achievement badges 41–50 (full AI art).
+2. Built coins **Phase 5**: OPay/Moniepoint preferred rails, KYC profiles, payout rail log, public config, Team desk, FE pay cards.
+3. Webhook accepts `?provider=opay|moniepoint|manual_bank` (Flutterwave optional only).
+4. Documented: **SQL phases 1–5 complete**; remaining = owner run/deploy/accounts + optional live API/compliance — not a missing phase file.
+5. Audited all 10 `uploads/` skills — browser products already at honest max depth.
+
+## v1.02.0 — 2026-09-03 — Stage 1 foundation audit + hardening (P-108)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Full checklist audit vs owner list → `docs/COINS-AUDIT-CHECKLIST.md`.
+2. Confirmed Stage 1 already largely in phase1–2; filled gaps only (rate limits, reserves, 30% fee share, finance report, DR doc).
+3. Did **not** rebuild phases 3–5 or flip real_money.
+4. Suites + cache v85.
+
+### Owner
+Run SQL including `coins-master-stage1-hardening.sql`. Paste **Stage 2** when ready.
+
+## v1.03.0 — 2026-09-03 — Stage 2 coin system wire-up (P-109)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Audited Stage 2 list — core SQL already in phase2–3; filled FE/Team + wallet view RPCs.
+2. Purchase request → claim → team confirm credit path end-to-end in UI.
+3. Transaction history from server ledger; locked/available/pending/restricted shown.
+4. real_money remains OFF; request click never credits.
+
+
+## v1.04.0 — 2026-09-03 — Stage 3 Games (P-110)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Audited phase4 1v1 create/join/settle/draw/void — already present; extended Stage 3.
+2. Competitive points + leaderboard upsert; anticheat foundations; stake preflight.
+3. FE compete desk + Team settle UI; client cannot settle money.
+4. real_money / compete flags unchanged (default off).
+
+## v1.05.0 — 2026-09-03 — Stage 4 Quiz (P-111)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Paid quizzes: definitions + public view (no answer_key leak), paid attempts with fee lock + max attempts.
+2. Creator-funded prizes: phase4 lock + stage4 award/refund harden (creator cannot win; ineligible attempts blocked).
+3. Creator self-play protection: attempts marked not prize/leaderboard eligible; award RPC blocks creator.
+4. Server-side scoring: `paragon_quiz_score_attempt` — answer key never returned to client.
+5. Paid-attempt protection: void/refund unfinished; fee consume on score; idempotency.
+6. FE free localStorage quiz unchanged; paid bridge + create/play hooks; Team Stage 4 desk.
+7. Docs COINS-STAGE4; cache v88; suites green. real_money still OFF.
+
+### Owner
+Run `coins-master-stage4-quiz.sql` after phase4 (+ stage3 recommended). Do not flip real_money until ordered.
+
+
+---
+
+## v0.93.0-par — 2026-09-03 — [parallel arena lineage] Stage 5 Leaderboards: weekly ranking, top 3 + ranks 4–10, revenue-funded pool, anti-farming, reward settlement
+1. **STAGE 5 AUDIT (SOP/EOP):** the competitive leaderboard stage had NO existing implementation — D-205 built only the coin core and deferred betting/leaderboards/rewards to product builds (the site-activity weekly Trending ranking is a separate, already-done feature). So Stage 5 was built in full with real-zero honesty until the betting stage lands.
+2. **ENGINE (D-207):** new `paragon-leaderboards.js` — dependency-free `window.ParagonLeaderboards` shared by the Archive app and the Team desk:
+   - Weekly periods Monday–Sunday (D-013 convention); standings with shared ranks for ties.
+   - Eligibility: ONLY eligible BET results earn points; guest/free-play/below-min-stake/creator-self-play/impossible/duplicate results rejected with audited codes; a closed week can never be changed by late results.
+   - Anti-farming: performance-only scoring (quiz accuracy mode; per-game rules configurable; 1 coin ≠ 1 point — stake only proves eligibility); rapid-fire + repeated-opponent advisory flags.
+   - Revenue-funded pool: 30% of eligible REALIZED competition fees (`paragonCompetitionFeeLedger.v1`); zero fees = honest ₦0 pool; prizes table pays exactly the spec distribution (30/20/15/10/7/5/4/3/2/4), remainder to #1 so the whole pool pays.
+   - Settlement state machine per spec §12.1: running → close & freeze → review (explicit super-admin disqualify/restore with notes; any post-finalization decision reopens the week and clears stale prizes) → final ranking → prize calculation → credit through the SAME `paragonArchive.coinCredits.v1` approval → mirror flow (`kind: "weekly-leaderboard-reward"`), idempotent, fully audited.
+3. **PUBLIC UI:** Account → "🏆 Coins Leaderboard — weekly top 3 + ranks 4–10 rewards" popup (live standings, your-row, week chips, state badge, pool/distribution, eligibility + anti-farming + settlement explainers) + a leaderboard button inside the coin-shop popup; credit sync is now kind-aware (reward toast, not "purchase approved").
+4. **TEAM DESK:** settings panel gains "🏆 WEEKLY LEADERBOARD & REWARD SETTLEMENT (super-admin)" — period picker, standings + per-result review queue with flag chips, inline disqualify note, close/freeze/finalize/calculate/approve-credit action row (disabled honestly when the period is live or the pool is unfunded), and the audit trail; engine loaded on desk.html before team-pages.js.
+5. **BACKEND PREPARED:** `supabase/leaderboards-schema.sql` (idempotent): leaderboard periods/entries/realized fees/rewards/append-only audit/economic settings + RLS + team membership gate + public `paragon_leaderboard_standings()` RPC. Runs ONCE when the betting stage lands — added to SOP §13 B.
+6. **MORE:** cache v75→v76 with the engine precached; docs/COIN-SYSTEM.md, SOP (D-207 + P-099 + CTA), CHANGES.md, tree, NEXT-AGENT refreshed; engine + app/team code syntax-checked.
+7. Suites 3/3 green with two new P-099 fixtures (38 public/engine checks + 25 desk/SQL checks = 63 new checks); css/styles appended under a marked P-099 block.
+
+### Validation
+- [x] Engine full lifecycle simulated in Node (week 2026-08-03): stakes 1 vs 1000 → identical points; free/guest/creator-self-play/impossible/duplicate all rejected; 3000 realized fees → 900 pool; prize rows sum exactly 900 with spec percentages; close before period end refused; close after end freezes; late results rejected; review/disqualify → final excludes the player; prizes → credit writes ONE kind-tagged mirror (270 coins to rank 1; disqualified rank 2 gets nothing); second credit refused; 14 audit rows.
+- [x] Frozen-week guard + post-finalization reopen semantics exercised and locked by fixtures.
+- [x] No textual arrows added to app.js/paragon-archive.html; no window.alert/prompt/confirm anywhere new; identity headers on all new files; PWA shell precaches the engine.
+
+### Result
+Stage 5 — Leaderboards is complete as a real, honest, regression-locked system: weekly ranking, top 3 + ranks 4–10 rewards, a revenue-funded pool that never invents money, enforced anti-farming rules, and a reviewed, audited settlement flow — with the backend SQL ready for the moment betting lands. Standings and pools truthfully show real zero until eligible bet results and realized competition fees exist.
+
+## v0.94.0-par — 2026-09-03 — [parallel arena lineage] Stages 6+7 Finance: withdrawals (₦10,000 fee rule, limits, payout state machine, dup protection, reconciliation) + Team finance desks; Stage 8 tests
+
+**Request reference:** SOP §11, Prompts P-100 (Stages 6+7+8 delivered as one wave)
+**Status:** `[x]` completed
+
+### Executed actions
+1. **STAGE 6/7 AUDIT (SOP/EOP/COIN-SYSTEM):** the withdrawal/finance stages had NO existing implementation — the coin core (D-205) and leaderboard stage (D-207) explicitly deferred withdrawals, payment matching and finance desks. The master-spec §§14–61 flow was re-read before building (balance types, typed ledger, purchases/matching/duplicate protection/idempotency/races, withdrawal fee + limits + payout machine + payout-account law, team-role law, desk integration panels).
+2. **ENGINE (D-208):** new `paragon-wallets.js` — dependency-free `window.ParagonWallets` shared by the Archive app and the Team desk:
+   - ₦10,000 rule: fee 0 below ₦10,000, 50 coins at/above — tracked separately, never profit; rate placeholder ₦1 = 2 coins.
+   - Rolling limits 2/24 h + 5/7 days (configurable); requests lock real coins; every failure/cancel refunds through FAILED → COINS_UNLOCKED.
+   - Full payout state machine (REQUESTED…PAID incl. RETRYING/UNKNOWN/RECONCILIATION); a provider payout reference binds once and can never be reused; a row that failed/unlocked can never later be marked paid — a delayed provider response never causes a second payout.
+   - Payment claims: one credit per provider transfer (duplicate auto-flag, 5/24 h anti-spam); typed append-only ledger with idempotency keys + reconciliation math; risk cases; payout accounts (user-owned, changes → verification hold); financial pause + per-game kill switches; append-only audit; correlation IDs on every request.
+3. **PUBLIC UI (Archive, Account):** 💸 "Withdraw coins" row → popup with balance ≈ naira, amount chips (₦2k/5k/10k/20k), live fee + coins-needed summary (fee rule explainer), payout-account fields, rolling-limit usage, full history with honest state badges + cancel & unlock, automatic refund/paid claiming on every Account view; the buy-coins flow now records payment claims (transfer reference, sender, bank) and refuses duplicate references.
+4. **TEAM DESKS (Stage 7):** seven finance panels in the consolidated desk (Financial Dashboard with paused banner + ledger; Payment Reconciliation with claim lifecycle; Withdrawal Desk with per-state action rows, unique-ref capture and timelines; Risk & Fraud Cases with open/review/resolve/close; append-only Audit Log with search + CSV; Financial Reports with period filters + liability/reserve honesty + CSV; Emergency Controls = super-admin financial pause + per-game kill switches) — page law in permissions.js (sa/admin + analyst views; payouts/emergency = super-admin), permission-matrix rows added, sidebar FINANCE section, router titles added, engine loaded on the desk before team-pages.js.
+5. **BACKEND PREPARED:** `supabase/finance-schema.sql` (idempotent): wallets with negative-balance triggers, typed coin ledger, payout accounts, withdrawals with UNIQUE (provider, provider_transaction_id), payment claims UNIQUE pair, risk cases, append-only audit, finance controls, economic settings. Runs ONLY when the owner activates real-money infrastructure — added to SOP §13 B with the honest activation-gate note.
+6. **MORE:** cache v76→v77 with the wallet engine precached; service-worker/app/desk wiring; P-100 CSS block; docs (SOP D-208 + P-100 + CTAs, COIN-SYSTEM Stages 6+7 section, EOP, CHANGES, tree v0.94.0, NEXT-AGENT) refreshed; syntax-checked all touched JS.
+7. Suites 4/4 green: core, ux, ai-team (unchanged suites; cache assertions advanced v76→v77) + new `tests/suite-finance.test.js` = 107 checks covering fee rule, rolling windows, the payout machine, duplicate payout refs, delayed-response/reconciliation honesty, claims duplication + limits, pause/kill switches, typed ledger + reconciliation, audit, risk cases, account law, race-condition double-submit guard, desk wiring/permission law/SQL, and no-fake-money copy checks.
+
+### Validation
+- [x] Full engine lifecycle simulated in Node: 20,050 coins required for a ₦10,000 request (20,000 + 50 fee); fee-free ₦2,000 path; insufficient balance refused; 3rd same-day request refused; window rolls open after 25 h; weekly 5 max + rollover; LOCKED → PAYOUT_PENDING → PROVIDER_SUBMITTED (ref REQUIRED, reuse blocked) → PROVIDER_CONFIRMED → PAID; UNKNOWN → RECONCILIATION → FAILED → COINS_UNLOCKED; late second PAID impossible; user cancel returns coins; duplicate payment claims flagged; 6th claim refused; pause blocks new requests; kill switches recorded; ledger replays idempotent (one row); reconciliation matches at 25,050 − 20,050 = 5,000 and reports exact differences on mismatch.
+- [x] Double-submit race simulation: the second simultaneous withdrawal is refused once funds are locked — balance never goes negative.
+- [x] Desk law verified by fixtures: 7 panels exist + router titles; PAGE_ACCESS finance roles; sidebar FINANCE section; engine loads before team-pages.js.
+- [x] No textual arrows added to app.js/paragon-archive.html; no window.alert/prompt/confirm anywhere new; identity headers on all new files; no UI or engine copy claims a live payout (pendingBackendSync kept); browser-never-authoritative law restated in the engine header.
+
+### Result
+Stage 6 — Withdrawals and Stage 7 — Team/administration are complete as a real, honest, regression-locked system: requests lock coins on-device, the ₦10,000+ → 50-coin fee rule and rolling limits are enforced and never trap funds, the payout state machine can never double-pay (one unique provider reference per payout, terminal states terminal), payments reconcile through single-credit claims, the typed ledger and audit trail make every move traceable by correlation ID, and the seven finance desks run under the fixed six-role permission law — with the authoritative server layer prepared and gated until the owner activates real-money infrastructure.
+
+## v1.06.0 — 2026-09-03 — Lineage union merge to GitHub main (D-234)
+
+**Request reference:** Owner order 2026-09-03 (push everything A→Z and merge to main).
+**Status:** `[x]` completed
+
+### Executed actions
+1. Root cause found: the earlier agent's PR #1 merged only its own later lineage (P-101–P-111) into `main`; this workspace's Stages 5–7 existed nowhere on GitHub, so every ZIP the owner downloaded was the old pre-build tree.
+2. Unshallowed the clone, committed this workspace's full A→Z state (`48becdc`), and merged `origin/main` in: ~100 main-only files arrived cleanly; 12 files conflicted and were unioned by hand — app.js carries BOTH the server-first coin flow (payment intents, claim RPCs, OPay/Moniepoint rails, Stage 3 games, Stage 4 quiz) and the device leaderboard/withdrawal popups + kind-aware reward sync; desk, styles, service worker (cache unified **v88**) and all test suites keep both sides' assertions.
+3. suites 4/4 green (core, ux incl. the 18-check P-099 leaderboard fixture, finance 107 checks, ai-team 29 checks); cache v88; docs/SOP D-234 + EOP v1.06.0 + NEXT-AGENT 7q record the union.
+4. Pushed the merge commit directly to GitHub `main` (non-force). GitHub ZIP downloads are now current. paragon-file-tree.html regenerated with the merged totals.
+
+### Result
+Main contains both full lineages from base `e8167bc`; the stale-download problem is resolved at the source. Owner's next step: another agent will build/merge game + quiz code; when that lands on `main`, this workspace pulls it and wires games/quiz into the coin engine and the leaderboard (P-110 Stage 3 + P-111 Stage 4 patterns already exist as the reference).

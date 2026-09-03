@@ -58,7 +58,20 @@
     { action: "Permanently Delete Archived Data",   sa: Y, ad: N, dev: N, mod: N, sup: N, an: N },
     { action: "View Own Profile",                   sa: Y, ad: Y, dev: Y, mod: Y, sup: Y, an: Y },
     { action: "Edit Own Profile",                   sa: Y, ad: Y, dev: Y, mod: Y, sup: Y, an: Y },
-    { action: "View Team Member Profiles",          sa: Y, ad: Y, dev: "own-level-below", mod: "own-level-below", sup: "own-level-below", an: "own-level-below" }
+    { action: "View Team Member Profiles",          sa: Y, ad: Y, dev: "own-level-below", mod: "own-level-below", sup: "own-level-below", an: "own-level-below" },
+    /* P-100 — Stage 7 financial permissions (§35/§55 fitted to the six fixed roles) */
+    { action: "View Financial Dashboard",           sa: Y, ad: Y, dev: N, mod: N, sup: N, an: Y },
+    { action: "View Payment Reconciliation",        sa: Y, ad: Y, dev: N, mod: N, sup: Y, an: N },
+    { action: "Confirm Payment Claims",             sa: Y, ad: Y, dev: N, mod: N, sup: N, an: N },
+    { action: "Approve Coin Purchases",             sa: Y, ad: Y, dev: N, mod: N, sup: N, an: N },
+    { action: "View Withdrawal Desk",               sa: Y, ad: Y, dev: N, mod: N, sup: N, an: N },
+    { action: "Run Withdrawal Desk",                sa: Y, ad: Y, dev: N, mod: N, sup: N, an: N },
+    { action: "Approve Payouts",                    sa: Y, ad: Y, dev: N, mod: N, sup: N, an: N },
+    { action: "View Risk & Fraud Cases",            sa: Y, ad: Y, dev: N, mod: N, sup: N, an: Y },
+    { action: "Resolve Risk & Fraud Cases",         sa: Y, ad: N, dev: N, mod: N, sup: N, an: N },
+    { action: "View Financial Audit Log",           sa: Y, ad: Y, dev: N, mod: N, sup: N, an: Y },
+    { action: "Export Financial Reports",           sa: Y, ad: Y, dev: N, mod: N, sup: N, an: Y },
+    { action: "Use Emergency Financial Controls",   sa: Y, ad: N, dev: N, mod: N, sup: N, an: N }
   ];
 
   var ROLE_COLUMN = { "super-admin": "sa", "admin": "ad", "developer": "dev", "moderator": "mod", "support": "sup", "analyst": "an" };
@@ -154,7 +167,16 @@
     "lab.html": VALID,
     /* P-097 — consolidated shell + the new Construction Desk page */
     "desk.html": VALID,
-    "construction.html": ["super-admin", "admin"]
+    "construction.html": ["super-admin", "admin"],
+    /* P-100 — Stage 7 finance law (spec §54–§61 fitted to the six fixed roles;
+       no seventh role is introduced without updating the role law + fixtures) */
+    "finance.html": ["super-admin", "admin", "analyst"],
+    "finance-payments.html": ["super-admin", "admin", "support"],
+    "finance-withdrawals.html": ["super-admin", "admin"],
+    "finance-risk.html": ["super-admin", "admin", "analyst"],
+    "finance-audit.html": ["super-admin", "admin", "analyst"],
+    "finance-reports.html": ["super-admin", "admin", "analyst"],
+    "finance-emergency.html": ["super-admin"]
   };
 
   P.pageAllowed = function (file, role) {

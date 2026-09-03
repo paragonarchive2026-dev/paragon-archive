@@ -1021,10 +1021,96 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   <div class="team-page-head">
     <h1 class="team-page-title">⚙️ SETTINGS <span class="team-role-chip">🔒 Super Admin only</span></h1>
 
-  <!-- P-098 — super-admin coin purchase approvals -->
+  <!-- P-103 — SQL health probe (anon RPC paragon_sql_health when phase3 live) -->
+  <section class="team-dash-section" id="sql-health-section">
+    <h2 class="team-section-title">🩺 Backend SQL health</h2>
+    <p class="team-site-sub">This browser calls your live Supabase project. The coding sandbox often cannot (DNS). Use this to confirm which coin/announcement migrations exist.</p>
+    <div class="team-site-actions" style="margin-bottom:10px">
+      <button type="button" class="team-mini-link" id="probe-sql-health">Probe SQL health now</button>
+    </div>
+    <pre id="sql-health-out" class="team-site-sub" style="white-space:pre-wrap;max-height:280px;overflow:auto;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">Not probed yet.</pre>
+  </section>
+
+  <!-- P-111 — Stage 4 quiz -->
+  <section class="team-dash-section" id="stage4-quiz-section">
+    <h2 class="team-section-title">❓ Stage 4 — Paid quiz &amp; creator prizes</h2>
+    <p class="team-site-sub">Server scores only. Creator cannot receive own prize. Void unfinished paid attempts; award locked prizes to eligible winners.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="stage4-quiz-refresh">Refresh quiz desk</button>
+      <button type="button" class="team-mini-link" id="stage4-prize-award">Award creator prize</button>
+      <button type="button" class="team-mini-link" id="stage4-attempt-void">Void paid attempt</button>
+    </div>
+    <pre id="stage4-quiz-out" class="team-site-sub" style="white-space:pre-wrap;max-height:280px;overflow:auto;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">Click refresh after stage4 SQL.</pre>
+  </section>
+
+  <!-- P-110 — Stage 3 games settle -->
+  <section class="team-dash-section" id="stage3-games-section">
+    <h2 class="team-section-title">⚔️ Stage 3 — 1v1 settle (server only)</h2>
+    <p class="team-site-sub">Browser never referees money. Outcomes: <code>settled_win</code> (5% fee from pool), <code>settled_draw</code> / <code>voided</code> (stakes returned). Awards competitive points on win/draw.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="stage3-games-refresh">Refresh competitions</button>
+      <button type="button" class="team-mini-link" id="stage3-anticheat-flag">Flag user (anti-cheat)</button>
+    </div>
+    <div id="stage3-games-list" class="team-site-list"></div>
+  </section>
+
+  <!-- P-104 — Phase 4 finance desk overview -->
+  <section class="team-dash-section" id="finance-desk-section">
+    <h2 class="team-section-title">💼 Finance desk (Phase 4)</h2>
+    <p class="team-site-sub">Competitions, leaderboard periods, creator prizes, financial cases, risk flags. Server is the referee — this panel is read/ops once SQL phase4 is live. real_money stays OFF until you flip the flag.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="finance-refresh">Refresh finance snapshot</button>
+      <button type="button" class="team-mini-link" id="finance-report-snapshot">Stage 1 finance report</button>
+      <button type="button" class="team-mini-link danger" id="finance-pause-on">Emergency: financial pause ON</button>
+      <button type="button" class="team-mini-link" id="finance-pause-off">Financial pause OFF</button>
+    </div>
+    <pre id="finance-desk-out" class="team-site-sub" style="white-space:pre-wrap;max-height:320px;overflow:auto;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">Click refresh after phase4 SQL is live.</pre>
+  </section>
+
+
+
+  <!-- P-107 — Phase 5 OPay / Moniepoint rails -->
+  <section class="team-dash-section" id="phase5-rails-section">
+    <h2 class="team-section-title">🇳🇬 OPay / Moniepoint rails (Phase 5)</h2>
+    <p class="team-site-sub">Preferred Nigerian wallet path — <strong>not Flutterwave</strong>. After <code>coins-master-phase5.sql</code>, set receive accounts in SQL (public numbers only). Record payouts you send on OPay/Moniepoint here. KYC drafts appear when users save payout details.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="phase5-rails-refresh">Refresh rails snapshot</button>
+      <button type="button" class="team-mini-link" id="phase5-payout-record">Record OPay/Moniepoint payout</button>
+    </div>
+    <pre id="phase5-rails-out" class="team-site-sub" style="white-space:pre-wrap;max-height:320px;overflow:auto;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">Click refresh after phase5 SQL is live.</pre>
+  </section>
+
+  <!-- P-098/P-100 — super-admin coin purchase + withdrawal approvals -->
+  <section class="team-dash-section" id="stage2-reconcile-section">
+    <h2 class="team-section-title">🪙 Stage 2 — Purchase reconcile (server)</h2>
+    <p class="team-site-sub">Open payment intents from Supabase. <strong>Confirm credit</strong> runs <code>paragon_coin_confirm_payment_intent</code> (ledger + available balance). Match event links a provider row first. Device mirrors are fallback only.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="stage2-reconcile-refresh">Refresh open intents</button>
+    </div>
+    <div id="stage2-reconcile-list" class="team-site-list"></div>
+    <pre id="stage2-reconcile-events" class="team-site-sub" style="white-space:pre-wrap;max-height:160px;overflow:auto;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:10px;margin-top:10px">Unmatched events appear after refresh (phase3+).</pre>
+  </section>
+
   <section class="team-dash-section" id="coin-requests-section">
-    <h2 class="team-dash-heading">🪙 COIN PURCHASE REQUESTS (super-admin)</h2>
+    <h2 class="team-dash-heading">🪙 COIN PURCHASE REQUESTS (device mirror fallback)</h2>
+    <p class="team-site-sub">Legacy same-device queue. Prefer Stage 2 server reconcile above when SQL is live.</p>
     <div id="coin-requests-list" class="team-site-list"></div>
+  </section>
+
+  <!-- P-099 — super-admin weekly leaderboard settlement (stage 5) -->
+  <section class="team-dash-section" id="lb-settlement-section">
+    <h2 class="team-dash-heading">🏆 WEEKLY LEADERBOARD &amp; REWARD SETTLEMENT (super-admin)</h2>
+    <p class="team-site-sub" style="margin:0 0 12px;color:var(--text-faint);">Engine: paragon-leaderboards.js. Points come ONLY from eligible bet results (performance-based — stake size never multiplies points); the reward pool is 30% of realized competition-fee revenue; settlement follows the spec flow: week closes → results frozen → anti-abuse review → eligibility check → final ranking → prize calculation → reward ledger entries → credit. Rewards pay through the same approval → credit-mirror flow as coin purchases. Suspicious rows are flagged for YOUR review — nothing is rewarded automatically.</p>
+    <div class="team-site-row" id="lb-period-row"></div>
+    <div id="lb-standings" class="team-site-list"></div>
+    <div id="lb-pool-box"></div>
+    <div class="team-site-row" id="lb-actions" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;"></div>
+    <div class="team-dash-sectitle" style="margin-top:18px;">🛡️ Settlement audit trail</div>
+    <div id="lb-audit" class="team-site-list lb-audit-list"></div>
+  <section class="team-dash-section" id="coin-withdrawals-section">
+    <h2 class="team-dash-heading">🏦 COIN WITHDRAWAL REQUESTS (super-admin)</h2>
+    <p class="team-site-sub">Pay naira offline, then mark Paid — coins are deducted via the credit mirror path on the user device / SQL RPC when backend is live.</p>
+    <div id="coin-withdrawals-list" class="team-site-list"></div>
   </section>
   </div>
 
@@ -1437,6 +1523,87 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   </section>
     </main>
   </section>
+  <!-- ============ P-100 — STAGE 7 FINANCE DESKS ============ -->
+  <section class="team-page-panel" data-team-page="finance.html" data-page-title="Financial Dashboard — Paragon Team Dashboard" hidden>
+    <div class="team-page-head"><h1 class="team-page-title">💰 FINANCIAL DASHBOARD</h1>
+      <p class="team-site-sub">Stage 7 — honest device-layer finance: real stores, real zeros. The server ledger + provider layer activate via supabase/finance-schema.sql (SOP §13 B).</p></div>
+    <div id="fin-paused-banner"></div>
+    <div class="team-stat-grid" id="fin-stat-grid"></div>
+    <section class="team-dash-section"><h2 class="team-dash-heading">🔀 QUICK DESKS</h2>
+      <div class="team-quick-actions" id="fin-quick-links">
+        <a class="secondary-action" href="desk.html?page=finance-payments">🔎 Payment Reconciliation</a>
+        <a class="secondary-action" href="desk.html?page=finance-withdrawals">💸 Withdrawal Desk</a>
+        <a class="secondary-action" href="desk.html?page=finance-risk">🚩 Risk &amp; Fraud Cases</a>
+        <a class="secondary-action" href="desk.html?page=finance-audit">🛡️ Audit Log</a>
+        <a class="secondary-action" href="desk.html?page=finance-reports">📑 Financial Reports</a>
+        <a class="secondary-action" href="desk.html?page=finance-emergency">🛑 Emergency Controls</a>
+        <a class="secondary-action" href="desk.html?page=settings">🪙 Coin Requests (approvals)</a>
+      </div></section>
+    <section class="team-dash-section"><h2 class="team-dash-heading">📒 FINANCE LEDGER (device, typed events)</h2>
+      <div id="fin-ledger" class="team-site-list lb-audit-list"></div></section>
+  </section>
+
+  <section class="team-page-panel" data-team-page="finance-payments.html" data-page-title="Payment Reconciliation — Paragon Team Dashboard" hidden>
+    <div class="team-page-head"><h1 class="team-page-title">🔎 PAYMENT RECONCILIATION</h1>
+      <p class="team-site-sub">Payment claims carry the user's transfer reference — matching information only, never proof. One provider reference = one credit (§19); identical claims auto-flag DUPLICATE. Final credit still happens in Settings → Coin Requests.</p></div>
+    <div class="team-filter-bar">
+      <input type="search" id="pay-search" class="team-filter-search" placeholder="Search claims (ref / user / amount)..." aria-label="Search claims">
+      <select id="pay-filter" aria-label="Filter claim state"><option value="all">All states</option></select>
+    </div>
+    <div id="pay-claims" class="team-site-list"></div>
+  </section>
+
+  <section class="team-page-panel" data-team-page="finance-withdrawals.html" data-page-title="Withdrawal Desk — Paragon Team Dashboard" hidden>
+    <div class="team-page-head"><h1 class="team-page-title">💸 WITHDRAWAL DESK</h1>
+      <p class="team-site-sub">Payout state machine (§25): LOCKED → payout pending → provider submitted → confirmed → PAID; failures return coins through FAILED → COINS_UNLOCKED. One payout reference is used exactly once — never pay twice because a response was late.</p></div>
+    <div class="team-stat-grid" id="wd-stat-grid"></div>
+    <div id="wd-queue" class="team-site-list"></div>
+  </section>
+
+  <section class="team-page-panel" data-team-page="finance-risk.html" data-page-title="Risk &amp; Fraud Cases — Paragon Team Dashboard" hidden>
+    <div class="team-page-head"><h1 class="team-page-title">🚩 RISK &amp; FRAUD CASES</h1>
+      <p class="team-site-sub">Risk signals are advisory — a single signal never equals guilt and never freezes a user's money automatically (§31–§32). Open a case, review, resolve or close; every step is audited.</p></div>
+    <section class="team-dash-section"><h2 class="team-dash-heading">➕ OPEN A CASE</h2>
+      <div class="form-section" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:14px;border:1px solid var(--border);border-radius:14px;">
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);flex:1 1 220px;">User email / account
+          <input id="risk-user" type="text" maxlength="120" placeholder="user@email.com"></label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);flex:1 1 200px;">Type
+          <select id="risk-type"><option value="manual">Manual review</option><option value="velocity">Transaction velocity</option><option value="collusion">Collusion / win-trading</option><option value="multiple-accounts">Multiple accounts</option><option value="chargeback">Payment reversal / chargeback</option><option value="dispute">Withdrawal dispute</option><option value="suspicious">Suspicious activity</option></select></label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);flex:1 1 260px;">Reason / evidence reference
+          <input id="risk-reason" type="text" maxlength="240" placeholder="What was observed (correlation IDs help)"></label>
+        <button type="button" class="primary-action" id="risk-open-btn">Open case</button>
+      </div></section>
+    <div class="team-stat-grid" id="risk-stats"></div>
+    <div id="risk-cases" class="team-site-list" style="margin-top:14px;"></div>
+  </section>
+
+  <section class="team-page-panel" data-team-page="finance-audit.html" data-page-title="Audit Log — Paragon Team Dashboard" hidden>
+    <div class="team-page-head"><h1 class="team-page-title">🛡️ FINANCIAL AUDIT LOG</h1>
+      <p class="team-site-sub">Append-only by design (§37): the UI can filter, search and export — it can never edit or delete a row. Backend activation adds actor roles, IP/device metadata where lawful, and server-side retention.</p></div>
+    <div class="team-filter-bar">
+      <input type="search" id="audit-search" class="team-filter-search" placeholder="Search audit (action / actor / ref)..." aria-label="Search audit">
+      <button type="button" class="team-mini-link" id="audit-export">⬇ Export CSV (current filter)</button>
+    </div>
+    <div id="audit-rows" class="team-site-list" style="margin-top:12px;"></div>
+  </section>
+
+  <section class="team-page-panel" data-team-page="finance-reports.html" data-page-title="Financial Reports — Paragon Team Dashboard" hidden>
+    <div class="team-page-head"><h1 class="team-page-title">📑 FINANCIAL REPORTS</h1>
+      <p class="team-site-sub">Device-layer period view built from REAL stores — every number traces to records on this device; items that activate with the backend are marked honestly instead of invented.</p></div>
+    <div class="team-filter-bar"><label style="font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;">Report period
+      <select id="rep-period"><option value="all">All time (device)</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option></select></label>
+      <button type="button" class="team-mini-link" id="rep-export">⬇ Export CSV</button></div>
+    <div id="rep-report" style="margin-top:12px;"></div>
+  </section>
+
+  <section class="team-page-panel" data-team-page="finance-emergency.html" data-page-title="Emergency Controls — Paragon Team Dashboard" hidden>
+    <div class="team-page-head"><h1 class="team-page-title">🛑 EMERGENCY CONTROLS</h1>
+      <p class="team-site-sub">Super Admin only. Financial Pause stops NEW purchases, withdrawals and payout approvals while free platform functionality keeps running (§30). Per-game kill switches disable a broken paid game without shutting Paragon down.</p></div>
+    <section class="team-dash-section" id="em-pause-section"></section>
+    <section class="team-dash-section"><h2 class="team-dash-heading">🎮 PER-GAME KILL SWITCHES</h2>
+      <p class="team-site-sub" style="margin:0 0 10px;">Future paid game engines MUST consult <code>ParagonWallets.gameKillState(gameType)</code> before accepting a stake/entry. Free play of a game is never blocked by its kill switch.</p>
+      <div id="em-switches" class="team-site-list"></div></section>
+  </section>
 </main>
 
 <div id="dash-toast" class="team-dash-toast" role="status" hidden></div>
@@ -1448,13 +1615,15 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
 <script src="../data/catalogue-expansion-45-100.js"></script>
 <script src="../config/supabase.js"></script>
 <script src="../auth/supabase-auth.js"></script>
+<script src="../paragon-leaderboards.js"></script>
+<script src="../paragon-wallets.js"></script>
 <script src="team-pages.js"></script>
 <script src="session.js"></script>
 <script>
 /* P-097 — DESK ROUTER: shows the ?page= panel, syncs title + sidebar + role filtering. */
 (function () {
   "use strict";
-  var TITLES = {"activity.html": "Activity Log \u2014 Paragon Team Dashboard", "add-website.html": "Add Website \u2014 Paragon Team Dashboard", "analytics-users.html": "User Stats \u2014 Paragon Team Dashboard", "analytics-websites.html": "Website Stats \u2014 Paragon Team Dashboard", "analytics.html": "Platform Analytics \u2014 Paragon Team Dashboard", "announcements.html": "Announcements \u2014 Paragon Team Dashboard", "applications.html": "Dev Applications \u2014 Paragon Team Dashboard", "archive.html": "Archive \u2014 Paragon Team Dashboard", "bugs.html": "Bug Reports \u2014 Paragon Team Dashboard", "content-community.html": "Community Posts \u2014 Paragon Team Dashboard", "content-reviews.html": "Reviews &amp; Reports \u2014 Paragon Team Dashboard", "content-suggestions.html": "Suggestions \u2014 Paragon Team Dashboard", "deployed.html": "Deployed Reviews \u2014 Paragon Team Dashboard", "lab.html": "Lab \u2014 Paragon Team Dashboard", "member-profile.html": "Team Member \u2014 Paragon Team Dashboard", "members.html": "Team Members \u2014 Paragon Team Dashboard", "overview.html": "Overview \u2014 Paragon Team Dashboard", "permissions.html": "Permissions \u2014 Paragon Team Dashboard", "profile.html": "My Profile \u2014 Paragon Team Dashboard", "promotions.html": "Sponsored &amp; Promotional Notices \u2014 Paragon Team Dashboard", "requests.html": "Website Requests \u2014 Paragon Team Dashboard", "roadmap.html": "Roadmap Management \u2014 Paragon Team Dashboard", "settings.html": "Settings \u2014 Paragon Team Dashboard", "setup.html": "Paragon Team \u2014 Set Your Password", "ticket.html": "Ticket \u2014 Paragon Team Dashboard", "tickets.html": "Support Tickets \u2014 Paragon Team Dashboard", "user-profile.html": "User Profile \u2014 Paragon Team Dashboard", "users.html": "All Users \u2014 Paragon Team Dashboard", "websites.html": "All Websites \u2014 Paragon Team Dashboard", "construction.html": "Construction Desk \u2014 Paragon Team Dashboard"};
+  var TITLES = {"activity.html": "Activity Log \u2014 Paragon Team Dashboard", "add-website.html": "Add Website \u2014 Paragon Team Dashboard", "analytics-users.html": "User Stats \u2014 Paragon Team Dashboard", "analytics-websites.html": "Website Stats \u2014 Paragon Team Dashboard", "analytics.html": "Platform Analytics \u2014 Paragon Team Dashboard", "announcements.html": "Announcements \u2014 Paragon Team Dashboard", "applications.html": "Dev Applications \u2014 Paragon Team Dashboard", "archive.html": "Archive \u2014 Paragon Team Dashboard", "bugs.html": "Bug Reports \u2014 Paragon Team Dashboard", "content-community.html": "Community Posts \u2014 Paragon Team Dashboard", "content-reviews.html": "Reviews &amp; Reports \u2014 Paragon Team Dashboard", "content-suggestions.html": "Suggestions \u2014 Paragon Team Dashboard", "deployed.html": "Deployed Reviews \u2014 Paragon Team Dashboard", "lab.html": "Lab \u2014 Paragon Team Dashboard", "member-profile.html": "Team Member \u2014 Paragon Team Dashboard", "members.html": "Team Members \u2014 Paragon Team Dashboard", "overview.html": "Overview \u2014 Paragon Team Dashboard", "permissions.html": "Permissions \u2014 Paragon Team Dashboard", "profile.html": "My Profile \u2014 Paragon Team Dashboard", "promotions.html": "Sponsored &amp; Promotional Notices \u2014 Paragon Team Dashboard", "requests.html": "Website Requests \u2014 Paragon Team Dashboard", "roadmap.html": "Roadmap Management \u2014 Paragon Team Dashboard", "settings.html": "Settings \u2014 Paragon Team Dashboard", "setup.html": "Paragon Team \u2014 Set Your Password", "ticket.html": "Ticket \u2014 Paragon Team Dashboard", "tickets.html": "Support Tickets \u2014 Paragon Team Dashboard", "user-profile.html": "User Profile \u2014 Paragon Team Dashboard", "users.html": "All Users \u2014 Paragon Team Dashboard", "websites.html": "All Websites \u2014 Paragon Team Dashboard", "construction.html": "Construction Desk \u2014 Paragon Team Dashboard", "finance.html": "Financial Dashboard \u2014 Paragon Team Dashboard", "finance-payments.html": "Payment Reconciliation \u2014 Paragon Team Dashboard", "finance-withdrawals.html": "Withdrawal Desk \u2014 Paragon Team Dashboard", "finance-risk.html": "Risk &amp; Fraud Cases \u2014 Paragon Team Dashboard", "finance-audit.html": "Audit Log \u2014 Paragon Team Dashboard", "finance-reports.html": "Financial Reports \u2014 Paragon Team Dashboard", "finance-emergency.html": "Emergency Controls \u2014 Paragon Team Dashboard"};
   function currentPage() {
     var page = new URLSearchParams(window.location.search).get("page") || "overview";
     page = page.replace(/\.html$/, "") + ".html";

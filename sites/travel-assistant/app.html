@@ -1,0 +1,104 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: app.html
+  EXPECTED PROJECT PATH: /sites/travel-assistant/app.html
+  ROLE: Paragon Travel trip planner (no booking).
+  RESTORE-LOAD NOTE: In-project product site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Travel — Trips</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Travel">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-travel.png" alt="">
+        <span class="brand-name">Paragon Travel</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link active">Trips</a>
+      <a href="pack.html" class="nav-link">Packing</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page">
+    <h1 class="page-title">Trips</h1>
+    <p class="page-sub">Plan itineraries and budgets. This app does not book flights or hotels.</p>
+    <div class="notice warn">Boundary: no bookings, no live flight/hotel APIs — planning only. Pacing rule: max ~2–3 major stops per day; leave buffer for food and transit.</div>
+    <div class="notice" id="pacing-note">Entry requirements are checklists only — always confirm on official government sites for your passport.</div>
+    <details class="panel" id="flightTips" style="margin-bottom:12px">
+      <summary class="panel-title" style="cursor:pointer">Flights & hotels — planning standards (no booking)</summary>
+      <ul style="margin:8px 0 0 18px;font-size:13px">
+        <li>Search flexible ±3 days; midweek often cheaper</li>
+        <li>Prefer one stop max for long-haul unless budget forces more</li>
+        <li>Check baggage + total duration, not price alone</li>
+        <li>Hotels: location over stars; walk-score to your day clusters</li>
+        <li>Book free-cancellation when plans are soft</li>
+        <li>This app does not search live inventory or take payment</li>
+      </ul>
+    </details>
+    <div id="msg" class="notice" hidden></div>
+    <div class="split">
+      <div class="panel">
+        <h2 class="panel-title">Trip editor</h2>
+        <input type="hidden" id="tripId">
+        <div class="field-row">
+          <div class="field"><label for="tripTitle">Title</label><input id="tripTitle" placeholder="Lagos weekend"></div>
+          <div class="field"><label for="tripDest">Destination</label><input id="tripDest"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="tripStart">Start</label><input id="tripStart" type="date"></div>
+          <div class="field"><label for="tripEnd">End</label><input id="tripEnd" type="date"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="tripBudget">Budget amount</label><input id="tripBudget" type="number" min="0" step="0.01" value="0"></div>
+          <div class="field"><label for="tripCur">Currency</label><input id="tripCur" value="NGN" maxlength="3"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="tripStyle">Travel style</label>
+            <select id="tripStyle"><option value="mid">Mid-range</option><option value="budget">Budget</option><option value="luxury">Luxury</option></select>
+          </div>
+          <div class="field"><label for="tripPace">Pace</label>
+            <select id="tripPace"><option value="relaxed">Relaxed</option><option value="balanced">Balanced</option><option value="packed">Packed (still max 2–3 anchors/day)</option></select>
+          </div>
+        </div>
+        <div class="field"><label for="tripDays">Itinerary (one day/line)</label><textarea id="tripDays" rows="6" placeholder="Day 1: Arrive, check-in&#10;Day 2: Museum + dinner"></textarea></div>
+        <button type="button" class="btn btn-outline btn-sm" id="genDays" style="margin-bottom:12px">Auto-draft days from dates (pacing-aware)</button>
+        <div class="field-row">
+          <div class="field"><label for="budLodging">Budget · lodging</label><input id="budLodging" type="number" min="0" value="0"></div>
+          <div class="field"><label for="budFood">Budget · food</label><input id="budFood" type="number" min="0" value="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="budTransit">Budget · transit</label><input id="budTransit" type="number" min="0" value="0"></div>
+          <div class="field"><label for="budActs">Budget · activities</label><input id="budActs" type="number" min="0" value="0"></div>
+        </div>
+        <div class="field"><label for="tripNotes">Notes / entry checklist</label><textarea id="tripNotes" rows="3" placeholder="Visa? vaccines? ETIAS?"></textarea></div>
+        <div class="field"><label for="entryCountry">Entry helper country</label><input id="entryCountry" placeholder="e.g. Schengen, UK, USA, Nigeria"></div>
+        <button type="button" class="btn btn-outline btn-sm" id="entryCheck" style="margin-bottom:12px">Build entry checklist</button>
+        <div id="entryOut" class="muted" style="margin-bottom:12px"></div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="saveTrip">Save trip</button>
+          <button type="button" class="btn btn-secondary" id="newTrip">Clear</button>
+          <button type="button" class="btn btn-outline" id="exportTrip">Export trip</button>
+          <button type="button" class="btn btn-outline" id="printTrip">Print plan</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2 class="panel-title">Saved trips</h2>
+        <div id="tripList" class="empty"><strong>No trips yet</strong>Create your first plan.</div>
+      </div>
+    </div>
+  </main>
+  <footer class="footer"><p><a href="../../paragon-archive.html?site=Paragon%20Travel">Archive detail</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

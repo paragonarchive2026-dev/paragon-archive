@@ -1,0 +1,96 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: app.html
+  EXPECTED PROJECT PATH: /sites/meal-planner/app.html
+  ROLE: Paragon Meal weekly planner board.
+  RESTORE-LOAD NOTE: In-project product site. Pairs with Paragon Recipe.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Meal — Planner</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+  <style>
+    .meal-grid { display:grid; grid-template-columns:repeat(7,minmax(110px,1fr)); gap:8px; overflow-x:auto; }
+    .meal-day { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; min-width:110px; }
+    .meal-day h3 { font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:8px; }
+    .meal-day textarea { min-height:70px; font-size:12.5px; margin-bottom:6px; }
+    @media (max-width:900px){ .meal-grid{ grid-template-columns:repeat(2,1fr);} }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Recipe" title="Meal planner pairs with Paragon Recipe in the Archive">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-recipe.png" alt="">
+        <span class="brand-name">Paragon Meal</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link active">Planner</a>
+      <a href="shop.html" class="nav-link">Shopping</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page">
+    <h1 class="page-title">Weekly planner</h1>
+    <p class="page-sub">What to eat and when. Use <a href="../recipe-creator/index.html" style="color:var(--accent-2);font-weight:700">Paragon Recipe</a> for full recipes. Not a calorie/macro coach.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="panel" style="margin-bottom:14px">
+      <h2 class="panel-title">Energy target (Mifflin–St Jeor local estimate — not medical advice)</h2>
+      <div class="field-row">
+        <div class="field"><label for="bodySex">Sex</label>
+          <select id="bodySex"><option value="m">Male</option><option value="f">Female</option></select>
+        </div>
+        <div class="field"><label for="bodyAge">Age</label><input id="bodyAge" type="number" min="15" max="100" value="30"></div>
+        <div class="field"><label for="bodyKg">Weight kg</label><input id="bodyKg" type="number" min="30" step="0.1" value="70"></div>
+        <div class="field"><label for="bodyCm">Height cm</label><input id="bodyCm" type="number" min="120" value="170"></div>
+      </div>
+      <div class="field"><label for="bodyAct">Activity</label>
+        <select id="bodyAct">
+          <option value="1.2">Sedentary ×1.2</option>
+          <option value="1.375" selected>Light ×1.375</option>
+          <option value="1.55">Moderate ×1.55</option>
+          <option value="1.725">Active ×1.725</option>
+          <option value="1.9">Very active ×1.9</option>
+        </select>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" id="calcTdee">Calculate BMR / TDEE → fill calories</button>
+      <div id="tdeeOut" class="muted" style="margin-top:8px;font-size:13px"></div>
+    </div>
+    <div class="panel" style="margin-bottom:14px">
+      <h2 class="panel-title">Daily macro targets (local estimate — not medical advice)</h2>
+      <div class="field-row">
+        <div class="field"><label for="macroCal">Calories</label><input id="macroCal" type="number" min="0" value="2000"></div>
+        <div class="field"><label for="macroP">Protein g</label><input id="macroP" type="number" min="0" value="120"></div>
+        <div class="field"><label for="macroC">Carbs g</label><input id="macroC" type="number" min="0" value="200"></div>
+        <div class="field"><label for="macroF">Fat g</label><input id="macroF" type="number" min="0" value="65"></div>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="saveMacros">Save targets</button>
+      <div id="macroHint" class="muted" style="margin-top:8px;font-size:13px"></div>
+    </div>
+    <div class="actions" style="margin-bottom:14px">
+      <button type="button" class="btn btn-primary" id="saveWeek">Save week</button>
+      <button type="button" class="btn btn-secondary" id="clearWeek">Clear week</button>
+      <button type="button" class="btn btn-outline" id="toShop">Build shopping list from meals</button>
+      <button type="button" class="btn btn-outline" id="importRecipes">Pull titles + ingredients from Recipe</button>
+      <button type="button" class="btn btn-outline" id="exportWeek">Export week JSON</button>
+    </div>
+    <div class="meal-grid" id="mealGrid"></div>
+    <div class="panel" style="margin-top:16px">
+      <h2 class="panel-title">Weekly fitness notes (condensed)</h2>
+      <div class="field"><label for="fitNotes">Plan (local text)</label>
+        <textarea id="fitNotes" rows="4" placeholder="Mon: walk 30m&#10;Wed: strength&#10;Fri: walk"></textarea>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="saveFit">Save fitness notes</button>
+    </div>
+  </main>
+  <footer class="footer"><p><a href="../../paragon-archive.html?site=Paragon%20Recipe">Related: Paragon Recipe in Archive</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

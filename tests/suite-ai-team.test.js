@@ -424,3 +424,58 @@ console.log(`\nPASS: ${passed} checks — the approved Community & Developer loo
 
 })();
 
+
+/* ================= FIXTURE: P-099 — Stage 5 leaderboards on the Team desk + SQL preparation ================= */
+(function () {
+const fs9 = require("fs");
+const path9 = require("path");
+const root9 = path9.resolve(__dirname, "..");
+function assert9(value, message) { if (!value) throw new Error(message); }
+let passed9 = 0;
+function check9(value, label) { assert9(value, label); passed9 += 1; console.log("  ✅ " + label); }
+
+console.log("🧪 P-099 — leaderboard settlement desk + supabase/leaderboards-schema.sql");
+
+const engine9 = fs9.readFileSync(path9.join(root9, "paragon-leaderboards.js"), "utf8");
+const desk9 = fs9.readFileSync(path9.join(root9, "team/desk.html"), "utf8");
+const team9 = fs9.readFileSync(path9.join(root9, "team/team-pages.js"), "utf8");
+const sql9 = fs9.readFileSync(path9.join(root9, "supabase/leaderboards-schema.sql"), "utf8");
+const app9 = fs9.readFileSync(path9.join(root9, "app.js"), "utf8");
+
+/* Desk wiring */
+check9(desk9.includes('<script src="../paragon-leaderboards.js"></script>') && desk9.indexOf('src="../paragon-leaderboards.js"') < desk9.indexOf('src="team-pages.js"'), "desk.html loads the leaderboard engine before team-pages.js");
+check9(desk9.includes('id="lb-settlement-section"') && desk9.includes('id="lb-standings"') && desk9.includes('id="lb-actions"') && desk9.includes('id="lb-audit"'), "settings panel hosts the leaderboard settlement section with all hosts");
+check9(team9.includes("function bindLeaderboardSettlement") && team9.includes("bindLeaderboardSettlement();") && team9.includes('data-lbact="close"') && team9.includes('data-lbact="finalize"') && team9.includes('data-lbact="prizes"') && team9.includes('data-lbact="credit"'), "team-pages.js binds the full settlement flow (close, finalize, prizes, credit)");
+check9(team9.includes('data-lbact="disqualify"') && team9.includes('data-lbact="restore"') && team9.includes("setEntryEligibility") && team9.includes("Super Admin (this device)"), "anti-abuse eligibility decisions are explicit super-admin actions on the desk");
+check9(team9.includes("issueCredits") && team9.includes("ParagonTeamConfirm"), "credits require an explicit super-admin approval modal");
+check9(!/window\.(alert|prompt|confirm)\s*\(/.test(desk9) && !/window\.(alert|prompt|confirm)\s*\(/.test(team9), "desk + team-pages keep the no-browser-dialogs law");
+
+/* Engine mirrored on both sides */
+check9(engine9.includes("ParagonLeaderboards") && engine9.includes("weekly-leaderboard-reward"), "engine exposes ParagonLeaderboards + reward credit kind");
+check9(app9.includes("window.ParagonLeaderboards") || app9.includes("ParagonLeaderboards"), "app.js consumes the shared engine");
+
+/* SQL preparation (run when the betting stage lands) */
+for (const token of [
+  "create table if not exists public.paragon_leaderboards",
+  "create table if not exists public.paragon_leaderboard_entries",
+  "create table if not exists public.paragon_competition_fees",
+  "create table if not exists public.paragon_rewards",
+  "create table if not exists public.paragon_leaderboard_audit",
+  "create table if not exists public.paragon_economic_settings",
+  "leaderboard_distribution",
+  "'[30,20,15,10,7,5,4,3,2,4]'",
+  "'0.30'",
+  "paragon_leaderboard_standings",
+  "status text not null default 'active' check (status in ('active','disqualified'))",
+  "grant execute on function public.paragon_leaderboard_standings(text) to anon, authenticated",
+  "paragon_team_members",
+  "enable row level security"
+]) check9(sql9.includes(token), `leaderboards-schema.sql contains: ${token}`);
+
+check9(sql9.includes("free play NEVER awards points"), "SQL documents the free-play-never-points rule");
+check9(sql9.includes("creator self-play") || sql9.includes("self-play"), "SQL documents the creator self-play rule");
+check9(!/insert into public\.paragon_leaderboard_entries/i.test(sql9) || sql9.includes("on conflict"), "SQL never seeds fake leaderboard entries");
+
+console.log(`\nPASS: ${passed9} checks — P-099 leaderboard settlement desk + prepared backend schema`);
+
+})();

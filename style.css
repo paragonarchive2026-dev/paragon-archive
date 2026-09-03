@@ -3682,3 +3682,431 @@ html.light .hub-topbar.legal-topbar { background: rgba(243,242,239,0.85); }
 .profile-header-tools { display: inline-flex; align-items: center; gap: 10px; }
 .profile-edit-pencil { padding: 9px 16px; border: 1px solid var(--border); border-radius: 999px; background: rgba(37,99,235,0.1); color: var(--text); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
 .profile-edit-pencil:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+/* =====================================================================
+   P-099 — STAGE 5 LEADERBOARDS (public popup + desk settlement styling)
+   Weekly ranking popup in the Archive app; shared badge chips reuse the
+   team-site-badge palette. Dark/light tokens come from the root vars.
+   ===================================================================== */
+.lb-card { width: min(640px, 94vw); }
+.lb-card .lb-week-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px; }
+.lb-week-chip { border: 1px solid var(--border); background: transparent; color: var(--text-faint); border-radius: 999px; padding: 6px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+.lb-week-chip.active, .lb-week-chip:hover { border-color: var(--accent); color: var(--accent); }
+.lb-state-line { margin: 0 0 12px; }
+.lb-block { margin: 12px 0 0; padding: 14px 15px; border: 1px solid var(--border); border-radius: 15px; background: rgba(255,255,255,0.02); }
+.lb-block h3 { margin: 0 0 8px; color: var(--text); font-size: 14px; }
+.lb-period-note { color: var(--text-faint); font-size: 11px; margin: 0 0 10px; }
+.lb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.lb-row { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 13px; background: rgba(255,255,255,0.02); }
+.lb-row.lb-me { border-color: var(--accent); background: rgba(37,99,235,0.10); }
+.lb-rank { width: 34px; flex: none; text-align: center; font-size: 17px; }
+.lb-rank-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); color: var(--text-faint); font-size: 12px; font-weight: 800; }
+.lb-who { flex: 1; min-width: 0; }
+.lb-who b { display: block; color: var(--text); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-who small { display: block; color: var(--text-faint); font-size: 10.5px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-pts { flex: none; text-align: right; color: var(--text); font-size: 15px; font-weight: 800; }
+.lb-pts small { color: var(--text-faint); font-size: 10px; font-weight: 600; }
+.lb-empty, .lb-you { padding: 13px 14px; border: 1px dashed var(--border); border-radius: 13px; color: var(--text-faint); font-size: 12px; line-height: 1.6; }
+.lb-you { margin-top: 9px; background: rgba(37,99,235,0.06); border-style: solid; }
+.lb-pool-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 10px; }
+.lb-pool-stat { flex: 1 1 200px; padding: 11px 13px; border-radius: 13px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.35); }
+.lb-pool-stat b { display: block; color: var(--text); font-size: 17px; }
+.lb-pool-stat small { display: block; margin-top: 3px; color: var(--text-faint); font-size: 10.5px; line-height: 1.5; }
+.lb-dist { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+.lb-dist-pill { border: 1px solid var(--border); border-radius: 999px; padding: 5px 10px; color: var(--text-faint); font-size: 10.5px; background: rgba(255,255,255,0.02); }
+.lb-dist-pill b { color: var(--text); }
+.lb-dist-note { align-self: center; color: var(--text-faint); font-size: 10.5px; margin-left: 2px; }
+.lb-dist-zero { border: 1px dashed var(--border); border-radius: 12px; padding: 11px 13px; font-size: 11.5px; line-height: 1.6; color: var(--text-faint); width: 100%; }
+.lb-details { margin-top: 2px; }
+.lb-details summary { cursor: pointer; color: var(--accent); font-size: 12px; font-weight: 700; }
+.lb-rules { margin: 10px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; }
+.lb-rules li { color: var(--text-faint); font-size: 11.5px; line-height: 1.55; }
+.lb-rules b { color: var(--text); }
+/* Team desk settlement */
+.lb-flag-chip { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; border: 1px solid rgba(245,158,11,0.5); color: #f59e0b; font-size: 9.5px; font-weight: 800; }
+.lb-note-input { width: min(340px, 100%); margin: 6px 0 0; padding: 7px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 12px; }
+.lb-pool-zero-note { margin: 8px 0 0; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 12px; color: var(--text-faint); font-size: 11.5px; line-height: 1.6; }
+.lb-audit-list { max-height: 220px; overflow: auto; }
+
+/* =====================================================================
+   P-100 — STAGE 6/7 WALLET + FINANCE DESKS
+   Withdrawal popup (Archive app) + the seven Team finance desk panels.
+   Honest device-layer styling only; values come from real stores.
+   ===================================================================== */
+.wallet-field { display: flex; flex-direction: column; gap: 5px; margin: 9px 0 0; font-size: 11.5px; font-weight: 700; color: var(--text); }
+.wallet-field input { margin: 0; padding: 9px 11px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 13px; }
+.wallet-field input:focus { outline: none; border-color: var(--accent); }
+.wd-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 2px 0 4px; }
+.wd-summary { margin: 9px 0 2px; padding: 9px 12px; border: 1px dashed rgba(245,158,11,0.45); border-radius: 11px; color: var(--text-faint); font-size: 11.5px; line-height: 1.6; }
+.wd-summary b { color: var(--text); }
+.shop-claim-form { display: flex; flex-direction: column; }
+.shop-summary-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding: 9px 12px; border: 1px solid rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); border-radius: 12px; font-size: 13px; }
+.shop-summary-row b { color: var(--text); }
+.shop-summary-row span { color: var(--text-faint); font-size: 11px; }
+/* Finance desk panels */
+.team-filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 13px; margin: 2px 0 12px; }
+.team-filter-bar select, .team-filter-bar label select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--text); font-size: 12px; }
+.fin-stat-note { grid-column: 1 / -1; color: var(--text-faint); font-size: 11px; padding: 8px 12px; border: 1px dashed var(--border); border-radius: 12px; }
+.fin-paid-row { border-color: rgba(34,197,94,0.4) !important; }
+.fin-paused { padding: 10px 14px; margin: 2px 0 12px; border: 1px solid rgba(239,68,68,0.5); background: rgba(239,68,68,0.08); border-radius: 13px; color: #ef4444; font-size: 12.5px; font-weight: 700; line-height: 1.6; }
+.audit-list-item { display: flex; gap: 12px; padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 12px; align-items: baseline; }
+.audit-list-item:last-child { border-bottom: none; }
+.audit-list-item code { color: var(--text-faint); font-size: 10.5px; flex: none; }
+.audit-list-item .audit-what { flex: 1; min-width: 0; color: var(--text); }
+.audit-list-item small { color: var(--text-faint); font-size: 10.5px; }
+.rep-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.rep-table th, .rep-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.rep-table th { color: var(--text-faint); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; }
+.rep-table td b { color: var(--text); }
+.rep-table tr.total-row td { border-top: 2px solid var(--border-strong); font-weight: 800; color: var(--text); }
+.wd-empty-rule { margin: 6px 0 0; padding: 8px 12px; border: 1px dashed rgba(245,158,11,0.4); border-radius: 11px; color: var(--text-faint); font-size: 11px; line-height: 1.6; }
+.kill-switch { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 13px; margin-bottom: 8px; }
+.kill-switch.on { border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.06); }
+.kill-switch b { display: block; color: var(--text); font-size: 13px; }
+.kill-switch small { color: var(--text-faint); font-size: 11px; line-height: 1.5; }
+.fin-toggle-on { border-color: rgba(239,68,68,0.5) !important; color: #ef4444 !important; }
+.site-maintenance-banner { margin: 0 0 12px; padding: 10px 13px; border: 1px solid rgba(239,68,68,0.45); background: rgba(239,68,68,0.08); border-radius: 12px; color: #ef4444; font-size: 12px; font-weight: 700; line-height: 1.6; }
+
+/* =====================================================================
+   P-105 — maintenance polish: denser account strip, badge art, coin shop,
+   achievement grid readability, soft surfaces
+   ===================================================================== */
+/* P-105 — maintenance polish */
+.ach-badge-art {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto 6px;
+  filter: drop-shadow(0 4px 10px rgba(108, 92, 231, 0.25));
+}
+.ach-item .emoji {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+}
+.ach-item.locked {
+  opacity: 0.55;
+  filter: grayscale(0.35);
+}
+.ach-item.ready {
+  box-shadow: 0 0 0 1px rgba(162, 155, 254, 0.45), 0 8px 24px rgba(108, 92, 231, 0.18);
+}
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 380px) {
+  .ach-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+}
+.account-achievement-strip {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.08), rgba(37, 99, 235, 0.05));
+}
+.install-popup-card header h2 {
+  letter-spacing: -0.02em;
+}
+.install-perm-row {
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.install-perm-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+html.light .install-perm-row:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+.team-dash-section {
+  scroll-margin-top: 72px;
+}
+#sql-health-out, #finance-desk-out {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  background: rgba(0, 0, 0, 0.22);
+}
+html.light #sql-health-out,
+html.light #finance-desk-out {
+  background: rgba(0, 0, 0, 0.04);
+}
+/* Product sites — slightly calmer page rhythm */
+
+
+/* P-106 — engagement leaderboard + ad support polish */
+.leaderboard-card { max-width: 440px; }
+.leaderboard-you {
+  margin: 10px 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(162, 155, 254, 0.35);
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.16), rgba(37, 99, 235, 0.08));
+  font-size: 13px;
+}
+.leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  max-height: 360px;
+  overflow: auto;
+}
+.leaderboard-list li {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+}
+.leaderboard-list li.is-you {
+  border-color: rgba(162, 155, 254, 0.55);
+  box-shadow: 0 0 0 1px rgba(108, 92, 231, 0.25);
+  background: rgba(108, 92, 231, 0.12);
+  font-weight: 700;
+}
+.leaderboard-list .lb-rank { color: var(--accent); font-weight: 850; }
+.leaderboard-list .lb-score { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.paragon-ad-slot {
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+[data-paragon-ad][role="button"]:hover .paragon-ad-slot,
+[data-paragon-ad][role="button"]:focus-visible .paragon-ad-slot {
+  border-color: rgba(162, 155, 254, 0.55);
+  color: var(--text-dim);
+  background: rgba(108, 92, 231, 0.08);
+}
+
+
+/* P-107 — OPay / Moniepoint pay rails in coin shop */
+.coin-rails-grid { display: grid; gap: 8px; margin-top: 8px; }
+@media (min-width: 520px) { .coin-rails-grid { grid-template-columns: 1fr 1fr; } }
+.coin-rail-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  background: rgba(45, 212, 191, 0.06);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.coin-rail-number {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+  color: var(--text);
+}
+
+
+/* P-109 — Stage 2 coin shop intents + history */
+.coin-intent-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 12px;
+}
+.coin-claim-btn { padding: 6px 10px; font-size: 11px; }
+.coin-stage2-block h4 { font-size: 13px; letter-spacing: 0.02em; }
+.coin-history-list li { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+/* =====================================================================
+   P-112 — ACCOUNT STAT BOXES (9 boxes, 3×3) + POPUP PANELS
+   The account body is now: profile head -> boxes -> settings. Every box
+   opens a popup carrying the feature it belongs to; the six classic
+   account sections stay in-DOM as hidden content masters (guest data
+   merges into the account on sign-in, D-union rule).
+   ===================================================================== */
+#account-data-sections { display: none; }
+.account-box-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.account-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  text-align: left;
+  padding: 12px 13px 11px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: linear-gradient(160deg, rgba(255,255,255,0.045), rgba(255,255,255,0.012));
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color .15s ease, transform .15s ease, background .15s ease;
+  min-height: 96px;
+  overflow: hidden;
+}
+.account-box:hover, .account-box:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+}
+.account-box .ab-top { display: flex; align-items: center; gap: 8px; width: 100%; }
+.account-box .ab-icon { font-size: 17px; line-height: 1; }
+.account-box .ab-value {
+  font-size: 19px;
+  font-weight: 850;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+  line-height: 1;
+}
+.account-box .ab-label { font-size: 12.5px; font-weight: 800; color: var(--text); margin-top: 6px; }
+.account-box .ab-hint { font-size: 10px; color: var(--text-faint); line-height: 1.35; opacity: .9; }
+.account-box.ab-featured { border-color: rgba(245,158,11,0.45); background: linear-gradient(160deg, rgba(245,158,11,0.10), rgba(255,255,255,0.015)); }
+.account-box.ab-featured:hover { border-color: rgba(245,158,11,0.8); }
+html.light .account-box { background: linear-gradient(160deg, rgba(0,0,0,0.045), rgba(0,0,0,0.012)); }
+html.light .account-box.ab-featured { background: linear-gradient(160deg, rgba(245,158,11,0.14), rgba(0,0,0,0.02)); }
+
+/* Account-box popup panels */
+.account-box-panel { width: min(640px, 96vw); }
+.account-box-panel .ab-body { padding: 4px 2px 2px; max-height: 62vh; overflow: auto; }
+.ab-panel-note { color: var(--text-faint); font-size: 11px; line-height: 1.5; margin: 10px 2px 4px; }
+
+/* Wallet tabs (Coin box) + Leaderboard hub tabs */
+.wallet-tabbar {
+  display: flex;
+  gap: 8px;
+  padding: 2px 2px 10px;
+  border-bottom: 1px solid var(--border);
+  margin: 2px 0 12px;
+}
+.wallet-tab {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.wallet-tab.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(37,99,235,0.10);
+}
+.wallet-tab small { display: block; font-size: 9.5px; font-weight: 600; opacity: .8; margin-top: 1px; }
+
+/* =====================================================================
+   P-112 — AD SPACES v2: swipeable multi-ad carousel (team + Google)
+   ===================================================================== */
+[data-paragon-ad] { width: 100%; }
+.paragon-ad-frame {
+  position: relative;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.02);
+  margin: 18px auto;
+  overflow: hidden;
+}
+.paragon-ad-viewport { overflow: hidden; }
+.paragon-ad-track {
+  display: flex;
+  transition: transform .38s cubic-bezier(.22,.61,.36,1);
+  will-change: transform;
+}
+.paragon-ad-slide { flex: 0 0 100%; min-width: 100%; }
+.paragon-ad-slot, .paragon-ad-creative, .paragon-ad-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 92px;
+  color: var(--text-faint);
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-align: center;
+  padding: 14px 46px;
+}
+.paragon-ad-creative {
+  flex-direction: column;
+  gap: 5px;
+  letter-spacing: 0;
+  border-radius: 0;
+  cursor: pointer;
+  color: var(--text);
+  text-decoration: none;
+}
+.paragon-ad-creative .ad-copy { font-size: 12.5px; font-weight: 800; letter-spacing: .1px; color: var(--text); }
+.paragon-ad-creative .ad-sub { font-size: 11px; letter-spacing: .2px; color: var(--text-faint); max-width: 520px; line-height: 1.45; }
+.paragon-ad-creative .ad-cta {
+  margin-top: 2px; padding: 5px 14px; border-radius: 999px;
+  background: rgba(37,99,235,0.14); border: 1px solid rgba(37,99,235,0.35);
+  color: var(--accent); font-size: 10.5px; font-weight: 800; letter-spacing: .4px;
+}
+.paragon-ad-creative .ad-tag {
+  position: absolute; top: 6px; left: 10px;
+  font-size: 8.5px; letter-spacing: .8px; text-transform: uppercase;
+  color: var(--text-faint); opacity: .85;
+}
+.paragon-ad-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--border); background: rgba(10,10,14,0.55);
+  color: var(--text); font-size: 14px; line-height: 1;
+  cursor: pointer; display: none; align-items: center; justify-content: center;
+  z-index: 3;
+}
+.paragon-ad-nav.prev { left: 8px; }
+.paragon-ad-nav.next { right: 8px; }
+[data-paragon-ad-multi] .paragon-ad-nav { display: flex; }
+.paragon-ad-dots {
+  position: absolute; bottom: 4px; left: 0; right: 0;
+  display: none; justify-content: center; gap: 5px; padding: 3px;
+}
+[data-paragon-ad-multi] .paragon-ad-dots { display: flex; }
+.paragon-ad-dots button {
+  width: 6px; height: 6px; border-radius: 50%;
+  border: none; background: var(--border-strong); opacity: .7; cursor: pointer; padding: 0;
+}
+.paragon-ad-dots button.active { background: var(--accent); opacity: 1; width: 16px; border-radius: 999px; }
+
+/* P-112 — grouped Updates (per website) */
+.timeline-group-entry .timeline-card { padding: 10px 14px; }
+.tg-head { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.tg-thumb { width: 40px; height: 40px; border-radius: 12px; overflow: hidden; flex: none; background: var(--surface); display: grid; place-items: center; font-size: 22px; }
+.tg-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.tg-title { flex: 1; min-width: 0; }
+.tg-title b { display: block; color: var(--text); font-size: 13.5px; }
+.tg-title small { color: var(--text-faint); font-size: 11px; }
+.tg-count { font-size: 10px; font-weight: 800; color: var(--accent); border: 1px solid rgba(37,99,235,0.35); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.tg-body { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 8px; display: grid; gap: 6px; }
+.tg-row { display: flex; gap: 8px; align-items: baseline; font-size: 12px; color: var(--text-faint); line-height: 1.45; }
+.tg-row b { color: var(--text); font-size: 12px; white-space: nowrap; }
+.tg-row a, .tg-row .tg-open { color: var(--accent); font-weight: 700; cursor: pointer; }
+.timeline-group-entry[open] .tg-chev { transform: rotate(180deg); }
+.tg-chev { transition: transform .15s ease; margin-left: auto; color: var(--text-faint); }
+details.timeline-group-entry summary { list-style: none; }
+details.timeline-group-entry summary::-webkit-details-marker { display: none; }
+
+/* P-112 — grouped Updates feed rows keep the compact one-line rhythm */
+.timeline-group-entry { position: relative; margin-bottom: 16px; scroll-margin-top: 84px; }
+.timeline-group-entry .timeline-dot-left { left: calc(-1 * var(--timeline-gutter)); }
+.timeline-group-entry .timeline-dot-right { right: calc(-1 * var(--timeline-gutter)); }
+.timeline-group-entry .tg-head { flex-wrap: wrap; }
+.timeline-group-entry .tg-head .saved-update-star { flex: none; }
+.timeline-group-entry .tg-body { gap: 9px; }
+.tg-row { min-width: 0; }
+.tg-row .tg-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.tg-row .tg-text b { font-weight: 800; color: var(--text); }
+.tg-row .tg-time { color: var(--text-faint); font-size: 11px; white-space: nowrap; flex: none; }
+.tg-row .update-badge { flex: none; }
+.tg-row .t-image-art { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; flex: none; cursor: zoom-in; }
+.tg-row .timeline-link-pill { flex: none; }
