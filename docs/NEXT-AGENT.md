@@ -30,7 +30,7 @@
 - **P-001 preserve-first:** never destroy owner-approved work; extend it.
 - **P-014:** every new HTML/CSS/JS/SQL file starts with the `PARAGON ARCHIVE — EXPORT IDENTITY` comment header (REAL FILE NAME / EXPECTED PROJECT PATH / ROLE / RESTORE-LOAD NOTE).
 - **P-015:** responsive at all resolutions.
-- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v87**) AND the assertion in `tests/archive-hub.test.js`.
+- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v88**) AND the assertion in `tests/archive-hub.test.js`.
 - **NO `window.alert/prompt/confirm` anywhere** — use inline panels or `ParagonTeamConfirm` (in `team/nav.js`).
 - **Canonical entry = `paragon-archive.html`. NEVER create a root index.html.**
 - Progress % must be milestone-derived (D-116) or labelled "team-set".
@@ -216,6 +216,8 @@ Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop (shopper). Meal Plann
 
 **Stage 3 Games: COMPLETE in repo.** `docs/COINS-STAGE3.md`.
 
-**Owner:** run `coins-master-stage3-games.sql` after phase4.
+**Stage 4 Quiz: COMPLETE in repo.** `docs/COINS-STAGE4.md`.
 
-**Next:** Stage 4 brief or production activation.
+**Owner:** run `coins-master-stage3-games.sql` after phase4; then `coins-master-stage4-quiz.sql` for paid quiz.
+
+**Next:** production activation brief (do not flip real_money until ordered) or Stage 5 if any.

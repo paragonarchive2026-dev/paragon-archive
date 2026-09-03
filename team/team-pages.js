@@ -4742,6 +4742,65 @@ if (paragonTeamPage() === "settings.html") {
   }
 
 
+
+  function bindStage4Quiz() {
+    var out = document.getElementById("stage4-quiz-out");
+    var btn = document.getElementById("stage4-quiz-refresh");
+    if (!out || !btn) return;
+    function load() {
+      out.textContent = "Loading Stage 4 quiz desk…";
+      Promise.all([
+        financeRest("/rest/v1/paragon_quiz_public?select=quiz_key,title,entry_fee_coins,paid_enabled,max_paid_attempts,creator_id,created_at&order=created_at.desc&limit=20").catch(function (e) { return { error: String(e.message || e) }; }),
+        financeRest("/rest/v1/paragon_creator_prizes?select=id,quiz_key,prize_coins,status,creator_id,winner_user_id,created_at&order=created_at.desc&limit=20").catch(function () { return []; }),
+        financeRest("/rest/v1/paragon_quiz_paid_attempts?select=id,quiz_id,user_id,status,score,total,entry_fee_coins,eligible_for_prize,started_at&order=started_at.desc&limit=20").catch(function () { return []; })
+      ]).then(function (parts) {
+        var quizzes = parts[0], prizes = parts[1], attempts = parts[2];
+        var lines = ["Stage 4 quiz desk @ " + new Date().toISOString(), ""];
+        lines.push("Published quizzes (public view — no answer keys):");
+        if (quizzes && quizzes.error) lines.push("  " + quizzes.error + " (run stage4 SQL)");
+        else if (!quizzes || !quizzes.length) lines.push("  (none)");
+        else quizzes.forEach(function (q) {
+          lines.push("  · " + q.quiz_key + " — " + q.title + " fee=" + q.entry_fee_coins + " paid=" + q.paid_enabled);
+        });
+        lines.push("", "Creator prizes:");
+        if (!prizes || !prizes.length) lines.push("  (none)");
+        else prizes.forEach(function (p) {
+          lines.push("  · [" + p.status + "] " + p.quiz_key + " " + p.prize_coins + "c id=" + p.id);
+        });
+        lines.push("", "Paid attempts:");
+        if (!attempts || !attempts.length) lines.push("  (none)");
+        else attempts.forEach(function (a) {
+          lines.push("  · [" + a.status + "] fee " + a.entry_fee_coins + " score " + (a.score != null ? a.score + "/" + a.total : "—") +
+            " prize_ok=" + a.eligible_for_prize + " id=" + a.id);
+        });
+        lines.push("", "Rules: creator self-play never prize/leaderboard eligible; server score only; max paid attempts enforced.");
+        out.textContent = lines.join("\n");
+      });
+    }
+    btn.addEventListener("click", load);
+    var awardBtn = document.getElementById("stage4-prize-award");
+    if (awardBtn) awardBtn.addEventListener("click", function () {
+      var prizeId = window.prompt("Creator prize UUID", "");
+      var winner = window.prompt("Winner user UUID (not the creator)", "");
+      if (!prizeId || !winner) return;
+      financeRest("/rest/v1/rpc/paragon_creator_prize_award", {
+        method: "POST",
+        body: JSON.stringify({ p_prize_id: prizeId, p_winner_user_id: winner })
+      }).then(function () { showToast("Prize awarded (if eligible)."); load(); })
+        .catch(function (e) { showToast("Award failed: " + e.message); });
+    });
+    var voidBtn = document.getElementById("stage4-attempt-void");
+    if (voidBtn) voidBtn.addEventListener("click", function () {
+      var aid = window.prompt("Paid attempt UUID to void/refund", "");
+      if (!aid) return;
+      financeRest("/rest/v1/rpc/paragon_quiz_void_paid_attempt", {
+        method: "POST",
+        body: JSON.stringify({ p_attempt_id: aid, p_reason: "team desk void" })
+      }).then(function () { showToast("Attempt voided / fee refunded."); load(); })
+        .catch(function (e) { showToast("Void failed: " + e.message); });
+    });
+  }
+
   function bindStage3Games() {
     var host = document.getElementById("stage3-games-list");
     var btn = document.getElementById("stage3-games-refresh");
@@ -5269,6 +5328,7 @@ if (paragonTeamPage() === "settings.html") {
   bindSqlHealthProbe();
   bindFinanceDesk();
   bindStage3Games();
+  bindStage4Quiz();
   bindPhase5Rails();
       if (!document.getElementById("set-flags")) return;
       var settings = readSettings();

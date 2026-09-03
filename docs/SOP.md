@@ -2694,3 +2694,5 @@ Use the applicable subset for each change:
 
 **D-233:** Stage 3 games complete in repo: 1v1 stake, 5% fee, server settle, draw/void, points, anticheat foundations. Browser never settles money.
 **Delivered:** stage3-games.sql, FE desk, Team settle, COINS-STAGE3.md, cache v87.
+
+**Stage 4 Quiz delivered (P-111):** stage4-quiz.sql, paid bridge, Team prize desk, COINS-STAGE4.md, cache v88. Free quiz localStorage unchanged.

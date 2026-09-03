@@ -123,3 +123,5 @@ coins-master-phase5.sql             ← OPay/Moniepoint
 | Anti-cheat foundations | ✅ |
 
 See `docs/COINS-STAGE3.md`.
+
+See `docs/COINS-STAGE4.md`.

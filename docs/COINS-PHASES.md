@@ -28,6 +28,7 @@ Tell us the full OPay/Moniepoint merchant story when ready (account numbers, whe
 | **1b** | `coins-master-stage1-hardening.sql` | **Built (P-108)** — claim/withdraw limits, reserves, 30% fee→reward, finance report |
 | **2b** | `coins-master-stage2-coin-system.sql` | **Built (P-109)** — my wallet view, team open intents, Stage 2 FE/Team wire |
 | **3b** | `coins-master-stage3-games.sql` | **Built (P-110)** — points, anticheat, preflight, enhanced settle |
+| **4q** | `coins-master-stage4-quiz.sql` | **Built (P-111)** — paid quiz, server score, creator prize harden |
 | **3** | `coins-master-phase3.sql` + webhook/reconcile Edge | **Built** — matches, inbox, health (adapters were generic + PS/FW examples) |
 | **4** | `coins-master-phase4.sql` + competition-settle | **Built** — compete settle, leaderboard, cases, finance desk |
 | **5** | `coins-master-phase5.sql` + OPay/Moniepoint webhook path | **Built (P-107)** — preferred rails, KYC draft, payout rail log, public OPay/Moniepoint fields |

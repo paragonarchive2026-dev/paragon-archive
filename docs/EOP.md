@@ -5575,6 +5575,7 @@ Run SQL including `coins-master-stage1-hardening.sql`. Paste **Stage 2** when re
 3. Transaction history from server ledger; locked/available/pending/restricted shown.
 4. real_money remains OFF; request click never credits.
 
+
 ## v1.04.0 — 2026-09-03 — Stage 3 Games (P-110)
 
 **Status:** `[x]` completed
@@ -5584,3 +5585,19 @@ Run SQL including `coins-master-stage1-hardening.sql`. Paste **Stage 2** when re
 2. Competitive points + leaderboard upsert; anticheat foundations; stake preflight.
 3. FE compete desk + Team settle UI; client cannot settle money.
 4. real_money / compete flags unchanged (default off).
+
+## v1.05.0 — 2026-09-03 — Stage 4 Quiz (P-111)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Paid quizzes: definitions + public view (no answer_key leak), paid attempts with fee lock + max attempts.
+2. Creator-funded prizes: phase4 lock + stage4 award/refund harden (creator cannot win; ineligible attempts blocked).
+3. Creator self-play protection: attempts marked not prize/leaderboard eligible; award RPC blocks creator.
+4. Server-side scoring: `paragon_quiz_score_attempt` — answer key never returned to client.
+5. Paid-attempt protection: void/refund unfinished; fee consume on score; idempotency.
+6. FE free localStorage quiz unchanged; paid bridge + create/play hooks; Team Stage 4 desk.
+7. Docs COINS-STAGE4; cache v88; suites green. real_money still OFF.
+
+### Owner
+Run `coins-master-stage4-quiz.sql` after phase4 (+ stage3 recommended). Do not flip real_money until ordered.

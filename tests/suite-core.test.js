@@ -154,7 +154,7 @@ assert(shell.includes("then=about") && shell.includes("then=privacy-policy") && 
 for (const removedPage of ["paragon-about.html", "paragon-help-support.html", "paragon-request-website.html", "paragon-privacy-security.html"]) assert(!fs.existsSync(path.join(root, removedPage)), `${removedPage} was not removed after Hub consolidation`);
 assert(shell.includes('then=terms') && !shell.includes("Terms content is pending owner approval"), "Archive footer Terms route is not published (P-094 detail-first)");
 assert(app.includes('href="paragon-archive-hub.html"'), "Account settings lost the Paragon Archive Hub link (P-076 keeps it)");
-assert(serviceWorker.includes('"./paragon-archive-hub.html"') && serviceWorker.includes('"./archive-hub.js"') && serviceWorker.includes("paragon-archive-v87"), "Hub is missing from the current PWA shell");
+assert(serviceWorker.includes('"./paragon-archive-hub.html"') && serviceWorker.includes('"./archive-hub.js"') && serviceWorker.includes("paragon-archive-v88"), "Hub is missing from the current PWA shell");
 assert(/stale-while-revalidate/i.test(serviceWorker) || /network\.then|const network = fetch/.test(serviceWorker), "Service worker assets are cache-first without background revalidation");
 assert(styles.includes("PARAGON ARCHIVE HUB") && styles.includes(".hub-page-shell") && styles.includes(".hub-status-grid") && styles.includes(".hub-deploy-form-card"), "Archive Hub responsive visual system is incomplete");
 
