@@ -5446,3 +5446,23 @@ Owner can run announcements + coins SQL today. Coins buy/withdraw loop is comple
 - Owner runs SQL pack; owner economics rates replace placeholders.
 - When full skill MD files land on disk/GitHub, merge any extra rules still missing.
 - Badges 21–30; Brevo hold.
+
+## v0.95.0 — 2026-09-03 — Skills from GitHub uploads; coins master Phase 1b; site maintenance (P-101)
+
+**Request reference:** SOP §11, Prompt P-101  
+**Status:** `[x]` completed
+
+### Executed actions
+1. Pulled `uploads/*` + `PARAGON-COINS-MASTER-BUILD-SPEC.md` from origin/main into the session branch; mirrored to `docs/skills/`.
+2. Authored `supabase/coins-master-phase1.sql` (accounts, economic settings ₦1=1, feature flags real_money=false, payments, withdrawals v2, competition/leaderboard stubs, audit) + `OWNER-SQL-CHECKLIST.md` with VERIFY SQL (sandbox cannot DNS-reach Supabase — owner must run VERIFY).
+3. Coin UI: packs 1:1, real-money OFF copy, withdrawal fee ≥10000 → 50 coins, min withdraw 500.
+4. Updates: product-wave announcement seed; quiz free/compete honesty; product depth (SM-2, ratios, travel pacing, files roadmap).
+5. Cache v78; suites green; SQL run pack updated.
+
+### Result
+Owner has a clear SQL VERIFY + run order. Financial engine foundation matches the master build spec without enabling real money. Nine product sites continue to deepen against skill files.
+
+### Remaining owner actions
+- Paste OWNER-SQL-CHECKLIST VERIFY results.
+- Run any SQL still false (announcements → coins-schema → coins-master-phase1).
+- Brevo, domain, payment provider, badges 21–30.

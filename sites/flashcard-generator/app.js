@@ -43,7 +43,7 @@
           back = "(add definition)";
         }
       }
-      if (front) cards.push({ id: kit.uid("c"), front: front, back: back || "", known: 0, again: 0 });
+      if (front) cards.push({ id: kit.uid("c"), front: front, back: back || "", known: 0, again: 0, easeFactor: 2.5, interval: 0, repetitions: 0, nextReview: null });
     });
     return cards;
   }
@@ -137,7 +137,7 @@
       const front = document.getElementById("cardFront").value.trim();
       const back = document.getElementById("cardBack").value.trim();
       if (!front) { kit.showPanel(document.getElementById("msg"), "Front text required.", "bad"); return; }
-      deck.cards.push({ id: kit.uid("c"), front: front, back: back, known: 0, again: 0 });
+      deck.cards.push({ id: kit.uid("c"), front: front, back: back, known: 0, again: 0, easeFactor: 2.5, interval: 0, repetitions: 0, nextReview: null });
       s.selectedId = deck.id;
       save(s);
       document.getElementById("cardFront").value = "";
@@ -189,6 +189,24 @@
     document.getElementById("flashFace")?.addEventListener("click", function () {
       study.showBack = !study.showBack; showFace();
     });
+    function sm2(card, quality) {
+      /* quality 0 again, 4 known — simplified SM-2 */
+      var ef = Number(card.easeFactor) || 2.5;
+      var rep = Number(card.repetitions) || 0;
+      var interval = Number(card.interval) || 0;
+      if (quality < 3) {
+        rep = 0; interval = 0;
+      } else {
+        if (rep === 0) interval = 1;
+        else if (rep === 1) interval = 6;
+        else interval = Math.round(interval * ef);
+        rep += 1;
+        ef = ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+        if (ef < 1.3) ef = 1.3;
+      }
+      card.easeFactor = ef; card.repetitions = rep; card.interval = interval;
+      card.nextReview = new Date(Date.now() + interval * 86400000).toISOString();
+    }
     function grade(known) {
       if (!study.cards.length) return;
       const s = load();
@@ -198,8 +216,8 @@
       if (deck) {
         const real = deck.cards.find(function (c) { return c.id === card.id; });
         if (real) {
-          if (known) real.known = (real.known || 0) + 1;
-          else real.again = (real.again || 0) + 1;
+          if (known) { real.known = (real.known || 0) + 1; sm2(real, 4); }
+          else { real.again = (real.again || 0) + 1; sm2(real, 1); }
         }
       }
       s.reviews = (s.reviews || 0) + 1;

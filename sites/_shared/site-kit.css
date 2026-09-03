@@ -281,3 +281,9 @@ th { color: var(--text-muted); font-size: 11.5px; letter-spacing: 0.4px; text-tr
 }
 .footer a { color: var(--accent-2); font-weight: 700; }
 .footer a:hover { text-decoration: underline; }
+
+
+/* P-101 — invoice/resume print scale helpers (skill: page cutoff) */
+@media print {
+  .print-scale-root { transform-origin: top left; }
+}

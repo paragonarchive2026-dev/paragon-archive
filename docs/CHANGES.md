@@ -2,33 +2,30 @@
   PARAGON ARCHIVE — EXPORT IDENTITY
   REAL FILE NAME: CHANGES.md
   EXPECTED PROJECT PATH: /docs/CHANGES.md
-  ROLE: Per-turn changed-files list (P-098/P-100).
+  ROLE: Per-turn delta list.
 -->
-
-# 📦 Changed files — P-100 (2026-09-03)
+# 📦 Changed files — P-101 (2026-09-03)
 
 ## Changed
-- `app.js` — coin shop history + withdrawal requests + debit sync
-- `team/desk.html` — withdrawal approvals panel
-- `team/team-pages.js` — withdrawal list/bind + debit mirror
-- `sites/_shared/site-kit.js` — CSV + print helpers
-- `sites/recipe-creator/*` — substitutions + technique engine
-- `sites/invoice-generator/app.js` — CSV export + URL fill-link
-- `sites/flashcard-generator/*` — Anki TSV + study guide export
-- `sites/resume-maker/*` — cover letter + template style
-- `sites/travel-assistant/*` — entry checklist helper
-- `sites/photo-editor/*` — text overlay, rotate, flip
-- `sites/meal-planner/*` — pull titles from Paragon Recipe
-- `sites/personal-shopper/*` — price compare
-- `sites/file-converter/app.js` — job log
-- `docs/COIN-SYSTEM.md`, `docs/SOP.md`, `docs/EOP.md`, `docs/NEXT-AGENT.md`
-- `service-worker.js` — cache **v77**
-- `tests/suite-ux.test.js`, `tests/suite-core.test.js` — v77 + P-100 fixture
-- `paragon-file-tree.html` — regenerated
+- `app.js` — coin packs ₦1=1 coin, real-money OFF honesty, product-wave announcement, withdrawal fee rule
+- `docs/COIN-SYSTEM.md` — master-spec rates + real-money gate
+- `paragon-quiz/index.html` — free forever / compete later honesty
+- `sites/flashcard-generator/app.js` — SM-2 scheduling fields
+- `sites/recipe-creator/app.js` — cooking ratios
+- `sites/travel-assistant/app.html` — pacing + entry honesty
+- `sites/photo-editor/app.html` — orientation tip
+- `sites/file-converter/guide.html` — skill roadmap honesty
+- `service-worker.js` — cache **v78**
+- `tests/suite-*.test.js` — v78 + P-101
+- `paragon-file-tree.html`, `docs/SOP.md`, `docs/EOP.md`, `docs/NEXT-AGENT.md`
+- `supabase/SQL-RUN-PACK.md`
 
 ## Added
-- `supabase/coins-schema.sql` — full coins backend (RUN THIS)
-- `supabase/SQL-RUN-PACK.md` — owner run order for all SQL
+- `uploads/` — owner skill files from GitHub main
+- `docs/skills/` — same skills + coins master for agents
+- `PARAGON-COINS-MASTER-BUILD-SPEC.md`
+- `supabase/coins-master-phase1.sql` — master §47 tables (real_money OFF)
+- `supabase/OWNER-SQL-CHECKLIST.md` — VERIFY queries for owner
 
 ## Deleted
 - (none)

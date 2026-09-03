@@ -19,7 +19,7 @@
 ## What is ALREADY BUILT (P-098)
 - **Balance** in the personal state (`accountProfile.coinBalance`, account-synced; guest = session).
 - **Account tab**: coin stat box + "🪙 Paragon Coins — balance … · buy coins" row → styled shop popup.
-- **Buy flow**: pick a pack (₦500/₦1,000/₦5,000 at the placeholder rate ₦1 = 2 coins) →
+- **Buy flow**: pick a pack (₦500/₦1,000/₦5,000 at the placeholder rate ₦1 = 1 coin (master-spec target; was placeholder 2)) →
   request lands in `paragonTeamCoinRequests.v1` → **Team desk (settings panel) super-admin
   approves** → `paragonArchive.coinCredits.v1` mirror → the user's device credits on next
   Account view with a toast. All real on-device; `pendingBackendSync`.
@@ -52,6 +52,11 @@
 > accounting sheet layout so I can track coin liability vs naira collected, (7) legal/
 > fairness disclaimers for a skill-based (not luck-based) coin system in Nigeria. Keep
 > everything free-to-play friendly: no user ever needs to pay to enjoy the platform.
+
+## Real-money gate (P-101)
+- Server flag `paragon_feature_flags.real_money_enabled` defaults **false**.
+- Purchases/withdrawals/compete stay disabled until the owner flips flags after provider + compliance.
+- UI must never claim bank money moved while the flag is off.
 
 ## Still needed from the owner (CTA)
 - The real ₦→coin rate, entry fees, prize amounts, withdrawal fee, payment channels

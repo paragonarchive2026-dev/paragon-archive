@@ -948,7 +948,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderStaffPicks();
   renderRecentlyAdded();
   renderUpdates();
-  fetchLiveAnnouncements(); // P-094 — pull managed announcements from the live backend (silent, cached fallback)
+  fetchLiveAnnouncements(); // P-094
+  fetchPublicCoinConfig(); // P-101 — silent; applies economy when SQL phase1b is live
+ — pull managed announcements from the live backend (silent, cached fallback)
   renderAccount();
   bindNav();
   bindUpdateFilters();
@@ -1795,6 +1797,7 @@ function buildUpdateEvents() {
       { id: "announcement-2026-08-18-backend-live", type: "special", siteName: null, title: "The Paragon backend went LIVE", message: "Database schema, Email + Google sign-in, and the community & developer tables are all live and probe-verified. Signed-in members' board posts now publish to the real backend.", linkUrl: null, image: null, imageName: null, status: "published", publishedAt: "2026-08-18T18:00:00+01:00", scheduledFor: null, createdAt: "2026-08-18T18:00:00+01:00", publishedBy: "Paragon Founder" },
       { id: "announcement-2026-08-18-community-board", type: "special", siteName: null, title: "The Community Board is open", message: "Members can post, comment, like, report and appeal — with a real moderation loop on the Team desk. Join through Account, then Paragon Community.", linkUrl: null, image: null, imageName: null, status: "published", publishedAt: "2026-08-18T17:00:00+01:00", scheduledFor: null, createdAt: "2026-08-18T17:00:00+01:00", publishedBy: "Paragon Founder" },
       { id: "announcement-2026-08-18-developer-portal", type: "special", siteName: null, title: "The Developer Portal is open", message: "Apply as a developer, pass the real 8-point review gate, and your website joins the public Deployed category.", linkUrl: null, image: null, imageName: null, status: "published", publishedAt: "2026-08-18T16:00:00+01:00", scheduledFor: null, createdAt: "2026-08-18T16:00:00+01:00", publishedBy: "Paragon Founder" },
+      { id: "announcement-2026-09-03-product-wave", type: "new", siteName: null, title: "First product wave is OPEN inside the Archive", message: "Paragon Invoice, Resume, Recipe, Flash, Files, Travel, Photo and Shop now open real same-origin apps under /sites/ — local-first, free, with honest construction progress. Meal Planner pairs with Recipe. Coins financial SQL is ready for the team to run (real-money stays OFF).", linkUrl: null, image: null, imageName: null, status: "published", publishedAt: "2026-09-03T12:00:00+01:00", scheduledFor: null, createdAt: "2026-09-03T12:00:00+01:00", publishedBy: "Paragon Founder" },
       { id: "announcement-2026-08-04-catalogue-expansion", type: "special", siteName: null, title: "A larger Paragon collection is now available", message: "New productivity, education, creative, social, finance, lifestyle, entertainment, games, and developer experiences have joined the archive.", linkUrl: null, image: null, imageName: null, status: "published", publishedAt: "2026-08-04T03:15:00+01:00", scheduledFor: null, createdAt: "2026-08-04T03:15:00+01:00", publishedBy: "Paragon Founder" }
     ];
     if (window.localStorage.getItem("paragonTeamAnnouncements.v1") === null) {
@@ -1849,6 +1852,33 @@ function buildUpdateEvents() {
   } catch (error) { /* storage blocked — feed stays as generated */ }
 
   return events.sort((first, second) => second.date - first.date || first.title.localeCompare(second.title));
+}
+
+/* P-101 — public coin economy/flags from master phase1b (anon RPC). Silent no-op if SQL not run. */
+window.ParagonCoinPublicConfig = window.ParagonCoinPublicConfig || null;
+function fetchPublicCoinConfig() {
+  try {
+    const cfg = window.PARAGON_SUPABASE || window.SupabaseConfig || {};
+    const base = (cfg.url || cfg.supabaseUrl || "").replace(/\/$/, "");
+    const key = cfg.anonKey || cfg.anon || cfg.key || "";
+    if (!base || !key || typeof window.fetch !== "function") return;
+    window.fetch(`${base}/rest/v1/rpc/paragon_public_coin_config`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json" },
+      body: "{}"
+    })
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error("coin config " + r.status))))
+      .then(data => {
+        window.ParagonCoinPublicConfig = data;
+        try { window.localStorage.setItem("paragonArchive.coinPublicConfig.v1", JSON.stringify(data)); } catch (_) {}
+      })
+      .catch(() => {
+        try {
+          const cached = window.localStorage.getItem("paragonArchive.coinPublicConfig.v1");
+          if (cached) window.ParagonCoinPublicConfig = JSON.parse(cached);
+        } catch (_) {}
+      });
+  } catch (_) {}
 }
 
 /* P-094 — public feed refreshes from the live announcements backend (read-only, anon).
@@ -2411,7 +2441,7 @@ function renderAccount() {
       <div class="row"><div><h4>🔔 Notifications</h4><p>${guestMode ? "Temporary for this session." : "Sync notification preferences."}</p></div><label><input type="checkbox" class="toggle" ${notificationsOn ? "checked" : ""} onchange="toggleNotificationsPreference(this)" aria-label="Notifications"></label></div>
       ${loggedIn && providerLabel(authUser) === "Email" ? `<div class="row"><button type="button" class="settings-link" onclick="openPasswordUpdate()"><span>🔑 Change Password</span></button></div>` : ""}
       <div class="row"><button type="button" class="settings-link" onclick="openParagonInstall()"><span>📲 Install Paragon Archive &amp; app permissions</span></button></div>
-      <div class="row"><button type="button" class="settings-link" onclick="openCoinShop()"><span>🪙 Paragon Coins — balance ${coinBalance().toLocaleString()} · buy coins</span></button></div>
+      <div class="row"><button type="button" class="settings-link" onclick="openCoinShop()"><span>🪙 Paragon Coins — balance ${coinBalance().toLocaleString()} · buy (real-money OFF)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="shareParagonApp()"><span>📤 Share Paragon Archive (install link)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openCommunityEntry()"><span>${communityMembershipRecord() ? "👥 Paragon Community · Open the Board" : "👥 Paragon Community"}</span></button></div>
       <div class="row"><a class="settings-link" href="paragon-archive-hub.html"><span><img class="settings-brand-mark" src="assets/brand/logo-mark.png" alt=""> Paragon Archive Hub</span></a></div>
@@ -2984,7 +3014,7 @@ window.requestCoinPurchase = function(nairaAmount) {
   const naira = Math.round(Number(nairaAmount) || 0);
   if (!hasPersonalSession()) { requirePersonalSession("buy Paragon coins"); return; }
   if (naira < 500) { showToast("The smallest coin pack is ₦500.", "warning"); return; }
-  const coins = Math.round(naira * 2); /* honest placeholder rate: ₦1 = 2 coins (owner sets the real rate) */
+  const coins = Math.round(naira * 1); /* master-spec target: ₦1 = 1 redeemable coin (server config overrides later) */
   try {
     const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");
     list.push({ id: "coin-" + Date.now().toString(36), user: authUser?.email || "Guest (this device)", displayName: accountProfile.displayName || "Guest", naira, coins, status: "pending", createdAt: new Date().toISOString() });
@@ -2995,16 +3025,18 @@ window.requestCoinPurchase = function(nairaAmount) {
 window.requestCoinWithdrawal = function() {
   if (!hasPersonalSession()) { requirePersonalSession("request a coin withdrawal"); return; }
   const bal = coinBalance();
-  if (bal < 1000) { showToast("Minimum withdrawal is 1,000 coins (placeholder — owner sets the real minimum).", "warning"); return; }
+  if (bal < 500) { showToast("Minimum withdrawal is 500 coins (placeholder — owner sets the real minimum).", "warning"); return; }
   const coinsEl = document.getElementById("coin-withdraw-amount");
   const bankEl = document.getElementById("coin-withdraw-bank");
   const coins = Math.round(Number(coinsEl?.value) || 0);
   const bank = String(bankEl?.value || "").trim();
-  if (coins < 1000) { showToast("Enter at least 1,000 coins.", "warning"); return; }
+  if (coins < 1000) { showToast("Enter at least 500 coins.", "warning"); return; }
   if (coins > bal) { showToast("You do not have that many coins.", "warning"); return; }
   if (bank.length < 8) { showToast("Add bank/account details for the team payout (min 8 characters).", "warning"); return; }
   /* Placeholder sell rate: ₦0.40 per coin (spread vs buy). Owner replaces via config. */
-  const naira = Math.round(coins * 0.4);
+  /* Master §22.1: redeemable ₦1/coin; fee 50 coins if withdrawal ≥ 10000 coins */
+  const fee = coins >= 10000 ? 50 : 0;
+  const naira = Math.max(0, coins - fee);
   try {
     const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinWithdrawals.v1") || "[]");
     list.push({
@@ -3014,7 +3046,7 @@ window.requestCoinWithdrawal = function() {
       coins, naira, bank, status: "pending", createdAt: new Date().toISOString()
     });
     window.localStorage.setItem("paragonTeamCoinWithdrawals.v1", JSON.stringify(list));
-    showToast(`Withdrawal request filed — ${coins.toLocaleString()} coins / ~₦${naira.toLocaleString()} (team pays manually). pendingBackendSync`);
+    showToast(`Withdrawal request filed — ${coins.toLocaleString()} coins / ~₦${naira.toLocaleString()} after fee (team pays manually; real-money OFF until enabled). pendingBackendSync`);
     document.getElementById("coin-shop-overlay")?.remove();
     document.body.classList.remove("popup-lock");
   } catch (error) { showToast("Could not save the withdrawal request on this device.", "warning"); }
@@ -3033,9 +3065,9 @@ window.openCoinShop = function() {
   overlay.className = "utility-overlay active install-overlay";
   overlay.innerHTML = `
     <div class="install-popup-card" style="width:min(560px,96vw);max-height:90vh;overflow:auto;" role="dialog" aria-modal="true">
-      <header><h2>🪙 Paragon Coins</h2><p>Free-to-play always stays free. Coins are optional for bets, quiz entry fees and prizes. Balance: <b>${coinBalance().toLocaleString()} coins</b></p></header>
+      <header><h2>🪙 Paragon Coins</h2><p>Free-to-play always works. <b>Real-money mode is OFF</b> until the team enables it after payment provider + compliance. Competitive coins need a registered account. Balance: <b>${coinBalance().toLocaleString()} coins</b></p></header>
       <div class="install-perm-list">
-        ${[[500, 1000], [1000, 2000], [5000, 10000]].map(([naira, coins]) => `
+        ${[[500, 500], [1000, 1000], [5000, 5000]].map(([naira, coins]) => `
           <label class="install-perm-row" style="cursor:pointer" onclick="requestCoinPurchase(${naira}); document.getElementById('coin-shop-overlay').remove(); document.body.classList.remove('popup-lock');">
             <div><b>₦${naira.toLocaleString()}</b><small>≈ ${coins.toLocaleString()} coins — Team desk approves after you pay using the team&apos;s payment details.</small></div>
             <span class="primary-action" style="pointer-events:none;">Request</span>
@@ -3043,12 +3075,12 @@ window.openCoinShop = function() {
       </div>
       <div style="margin:14px 0 8px;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
         <b style="display:block;margin-bottom:8px;">Sell coins back (manual payout)</b>
-        <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Coins to sell (min 1000)</label>
-        <input id="coin-withdraw-amount" type="number" min="1000" step="100" value="1000" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.25);color:inherit;">
+        <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Coins to sell (min 500)</label>
+        <input id="coin-withdraw-amount" type="number" min="500" step="100" value="500" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.25);color:inherit;">
         <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Bank / wallet details for payout</label>
         <textarea id="coin-withdraw-bank" rows="2" placeholder="Bank name · account name · account number" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.25);color:inherit;"></textarea>
         <button type="button" class="secondary-action" onclick="requestCoinWithdrawal()">Request withdrawal</button>
-        <small class="install-popup-note" style="display:block;margin-top:8px;">Placeholder sell rate ₦0.40/coin (buy is ₦0.50). Owner sets final rates after economics pass. Team verifies then pays naira offline.</small>
+        <small class="install-popup-note" style="display:block;margin-top:8px;">Redeemable target ₦1/coin; fee 50 coins if ≥ ₦10,000 (master §22.1). Real-money mode OFF until feature flag. Owner sets final rates after economics pass. Team verifies then pays naira offline.</small>
       </div>
       <div style="margin:8px 0 12px;">
         <b style="display:block;margin-bottom:6px;">Recent history</b>

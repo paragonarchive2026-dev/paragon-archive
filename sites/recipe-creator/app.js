@@ -13,6 +13,13 @@
   function load() { return Object.assign(def(), kit.storageGet(K, def())); }
   function save(s) { kit.storageSet(K, s); }
   
+  const RATIOS = {
+    "rice water": "1 cup rice : 1.5–2 cups water (method dependent)",
+    "pasta water": "100 g dry pasta : ~1 L boiling salted water",
+    "vinaigrette": "3 oil : 1 acid (lemon/vinegar), salt to taste",
+    "roux": "1 fat : 1 flour by weight for thickening",
+    "bread dough": "flour 100% · water 60–70% · salt 2% · yeast 1% (baker %)"
+  };
   const SUB_MAP = {
     buttermilk: ["1 cup milk + 1 tbsp lemon/vinegar (rest 5 min)", "plain yogurt thinned with water"],
     butter: ["oil (3/4 amount)", "coconut oil", "vegan margarine"],
@@ -232,6 +239,8 @@
         // technique?
         const tkey = Object.keys(TECH).find(function (k) { return document.getElementById("subQuery").value.toLowerCase().indexOf(k) >= 0; });
         if (tkey) { box.innerHTML = "<strong>Technique — " + kit.escapeHTML(tkey) + "</strong><br>" + kit.escapeHTML(TECH[tkey]); return; }
+        var ratioKey = Object.keys(RATIOS).find(function (k) { return document.getElementById("subQuery").value.toLowerCase().indexOf(k.split(" ")[0]) >= 0; });
+        if (ratioKey) { box.innerHTML = "<strong>Ratio — " + kit.escapeHTML(ratioKey) + "</strong><br>" + kit.escapeHTML(RATIOS[ratioKey]); return; }
         box.innerHTML = "No local substitute row for that item yet. Try: buttermilk, butter, egg, milk, flour, soy sauce, chicken, cheese — or a technique word like sear / deglaze.";
         return;
       }
