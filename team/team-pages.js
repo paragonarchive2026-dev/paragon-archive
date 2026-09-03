@@ -4655,6 +4655,99 @@ if (paragonTeamPage() === "settings.html") {
     }).join("") : '<p class="team-site-sub">No withdrawal requests yet — real zero.</p>';
   }
 
+
+  function financeRest(path, options) {
+    var cfg = window.ParagonConfig || {};
+    var base = String(cfg.supabaseUrl || "").replace(/\/$/, "");
+    var key = cfg.supabaseAnonKey || "";
+    if (!base || !key) return Promise.reject(new Error("No Supabase config"));
+    var headers = Object.assign({
+      apikey: key,
+      Authorization: "Bearer " + key,
+      "Content-Type": "application/json"
+    }, (options && options.headers) || {});
+    return fetch(base + path, Object.assign({}, options || {}, { headers: headers })).then(function (r) {
+      return r.text().then(function (text) {
+        var data = null;
+        try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
+        if (!r.ok) throw new Error((data && data.message) || ("HTTP " + r.status));
+        return data;
+      });
+    });
+  }
+  function bindFinanceDesk() {
+    var out = document.getElementById("finance-desk-out");
+    var btn = document.getElementById("finance-refresh");
+    if (!out || !btn) return;
+    function renderSnapshot() {
+      out.textContent = "Loading finance snapshot…";
+      Promise.all([
+        financeRest("/rest/v1/rpc/paragon_sql_health", { method: "POST", body: "{}" }).catch(function (e) { return { error: String(e.message || e) }; }),
+        financeRest("/rest/v1/paragon_competitions?select=id,game_key,status,stake_coins,pool_coins,created_at&order=created_at.desc&limit=10").catch(function () { return []; }),
+        financeRest("/rest/v1/paragon_leaderboard_periods?select=id,label,status,prize_pool_coins,starts_at,ends_at&order=starts_at.desc&limit=5").catch(function () { return []; }),
+        financeRest("/rest/v1/paragon_financial_cases?select=id,case_type,status,summary,created_at&order=created_at.desc&limit=10").catch(function () { return []; }),
+        financeRest("/rest/v1/paragon_creator_prizes?select=id,quiz_key,prize_coins,status,created_at&order=created_at.desc&limit=10").catch(function () { return []; })
+      ]).then(function (parts) {
+        var health = parts[0], comps = parts[1], periods = parts[2], cases = parts[3], prizes = parts[4];
+        var lines = ["Finance snapshot @ " + new Date().toISOString(), ""];
+        if (health && health.error) lines.push("Health: " + health.error);
+        else if (health) {
+          lines.push("phase=" + (health.phase || "?") + " · compete_rpc=" + health.rpc_competition_settle + " · lb_rpc=" + health.rpc_leaderboard_settle);
+          if (health.flags) lines.push("flags: real_money=" + health.flags.real_money_enabled + " compete=" + health.flags.compete_enabled + " pause=" + health.flags.financial_pause);
+        }
+        lines.push("", "Competitions (latest):");
+        if (!comps || !comps.length) lines.push("  (none or table missing)");
+        else comps.forEach(function (c) {
+          lines.push("  · " + (c.game_key || "?") + " [" + c.status + "] stake " + c.stake_coins + " pool " + c.pool_coins);
+        });
+        lines.push("", "Leaderboard periods:");
+        if (!periods || !periods.length) lines.push("  (none or table missing)");
+        else periods.forEach(function (p) {
+          lines.push("  · " + (p.label || p.id) + " [" + p.status + "] pool " + (p.prize_pool_coins || 0));
+        });
+        lines.push("", "Creator prizes:");
+        if (!prizes || !prizes.length) lines.push("  (none or table missing)");
+        else prizes.forEach(function (p) {
+          lines.push("  · " + p.quiz_key + " " + p.prize_coins + "c [" + p.status + "]");
+        });
+        lines.push("", "Financial cases:");
+        if (!cases || !cases.length) lines.push("  (none or table missing)");
+        else cases.forEach(function (c) {
+          lines.push("  · [" + c.status + "] " + c.case_type + " — " + String(c.summary || "").slice(0, 80));
+        });
+        lines.push("", "Settle competitions via Edge competition-settle or SQL RPCs — never from a client winner claim.");
+        out.textContent = lines.join("\n");
+      }).catch(function (err) {
+        out.textContent = "Finance snapshot failed: " + err.message +
+          "\nRun coins-master-phase4.sql and ensure you are signed in as a team member for RLS reads.";
+      });
+    }
+    btn.addEventListener("click", renderSnapshot);
+    function pause(on) {
+      window.ParagonTeamConfirm({
+        icon: "⏸",
+        title: on ? "Enable financial pause?" : "Lift financial pause?",
+        lines: on
+          ? ["Blocks purchase/withdraw/compete RPCs that check financial_pause.", "Requires phase2+ SQL and team JWT."]
+          : ["Resumes financial RPCs if other flags allow."],
+        confirmLabel: on ? "Pause now" : "Lift pause"
+      }).then(function (c) {
+        if (!c.ok) return;
+        financeRest("/rest/v1/rpc/paragon_set_financial_pause", {
+          method: "POST",
+          body: JSON.stringify({ p_paused: on })
+        }).then(function () {
+          showToast(on ? "Financial pause ON (if SQL live)." : "Financial pause OFF (if SQL live).");
+          renderSnapshot();
+        }).catch(function (e) {
+          showToast("Pause RPC failed: " + e.message + " — need phase4 SQL + team login.");
+        });
+      });
+    }
+    document.getElementById("finance-pause-on")?.addEventListener("click", function () { pause(true); });
+    document.getElementById("finance-pause-off")?.addEventListener("click", function () { pause(false); });
+  }
+
   function bindSqlHealthProbe() {
     var btn = document.getElementById("probe-sql-health");
     var out = document.getElementById("sql-health-out");
@@ -4881,6 +4974,7 @@ if (paragonTeamPage() === "settings.html") {
     bindCoinRequests();
     bindCoinWithdrawals();
   bindSqlHealthProbe();
+  bindFinanceDesk();
       if (!document.getElementById("set-flags")) return;
       var settings = readSettings();
       document.getElementById("set-idle").value = settings.sessionIdleMinutes;

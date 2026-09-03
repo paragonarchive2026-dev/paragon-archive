@@ -145,3 +145,8 @@ Already executed live 2026-08-18. File is an archive reference.
 
 ### Browser probe (easiest confirm)
 Team desk → **Probe SQL health now** → paste the pre block back to the agent if you want confirmation logged.
+
+
+### 6. Coins Phase 4 — compete / leaderboard / cases
+**File:** `supabase/coins-master-phase4.sql`  
+**Adds:** participants, settlements, leaderboard entries, creator prizes, financial cases, risk flags, competition create/join/settle, leaderboard settle, prize lock/award, financial pause, open case, health phase=4.

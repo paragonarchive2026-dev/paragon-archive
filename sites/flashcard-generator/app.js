@@ -225,6 +225,23 @@
     });
   }
 
+  function sm2(card, quality) {
+    var ef = Number(card.easeFactor) || 2.5;
+    var rep = Number(card.repetitions) || 0;
+    var interval = Number(card.interval) || 0;
+    if (quality < 3) { rep = 0; interval = 0; }
+    else {
+      if (rep === 0) interval = 1;
+      else if (rep === 1) interval = 6;
+      else interval = Math.round(interval * ef);
+      rep += 1;
+      ef = ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+      if (ef < 1.3) ef = 1.3;
+    }
+    card.easeFactor = ef; card.repetitions = rep; card.interval = interval;
+    card.nextReview = new Date(Date.now() + interval * 86400000).toISOString();
+  }
+
   if (document.getElementById("startStudy")) {
     fillStudySelect();
     function begin() {
@@ -257,24 +274,7 @@
     document.getElementById("flashFace")?.addEventListener("click", function () {
       study.showBack = !study.showBack; showFace();
     });
-    function sm2(card, quality) {
-      /* quality 0 again, 4 known — simplified SM-2 */
-      var ef = Number(card.easeFactor) || 2.5;
-      var rep = Number(card.repetitions) || 0;
-      var interval = Number(card.interval) || 0;
-      if (quality < 3) {
-        rep = 0; interval = 0;
-      } else {
-        if (rep === 0) interval = 1;
-        else if (rep === 1) interval = 6;
-        else interval = Math.round(interval * ef);
-        rep += 1;
-        ef = ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
-        if (ef < 1.3) ef = 1.3;
-      }
-      card.easeFactor = ef; card.repetitions = rep; card.interval = interval;
-      card.nextReview = new Date(Date.now() + interval * 86400000).toISOString();
-    }
+    /* sm2 hoisted */
     function grade(known) {
       if (!study.cards.length) return;
       const s = load();
@@ -302,6 +302,69 @@
     document.getElementById("knownBtn").addEventListener("click", function () { grade(true); });
     document.getElementById("againBtn").addEventListener("click", function () { grade(false); });
     begin();
+  }
+
+
+  if (document.getElementById("startQuiz")) {
+    var quiz = { cards: [], i: 0 };
+    function showQuiz() {
+      var q = document.getElementById("quizQ");
+      var fb = document.getElementById("quizFeedback");
+      var ans = document.getElementById("quizAnswer");
+      if (!quiz.cards.length) return;
+      if (quiz.i >= quiz.cards.length) {
+        q.textContent = "Quiz complete";
+        fb.textContent = "Finished " + quiz.cards.length + " cards.";
+        return;
+      }
+      var c = quiz.cards[quiz.i];
+      q.textContent = c.front || "—";
+      if (ans) ans.value = "";
+      if (fb) fb.textContent = "Card " + (quiz.i + 1) + " / " + quiz.cards.length;
+    }
+    document.getElementById("startQuiz").addEventListener("click", function () {
+      var s = load();
+      var id = document.getElementById("studyDeck").value;
+      var deck = s.decks.find(function (d) { return d.id === id; });
+      var empty = document.getElementById("studyEmpty");
+      var area = document.getElementById("studyArea");
+      var qarea = document.getElementById("quizArea");
+      if (!deck || !(deck.cards || []).length) {
+        if (empty) empty.hidden = false;
+        return;
+      }
+      if (empty) empty.hidden = true;
+      if (area) area.hidden = true;
+      if (qarea) qarea.hidden = false;
+      quiz.cards = deck.cards.slice().sort(function () { return Math.random() - 0.5; });
+      quiz.i = 0;
+      showQuiz();
+    });
+    document.getElementById("quizCheck")?.addEventListener("click", function () {
+      if (!quiz.cards.length || quiz.i >= quiz.cards.length) return;
+      var c = quiz.cards[quiz.i];
+      var got = (document.getElementById("quizAnswer").value || "").trim().toLowerCase();
+      var want = (c.back || "").trim().toLowerCase();
+      var fb = document.getElementById("quizFeedback");
+      var ok = got && want && (got === want || want.indexOf(got) >= 0 || got.indexOf(want) >= 0);
+      if (fb) fb.innerHTML = ok
+        ? "<span style='color:var(--good,#2ecc71)'>Correct</span> — " + kit.escapeHTML(c.back || "")
+        : "<span style='color:var(--danger,#e74c3c)'>Not quite</span> — answer: " + kit.escapeHTML(c.back || "");
+      var s = load();
+      var id = document.getElementById("studyDeck").value;
+      var deck = s.decks.find(function (d) { return d.id === id; });
+      var real = deck && deck.cards.find(function (x) { return x.id === c.id; });
+      if (real) {
+        if (ok) { real.known = (real.known || 0) + 1; sm2(real, 4); }
+        else { real.again = (real.again || 0) + 1; sm2(real, 1); }
+      }
+      s.reviews = (s.reviews || 0) + 1;
+      save(s); stats();
+    });
+    document.getElementById("quizNext")?.addEventListener("click", function () {
+      quiz.i += 1;
+      showQuiz();
+    });
   }
 
   stats();

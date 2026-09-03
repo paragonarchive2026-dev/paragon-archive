@@ -87,3 +87,16 @@ Do **not** run this casually. Free play works without it.
 - Does not store provider secret keys in the repo
 - Does not claim FCT gaming licence is complete
 - Does not auto-enable compete / leaderboard rewards
+
+---
+
+# Phase 4 add-on
+
+**SQL:** `supabase/coins-master-phase4.sql`  
+**Edge:** `competition-settle` (same `PARAGON_COIN_WEBHOOK_SECRET`)
+
+```bash
+supabase functions deploy competition-settle --no-verify-jwt
+```
+
+Ops: Team desk → Finance desk snapshot + emergency pause (requires team auth + phase4 SQL).

@@ -2,8 +2,7 @@
   PARAGON ARCHIVE — EXPORT IDENTITY
   REAL FILE NAME: study.html
   EXPECTED PROJECT PATH: /sites/flashcard-generator/study.html
-  ROLE: Paragon Flash study / flip session.
-  RESTORE-LOAD NOTE: In-project product site.
+  ROLE: Paragon Flash study / flip / quiz session.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -20,7 +19,6 @@
       box-shadow:var(--shadow); font-size:clamp(18px,3vw,26px); font-weight:700; cursor:pointer;
       user-select:none;
     }
-    .flash-card .hint { position:absolute; opacity:0.5; font-size:12px; font-weight:600; }
   </style>
 </head>
 <body>
@@ -40,12 +38,12 @@
   </header>
   <main class="page" style="max-width:640px">
     <h1 class="page-title">Study</h1>
-    <p class="page-sub">SM-2 scheduling ranks due cards first. Grade honestly — ease factor below 1.3 means rewrite the card.</p>
-    <p class="page-sub">Pick a deck, flip cards, mark known/again. Stats are real and local.</p>
+    <p class="page-sub">SM-2 ranks due cards first. Quiz mode asks you to type the answer. Stats are real and local.</p>
     <div class="field"><label for="studyDeck">Deck</label><select id="studyDeck"></select></div>
     <div class="actions" style="margin-bottom:16px">
       <button type="button" class="btn btn-primary" id="startStudy">Start / shuffle</button>
-      <button type="button" class="btn btn-secondary" id="flipCard">Flip</button>
+      <button type="button" class="btn btn-secondary" id="startQuiz">Quiz mode</button>
+      <button type="button" class="btn btn-outline" id="flipCard">Flip</button>
     </div>
     <div id="studyEmpty" class="empty"><strong>No cards to study</strong>Create a deck with cards first.</div>
     <div id="studyArea" hidden>
@@ -55,6 +53,16 @@
         <button type="button" class="btn btn-danger" id="againBtn">Again</button>
         <button type="button" class="btn btn-primary" id="knownBtn">Known</button>
       </div>
+    </div>
+    <div id="quizArea" class="panel" hidden style="margin-top:16px">
+      <h2 class="panel-title">Quiz mode</h2>
+      <p id="quizQ" class="card-title"></p>
+      <div class="field"><label for="quizAnswer">Your answer</label><input id="quizAnswer" autocomplete="off"></div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="quizCheck">Check</button>
+        <button type="button" class="btn btn-outline" id="quizNext">Next</button>
+      </div>
+      <div id="quizFeedback" class="muted"></div>
     </div>
   </main>
   <footer class="footer"><p><a href="app.html">Decks</a></p></footer>

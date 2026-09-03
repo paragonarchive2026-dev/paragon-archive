@@ -195,6 +195,57 @@
     img.src = tmp.toDataURL("image/png");
   });
   document.getElementById("clearCrop").addEventListener("click", function () { crop = null; draw(); });
+  document.getElementById("squareCrop")?.addEventListener("click", function () {
+    if (!source) { kit.showPanel(document.getElementById("msg"), "Load a photo first.", "bad"); return; }
+    const side = Math.min(canvas.width, canvas.height);
+    crop = {
+      x: Math.floor((canvas.width - side) / 2),
+      y: Math.floor((canvas.height - side) / 2),
+      w: side,
+      h: side
+    };
+    draw();
+    kit.showPanel(document.getElementById("msg"), "Center square selected — click Apply crop.", "good");
+  });
+  document.getElementById("healRegion")?.addEventListener("click", function () {
+    if (!source || !crop || crop.w < 4) {
+      kit.showPanel(document.getElementById("msg"), "Drag a region to heal first (simple blur fill — not AI inpaint).", "bad");
+      return;
+    }
+    const saved = crop;
+    crop = null;
+    draw();
+    const tmp = document.createElement("canvas");
+    tmp.width = canvas.width; tmp.height = canvas.height;
+    const tctx = tmp.getContext("2d");
+    tctx.drawImage(canvas, 0, 0);
+    /* sample average color from region and fill — honest simple heal */
+    const sample = tctx.getImageData(saved.x, saved.y, Math.max(1, saved.w), Math.max(1, saved.h));
+    let r = 0, g = 0, b = 0, n = sample.data.length / 4;
+    for (let i = 0; i < sample.data.length; i += 4) {
+      r += sample.data[i]; g += sample.data[i + 1]; b += sample.data[i + 2];
+    }
+    r = Math.round(r / n); g = Math.round(g / n); b = Math.round(b / n);
+    tctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+    tctx.fillRect(saved.x, saved.y, saved.w, saved.h);
+    /* soft edge: redraw blurred patch if filter available */
+    try {
+      tctx.filter = "blur(6px)";
+      tctx.drawImage(canvas, saved.x, saved.y, saved.w, saved.h, saved.x, saved.y, saved.w, saved.h);
+      tctx.filter = "none";
+    } catch (e) { /* ignore */ }
+    const img = new Image();
+    img.onload = function () {
+      source = img;
+      document.getElementById("rotate").value = "0";
+      document.getElementById("flip").value = "none";
+      crop = null;
+      draw();
+      bumpEdit();
+      kit.showPanel(document.getElementById("msg"), "Region filled with local average/blur (not professional inpaint).", "good");
+    };
+    img.src = tmp.toDataURL("image/png");
+  });
 
   document.getElementById("resetPhoto").addEventListener("click", function () {
     ["bright","contrast","saturate"].forEach(function (id) { document.getElementById(id).value = 0; });

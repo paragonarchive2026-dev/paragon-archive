@@ -87,7 +87,11 @@
       <div>
         <div class="panel" id="previewPanel">
           <h2 class="panel-title">Preview</h2>
-          <div id="invoicePreview" class="muted">Save or select an invoice to preview.</div>
+          <div id="invoicePreview" class="muted print-scale-root">Save or select an invoice to preview.</div>
+          <div class="field" style="margin-top:10px"><label for="shareUrl">Shareable snapshot URL (local encode)</label>
+            <input id="shareUrl" readonly placeholder="Save invoice to generate">
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" id="copyShareUrl">Copy share URL</button>
         </div>
         <div class="panel">
           <h2 class="panel-title">Your invoices</h2>

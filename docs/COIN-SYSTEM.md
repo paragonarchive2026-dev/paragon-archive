@@ -53,6 +53,12 @@
 > fairness disclaimers for a skill-based (not luck-based) coin system in Nigeria. Keep
 > everything free-to-play friendly: no user ever needs to pay to enjoy the platform.
 
+## Phase 4 compete / leaderboard (P-104)
+- SQL: competition create/join/settle, leaderboard settle, creator prizes, financial cases, risk flags, pause.
+- Edge: `competition-settle`.
+- Team: Finance desk snapshot + emergency pause.
+- Free play unchanged; staked paths gated by flags.
+
 ## Phase 3 provider path (P-103)
 - SQL: `coins-master-phase3.sql` — matches, webhook inbox, provider settings, `paragon_sql_health`.
 - Edge: `coin-payment-webhook`, `coin-reconcile` (secrets only in Supabase).

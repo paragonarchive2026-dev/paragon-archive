@@ -3225,6 +3225,43 @@ window.requestCoinWithdrawal = function() {
   });
 };
 
+
+window.openFinancialCase = function(caseType, summary) {
+  if (!isRegisteredMember()) {
+    showToast("Sign in to open a financial case.", "warning");
+    return;
+  }
+  const detail = summary || "User reported a coin/payment problem from the coin shop.";
+  supabaseRest("/rest/v1/rpc/paragon_open_financial_case", {
+    method: "POST",
+    body: JSON.stringify({
+      p_case_type: caseType || "other",
+      p_summary: detail.slice(0, 500),
+      p_reference_type: "coin_shop",
+      p_reference_id: null,
+      p_detail: { at: new Date().toISOString() }
+    })
+  }).then(() => {
+    showToast("Financial case opened for the team. Keep your payment references.");
+  }).catch(() => {
+    try {
+      const list = JSON.parse(localStorage.getItem("paragonTeamFinancialCases.v1") || "[]");
+      list.push({
+        id: "case-" + Date.now().toString(36),
+        user: authUser?.email,
+        caseType: caseType || "other",
+        summary: detail,
+        status: "open",
+        createdAt: new Date().toISOString()
+      });
+      localStorage.setItem("paragonTeamFinancialCases.v1", JSON.stringify(list));
+      showToast("Case saved on this device for the team desk (server RPC not live yet).");
+    } catch (e) {
+      showToast("Could not open a case.", "warning");
+    }
+  });
+};
+
 window.openCoinShop = function() {
   if (typeof document.createElement !== "function") return;
   syncApprovedCoinCredits();
@@ -3274,6 +3311,7 @@ window.openCoinShop = function() {
       </div>
       <div style="margin-top:8px"><b>Recent (this device)</b><ul style="margin:8px 0 0 18px;padding:0;font-size:13px">${history}</ul></div>
       <div class="install-popup-actions">
+        <button type="button" class="secondary-action" onclick="openFinancialCase('payment','Problem with a coin purchase or withdrawal')">Report a money problem</button>
         <button type="button" class="secondary-action" onclick="document.getElementById('coin-shop-overlay')?.remove();document.body.classList.remove('popup-lock')">Close</button>
       </div>
     </div>`;

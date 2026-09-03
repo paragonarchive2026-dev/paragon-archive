@@ -5501,3 +5501,18 @@ Owner has a clear SQL VERIFY + run order. Financial engine foundation matches th
 - Run SQL 1→5 as needed; click Probe; paste results.
 - Deploy Edge + set `PARAGON_COIN_WEBHOOK_SECRET` before real provider traffic.
 - Keep `real_money_enabled=false` until ready.
+
+## v0.98.0 — 2026-09-03 — Phase 4 + skills completion matrix (P-104)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Honest audit of all 10 uploads files; matrix at `docs/SKILLS-COMPLETION.md`.
+2. Coins Phase 4 SQL: competition create/join/settle, leaderboard settle, creator prizes, financial cases, risk flags, pause RPC; Edge `competition-settle`; Team Finance desk.
+3. Remaining browser skill depth: Flash quiz mode, Meal TDEE, Invoice scale+share URL, Photo heal/square, Shop gift checklist, Travel planning standards, Files JSONL, Recipe print, Resume tips, coin shop “Report a money problem”.
+4. Sandbox still cannot DNS-confirm live SQL.
+
+### Owner
+- SQL run order through **phase4** (`coins-master-phase4.sql`).
+- Deploy Edge functions; keep real_money OFF until ready.
+- Demo products before claiming 100% catalogue progress.

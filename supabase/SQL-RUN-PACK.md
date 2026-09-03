@@ -35,8 +35,14 @@ Paste VERIFY from `OWNER-SQL-CHECKLIST.md`.
 | 3 | `coins-master-phase1.sql` | Multi-bucket accounts, flags, economy, intents |
 | 4 | `coins-master-phase2.sql` | Authority RPCs (post, lock, confirm, withdraw) |
 | 5 | `coins-master-phase3.sql` | Matches, webhook inbox, provider settings, `paragon_sql_health` |
+| 6 | `coins-master-phase4.sql` | Competitions settle, leaderboard rewards, creator prizes, cases, risk, pause RPC |
 
 Skip any step whose objects already show ✅ on the probe.
+
+## Phase 3–4 Edge (after SQL #5–6)
+
+- `coin-payment-webhook`, `coin-reconcile` (phase 3)
+- `competition-settle` (phase 4) — settle / leaderboard / pause / award prize
 
 ## Phase 3 Edge (after SQL #5)
 

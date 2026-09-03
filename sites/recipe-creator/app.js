@@ -316,5 +316,18 @@
     });
   }
 
+  document.getElementById("printRecipe")?.addEventListener("click", function () {
+    var title = document.getElementById("recTitle")?.value || "Recipe";
+    var ing = document.getElementById("recIngredients")?.value || "";
+    var steps = document.getElementById("recSteps")?.value || "";
+    var w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write("<html><head><title>" + title.replace(/</g,"") + "</title></head><body style='font-family:system-ui;padding:24px;max-width:640px'>");
+    w.document.write("<h1>" + title.replace(/</g,"") + "</h1>");
+    w.document.write("<h2>Ingredients</h2><pre style='white-space:pre-wrap'>" + ing.replace(/</g,"&lt;") + "</pre>");
+    w.document.write("<h2>Steps</h2><pre style='white-space:pre-wrap'>" + steps.replace(/</g,"&lt;") + "</pre>");
+    w.document.write("<p style='color:#666'>Paragon Recipe — local card</p></body></html>");
+    w.document.close(); w.focus(); w.print();
+  });
   stats();
 })();

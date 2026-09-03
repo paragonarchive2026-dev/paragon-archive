@@ -8,7 +8,7 @@
 
 # 🤝 NEXT-AGENT HANDOFF BRIEF — READ THIS FIRST
 
-**Last updated:** 2026-09-03 (EOP v0.97.0, prompt P-103)
+**Last updated:** 2026-09-03 (EOP v0.98.0, prompt P-104)
 **You are:** the owner's dedicated build agent for **Paragon Archive**, a large multi-product front-end platform.
 
 ## 1. WHO THE OWNER IS & HOW TO WORK WITH THEM
@@ -30,7 +30,7 @@
 - **P-001 preserve-first:** never destroy owner-approved work; extend it.
 - **P-014:** every new HTML/CSS/JS/SQL file starts with the `PARAGON ARCHIVE — EXPORT IDENTITY` comment header (REAL FILE NAME / EXPECTED PROJECT PATH / ROLE / RESTORE-LOAD NOTE).
 - **P-015:** responsive at all resolutions.
-- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v80**) AND the assertion in `tests/archive-hub.test.js`.
+- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v81**) AND the assertion in `tests/archive-hub.test.js`.
 - **NO `window.alert/prompt/confirm` anywhere** — use inline panels or `ParagonTeamConfirm` (in `team/nav.js`).
 - **Canonical entry = `paragon-archive.html`. NEVER create a root index.html.**
 - Progress % must be milestone-derived (D-116) or labelled "team-set".
@@ -161,3 +161,11 @@ Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop (shopper). Meal Plann
 **Phase 3 coins built** (SQL + Edge + Team probe). Sandbox still cannot confirm live SQL (DNS). Owner must Probe or paste VERIFY.
 
 **Next:** owner run phase3 SQL + deploy Edge; provider keys; optional real_money flip; compete settle when enabled.
+
+## 7j. WHERE WE STOPPED — after P-104 / EOP v0.98.0
+
+**Skills:** See `docs/SKILLS-COMPLETION.md` — browser depth complete; native/provider rows documented.
+
+**Coins:** Phases 1–4 SQL + Edge in repo. Owner must run SQL 1→6, deploy functions, Probe health. real_money OFF.
+
+**Next:** owner SQL+Edge; provider; optional WASM codecs; badges 21–30; paid quiz server when compete_enabled.

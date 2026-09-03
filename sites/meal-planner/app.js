@@ -18,7 +18,7 @@
     });
     return w;
   }
-  function def() { return { week: emptyWeek(), shop: [], weeksSaved: 0, macros: { cal: 2000, p: 120, c: 200, f: 65 } }; }
+  function def() { return { week: emptyWeek(), shop: [], weeksSaved: 0, macros: { cal: 2000, p: 120, c: 200, f: 65 }, fitness: "" }; }
   function load() { return Object.assign(def(), kit.storageGet(K, def())); }
   function save(s) { kit.storageSet(K, s); }
   function mealCount(week) {
@@ -68,6 +68,37 @@
       const hint = document.getElementById("macroHint");
       if (hint) hint.textContent = "Targets are reminders only. Slot meals still use free text — pair with Paragon Recipe for ingredients.";
     })();
+    document.getElementById("calcTdee")?.addEventListener("click", function () {
+      var sex = document.getElementById("bodySex").value;
+      var age = Number(document.getElementById("bodyAge").value) || 30;
+      var kg = Number(document.getElementById("bodyKg").value) || 70;
+      var cm = Number(document.getElementById("bodyCm").value) || 170;
+      var act = Number(document.getElementById("bodyAct").value) || 1.375;
+      // Mifflin-St Jeor
+      var bmr = sex === "f"
+        ? (10 * kg) + (6.25 * cm) - (5 * age) - 161
+        : (10 * kg) + (6.25 * cm) - (5 * age) + 5;
+      var tdee = Math.round(bmr * act);
+      var protein = Math.round(kg * 1.6);
+      var fat = Math.round((tdee * 0.25) / 9);
+      var carbs = Math.round((tdee - protein * 4 - fat * 9) / 4);
+      document.getElementById("macroCal").value = tdee;
+      document.getElementById("macroP").value = protein;
+      document.getElementById("macroC").value = Math.max(0, carbs);
+      document.getElementById("macroF").value = fat;
+      var out = document.getElementById("tdeeOut");
+      if (out) out.textContent = "BMR ≈ " + Math.round(bmr) + " kcal · TDEE ≈ " + tdee + " kcal · protein ~1.6 g/kg. Adjust for goals. Not medical advice.";
+      kit.showPanel(document.getElementById("msg"), "Targets filled from local TDEE estimate.", "good");
+    });
+    document.getElementById("saveFit")?.addEventListener("click", function () {
+      var s = load();
+      s.fitness = document.getElementById("fitNotes").value;
+      save(s);
+      kit.showPanel(document.getElementById("msg"), "Fitness notes saved.", "good");
+    });
+    if (document.getElementById("fitNotes")) {
+      document.getElementById("fitNotes").value = load().fitness || "";
+    }
     document.getElementById("saveMacros")?.addEventListener("click", function () {
       const s = load();
       s.macros = {

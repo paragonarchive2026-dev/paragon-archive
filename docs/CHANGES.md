@@ -1,18 +1,15 @@
 <!--
   PARAGON ARCHIVE — EXPORT IDENTITY
   REAL FILE NAME: CHANGES.md
-  EXPECTED PROJECT PATH: /docs/CHANGES.md
 -->
-# Changed — P-103 (2026-09-03)
+# Changed — P-104 (2026-09-03)
 
 ## Added
-- `supabase/coins-master-phase3.sql`
-- `supabase/functions/coin-payment-webhook/index.ts`
-- `supabase/functions/coin-reconcile/index.ts`
-- `supabase/functions/COINS-PHASE3-DEPLOY.md`
+- `supabase/coins-master-phase4.sql`
+- `supabase/functions/competition-settle/index.ts`
+- `docs/SKILLS-COMPLETION.md`
 
 ## Changed
-- `team/desk.html`, `team/team-pages.js` — SQL health probe
-- `app.js` — bank transfer instructions from public coin config
-- `supabase/SQL-RUN-PACK.md`, `OWNER-SQL-CHECKLIST.md`
-- `docs/*`, `service-worker.js` v80, tests P-103
+- Team finance desk; coin shop financial case
+- Flash quiz mode; Meal TDEE; Invoice share/scale; Photo heal; Shop gift; Travel tips; Files JSONL; Recipe print; Resume tips
+- Catalogue progress; SQL pack step 6; cache **v81**; EOP v0.98.0

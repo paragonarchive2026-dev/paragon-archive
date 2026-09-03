@@ -167,6 +167,18 @@
     document.getElementById("newInv").addEventListener("click", function () {
       fillForm({ id: "", number: "", date: new Date().toISOString().slice(0, 10), client: "", email: "", notes: "", taxPct: 0, currency: "USD", status: "draft", lines: [{ desc: "", qty: 1, price: 0 }] });
     });
+    function updateShareUrl(inv) {
+      const el = document.getElementById("shareUrl");
+      if (!el || !inv) return;
+      try {
+        const payload = btoa(unescape(encodeURIComponent(JSON.stringify({
+          n: inv.number, d: inv.date, c: inv.client, cur: inv.currency,
+          lines: inv.lines, tax: inv.taxPct, disc: inv.discountPct, due: inv.due
+        }))));
+        el.value = location.origin + location.pathname + "#inv=" + payload.slice(0, 1800);
+      } catch (e) { el.value = ""; }
+    }
+
     document.getElementById("saveInv").addEventListener("click", function () {
       const inv = currentFromForm();
       if (!inv.client) {
@@ -185,8 +197,33 @@
       renderPreview(inv);
       renderList();
       renderHomeStats();
+      updateShareUrl(inv);
       kit.showPanel(document.getElementById("msg"), "Invoice saved on this device.", "good");
     });
+        document.getElementById("copyShareUrl")?.addEventListener("click", function () {
+      const el = document.getElementById("shareUrl");
+      if (!el || !el.value) { kit.showPanel(document.getElementById("msg"), "Save an invoice first.", "bad"); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(el.value).then(function () {
+          kit.showPanel(document.getElementById("msg"), "Share URL copied (snapshot — not a hosted invoice server).", "good");
+        });
+      } else {
+        el.select();
+        kit.showPanel(document.getElementById("msg"), "Select and copy the URL manually.", "good");
+      }
+    });
+    // load hash snapshot
+    if (location.hash.indexOf("#inv=") === 0) {
+      try {
+        const raw = location.hash.slice(5);
+        const data = JSON.parse(decodeURIComponent(escape(atob(raw))));
+        fillForm({
+          number: data.n, date: data.d, client: data.c, currency: data.cur,
+          lines: data.lines, taxPct: data.tax, discountPct: data.disc, due: data.due, status: "draft"
+        });
+        kit.showPanel(document.getElementById("msg"), "Loaded shared invoice snapshot from URL.", "good");
+      } catch (e) { /* ignore bad hash */ }
+    }
     document.getElementById("exportInvJson")?.addEventListener("click", function () {
       const inv = currentFromForm();
       kit.downloadText((inv.number || "invoice") + ".json", JSON.stringify(inv, null, 2), "application/json;charset=utf-8");
@@ -213,13 +250,26 @@
       kit.downloadDocx((inv.number || "invoice") + ".docx", lines);
       kit.showPanel(document.getElementById("msg"), "DOCX exported.", "good");
     });
+    function scaleToFit(el) {
+      if (!el) return;
+      el.style.transform = "";
+      const maxH = 1000; /* approx printable area px */
+      const h = el.scrollHeight || el.offsetHeight;
+      if (h > maxH) {
+        const s = Math.max(0.55, maxH / h);
+        el.style.transformOrigin = "top left";
+        el.style.transform = "scale(" + s + ")";
+      }
+    }
     document.getElementById("printInv").addEventListener("click", function () {
       const inv = currentFromForm();
       renderPreview(inv);
       const s = load();
       s.exports = (s.exports || 0) + 1;
       save(s);
+      scaleToFit(document.getElementById("invoicePreview"));
       window.print();
+      setTimeout(function () { const p = document.getElementById("invoicePreview"); if (p) p.style.transform = ""; }, 800);
     });
     // Shareable query template (skill Approach A — URL params)
     if (!document.getElementById("exportCsv")) {

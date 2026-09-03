@@ -149,6 +149,14 @@
   function detectAndParse(text) {
     const t = String(text || "").trim();
     if (!t) return { kind: "empty", objs: [] };
+    if (t.indexOf("\n") > 0 && t.trim()[0] === "{" && t.indexOf("}{") < 0) {
+      try {
+        var lines = t.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+        if (lines.length > 1 && lines.every(function (l) { try { JSON.parse(l); return true; } catch (e) { return false; } })) {
+          return { kind: "jsonl", objs: lines.map(function (l) { return JSON.parse(l); }) };
+        }
+      } catch (e) { /* fall through */ }
+    }
     if (t[0] === "[" || t[0] === "{") {
       try {
         const j = JSON.parse(t);
@@ -188,6 +196,9 @@
     if (mode === "json") {
       out = JSON.stringify(parsed.objs, null, 2);
       name = "data.json"; mime = "application/json;charset=utf-8";
+    } else if (mode === "jsonl") {
+      out = parsed.objs.map(function (o) { return JSON.stringify(o); }).join("\n");
+      name = "data.jsonl"; mime = "application/x-ndjson;charset=utf-8";
     } else if (mode === "csv") {
       out = kit.objectsToCSV(parsed.objs);
       name = "data.csv"; mime = "text/csv;charset=utf-8";
