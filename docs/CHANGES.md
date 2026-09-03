@@ -2,15 +2,17 @@
   PARAGON ARCHIVE — EXPORT IDENTITY
   REAL FILE NAME: CHANGES.md
 -->
-# Changed — P-107 (2026-09-03)
+# Changed — P-108 (2026-09-03)
 
 ## Added
-- AI badge art polish for achievements 41–50 (daily return → archive legend)
-- `supabase/coins-master-phase5.sql` — OPay/Moniepoint-first rails, KYC draft, payout rail events
-- Webhook normalizers for `opay` / `moniepoint`; deploy guide `COINS-PHASE5-OPAY-MONIEPOINT.md`
-- `docs/COINS-PHASES.md` — phases built vs remaining + payment story
-- Team desk Phase 5 rails panel; coin shop OPay/Moniepoint pay cards + KYC payout draft
+- `docs/COINS-AUDIT-CHECKLIST.md` — full done/not-yet vs owner checklist
+- `docs/COINS-DISASTER-RECOVERY.md`
+- `supabase/coins-master-stage1-hardening.sql` — 2 wd/24h, 5 wd/7d, 5 claims/24h, platform books, 30% fee→reward, finance report, advisory locks
+- Team desk **Stage 1 finance report** button
 
-## Changed
-- Clarified: master coin spec never required Flutterwave; OPay/Moniepoint is preferred
-- Skills matrix + COIN-SYSTEM + SQL pack + VERIFY prompt; cache **v84**
+## Confirmed already done (skipped rebuild)
+- Ledger/RLS/authority RPCs (phase1–2), ₦1=1, min/max stake, 5% fee, withdraw 50c@10k, guest free-play, real_money OFF
+- Phases 3–5 payment/compete/OPay (not Stage 1 redo)
+
+## Status
+**Stage 1 foundation complete in repo.** Owner runs SQL. Provide Stage 2 next.

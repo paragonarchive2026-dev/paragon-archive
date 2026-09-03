@@ -517,6 +517,8 @@ Use the applicable subset for each change:
 | D-227 | 2026-09-03 | Engagement leaderboard is practice rank; money comps stay server-settled. | D-222. | Confirmed |
 | D-228 | 2026-09-03 | OPay/Moniepoint preferred payment rails; Flutterwave not required. | Coin master §44–45; owner intent. | Confirmed |
 | D-229 | 2026-09-03 | Coins SQL phases 1–5 complete; remaining = owner activation not missing phase file. | COINS-PHASES.md. | Confirmed |
+| D-230 | 2026-09-03 | Stage 1 foundation complete in repo; real_money stays OFF. | Master Stage 1. | Confirmed |
+| D-231 | 2026-09-03 | Stage 2 waits for owner brief; do not rebuild completed phases. | Workflow. | Confirmed |
 | D-205 | 2026-08-26 | PARAGON COINS CORE: balance in personal state, Account coin stat + styled shop popup (₦500/₦1,000/₦5,000 packs at placeholder ₦1=2), buy requests -> Team settings panel (super-admin approve/reject) -> paragonArchive.coinCredits.v1 mirror -> user's device credits with a toast; addCoins/spendCoins helpers + history. Full economics + games/quiz integration rules + the owner's ChatGPT heads-up prompt recorded in docs/COIN-SYSTEM.md (creator-quiz no-win rule, bet-only leaderboards, weekly top-10 rewards, withdrawal flow). | Owner's P-098 coin order. | Confirmed |
 | D-204 | 2026-08-26 | SITE SPECS FROM OWNER SKILLS: all 9 uploaded skill files (recipe-creator, meal-planner, file-converter, invoice-generator, flashcard-generator, personal-shopper, photo-editor, resume-maker, travel-assistant) merged into docs/site-specs/<slug>.md — verbatim use/never-use rules + the FREE adaptation law (vanilla HTML/CSS/JS + localStorage engines replacing the skills' full-stack/API/React architecture; adapters ready for free APIs). Websites build in-project under /sites/<slug>/ in the quiz layout family. | Owner's P-098 skill uploads. | Confirmed |
 | D-203 | 2026-08-26 | RxLife Network + Pharmapaedia added to the catalogue as honest Deployed-family Paragon products (0% build, preview route, no fake progress; AI Brain rows added). | Owner's P-098 order. | Confirmed |
@@ -2674,3 +2676,9 @@ Use the applicable subset for each change:
 **D-228:** Preferred payment rails are OPay and Moniepoint (bank-transfer-first). Flutterwave/Paystack are optional adapters only.
 **D-229:** Coins SQL phases 1–5 complete in repo; no mandatory phase 6 SQL. Remaining work is owner activation and optional live APIs/compliance.
 **Delivered:** phase5.sql, webhook normalizers, Team rails desk, FE pay cards, COINS-PHASES.md, badges 41–50 AI art, cache v84.
+
+### P-108 — 2026-09-03 — Stage 1 foundation complete (audit + hardening)
+
+**D-230:** Stage 1 foundation is complete in-repo (ledger, RLS, authority RPCs, real_money OFF, rate limits, reserves, reports). Owner must run SQL for live effect.
+**D-231:** Do not redo completed coin phases; Stage 2 starts only from owner brief on remaining gaps (paid quiz server, live API payouts, etc.).
+**Delivered:** COINS-AUDIT-CHECKLIST, stage1-hardening.sql, finance report desk, DR doc, cache v85.

@@ -1,3 +1,4 @@
+<!-- Stage1: also run coins-master-stage1-hardening.sql after phase2 -->
 <!-- See also: SUPABASE-AI-VERIFY-PROMPT.md for Supabase AI + GitHub Actions assurance -->
 <!--
   PARAGON ARCHIVE — EXPORT IDENTITY

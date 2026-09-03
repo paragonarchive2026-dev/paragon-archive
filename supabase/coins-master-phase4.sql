@@ -618,3 +618,8 @@ revoke all on function public.paragon_sql_health() from public;
 grant execute on function public.paragon_sql_health() to anon, authenticated;
 
 -- DONE Phase 4. Free play unaffected. Compete RPCs gated by flags when real_money on.
+
+
+-- P-108 note: after competition settle, Team/Edge may call:
+--   select public.paragon_record_competition_fee_revenue(competition_id, fee_coins);
+-- defined in coins-master-stage1-hardening.sql (30% of fee → reward_reserve).

@@ -5551,3 +5551,16 @@ Paste Script A from `supabase/SUPABASE-AI-VERIFY-PROMPT.md` results into chat.
 3. Webhook accepts `?provider=opay|moniepoint|manual_bank` (Flutterwave optional only).
 4. Documented: **SQL phases 1–5 complete**; remaining = owner run/deploy/accounts + optional live API/compliance — not a missing phase file.
 5. Audited all 10 `uploads/` skills — browser products already at honest max depth.
+
+## v1.02.0 — 2026-09-03 — Stage 1 foundation audit + hardening (P-108)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Full checklist audit vs owner list → `docs/COINS-AUDIT-CHECKLIST.md`.
+2. Confirmed Stage 1 already largely in phase1–2; filled gaps only (rate limits, reserves, 30% fee share, finance report, DR doc).
+3. Did **not** rebuild phases 3–5 or flip real_money.
+4. Suites + cache v85.
+
+### Owner
+Run SQL including `coins-master-stage1-hardening.sql`. Paste **Stage 2** when ready.

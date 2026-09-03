@@ -4812,6 +4812,17 @@ if (paragonTeamPage() === "settings.html") {
     }
     document.getElementById("finance-pause-on")?.addEventListener("click", function () { pause(true); });
     document.getElementById("finance-pause-off")?.addEventListener("click", function () { pause(false); });
+    document.getElementById("finance-report-snapshot")?.addEventListener("click", function () {
+      out.textContent = "Loading Stage 1 finance report…";
+      financeRest("/rest/v1/rpc/paragon_finance_report_snapshot", { method: "POST", body: "{}" })
+        .then(function (rep) {
+          out.textContent = "Stage 1 finance report\n" + JSON.stringify(rep, null, 2);
+        })
+        .catch(function (e) {
+          out.textContent = "Finance report failed: " + e.message +
+            "\nRun coins-master-stage1-hardening.sql after phase1+2.";
+        });
+    });
   }
 
   function bindSqlHealthProbe() {

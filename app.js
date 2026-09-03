@@ -3189,7 +3189,7 @@ function opayMoniepointPayMarkup() {
   const instructions = esc(p.bank_transfer_instructions || p.support_contact_note ||
     "Transfer with OPay or Moniepoint. Put your Paragon email in the narration. Coins credit only after confirmation — never from this click alone.");
   return `<div class="install-popup-note coin-rails-block" style="margin-top:10px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.08)">
-    <b>How to pay (Nigeria — OPay / Moniepoint first)</b>
+    <b>How to pay (Nigeria — OPay / Moniepoint first) · real-money OFF · Stage 1 ledger</b>
     <p style="margin:8px 0;font-size:12px;line-height:1.45">${instructions}</p>
     <div class="coin-rails-grid">${cards || "<small>Team will publish OPay/Moniepoint account numbers after phase5 SQL + settings update. Flutterwave is <em>not</em> required.</small>"}</div>
   </div>`;

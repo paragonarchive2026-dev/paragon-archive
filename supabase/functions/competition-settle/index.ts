@@ -10,6 +10,7 @@
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+/* Stage1: fee→reward reserve recorded via SQL when team passes fee or post-settle RPC */
 const webhookSecret = Deno.env.get("PARAGON_COIN_WEBHOOK_SECRET") || "";
 
 function json(body: unknown, status = 200) {

@@ -1669,7 +1669,7 @@ for (const icon of ["habits","travel","weather","wardrobe","journal","tutor","qu
 // P-097 — the owner cancelled the take-away export (websites are built HERE now); the quiz stays in-project.
 assert2(fs2.existsSync(path2.join(root2, "paragon-quiz/index.html")), "In-project Paragon Quiz must stay (P-097 build-here decision)");
 assert2(navJs.includes("ParagonTeamPrompt"), "Dialog-law prompt helper missing (P-096)");
-assert2(sw.includes("paragon-archive-v84"), "Cache must be v73 (P-096)");
+assert2(sw.includes("paragon-archive-v85"), "Cache must be v73 (P-096)");
 console.log("PASS: P-096 — hub killer-guard fix, cross-scope fix, instant 5 s splash at original position, intent-trained AI, team A-to-Z feed control, construction desk, roadmap milestones, phone push client, guest hero v2, footer auto-continue, icon chips, 100/100 icons, quiz export");
 })();
 
@@ -1738,7 +1738,7 @@ assert3(app.includes("profile-header-tools") && app.includes("profile-name-edito
 assert3(!fs3.existsSync(path3.join(root3, "supabase/community-schema.sql")), "community-schema.sql must stay removed (executed live 2026-08-18)");
 assert3(!fs3.existsSync(path3.join(root3, "exports")), "exports/ take-away cancelled by owner (P-097 build-here decision)");
 assert3(read3("supabase/schema.sql").includes("EXECUTED LIVE"), "schema.sql must be labelled the executed archive reference (P-097)");
-assert3(sw.includes("paragon-archive-v84"), "Cache must be v74 (P-097)");
+assert3(sw.includes("paragon-archive-v85"), "Cache must be v74 (P-097)");
 console.log("PASS: P-097 — consolidated 30-panel desk with role law + two-way role sync, maintenance lockdowns (platform + per-site), preview window manager, install/permissions popup + share-install, auto day/night, 10 achievement badges, icon-facaded cards, honest review counts, profile editor popup, waste swept");
 })();
 
@@ -1799,7 +1799,7 @@ for (const url of [
   assert4(exp.includes(url), `Catalogue missing siteUrl ${url}`);
 }
 assert4(app.includes("Paragon Invoice") && app.includes("Paragon Resume") && app.includes("REALLY_UPDATED"), "REALLY_UPDATED must list newly shipped products (P-099)");
-assert4(sw.includes("paragon-archive-v84"), "Cache must be v76 (P-099)");
+assert4(sw.includes("paragon-archive-v85"), "Cache must be v76 (P-099)");
 console.log("PASS: P-099 — nine in-project product sites under /sites/, shared kit, catalogue siteUrls, honest local engines, cache v77");
 })();
 
@@ -1821,7 +1821,7 @@ assert5(read5("team/team-pages.js").includes("bindCoinWithdrawals"), "team withd
 assert5(read5("sites/recipe-creator/app.js").includes("SUB_MAP"), "recipe substitutions missing");
 assert5(read5("sites/flashcard-generator/app.js").includes("exportAnki") || read5("sites/flashcard-generator/app.html").includes("exportAnki"), "flash Anki export missing");
 assert5(read5("sites/invoice-generator/app.js").includes("exportCsv") || read5("sites/invoice-generator/app.js").includes("Export CSV"), "invoice CSV missing");
-assert5(read5("service-worker.js").includes("paragon-archive-v84"), "cache must be v77");
+assert5(read5("service-worker.js").includes("paragon-archive-v85"), "cache must be v77");
 console.log("PASS: P-100 — coins SQL pack, withdrawals desk, product depth upgrades, cache v77");
 })();
 
@@ -1843,7 +1843,7 @@ a6(app.includes("naira_per_coin_purchase") || app.includes("nairaPerCoinBuy"), "
 a6(app.includes("naira: 500") && app.includes("coins: 500"), "coin packs must be 1:1");
 a6(app.includes("Real-money mode is") || app.includes("realMoney"), "honest real-money mode copy required");
 a6(app.includes("announcement-2026-09-03-product-wave"), "product-wave announcement seed missing");
-a6(r6("service-worker.js").includes("paragon-archive-v84"), "cache must be v83");
+a6(r6("service-worker.js").includes("paragon-archive-v85"), "cache must be v83");
 a6(r6("sites/flashcard-generator/app.js").includes("easeFactor"), "flash SM-2 fields missing");
 console.log("PASS: P-101 — GitHub uploads skills ingested, coins master phase1 SQL, 1:1 rates, real-money OFF honesty, cache v78");
 })();
@@ -1872,7 +1872,7 @@ a7(r7("sites/recipe-creator/app.js").includes("nutritionEstimate") || r7("sites/
 const app = r7("app.js");
 a7(app.includes("paragon_coin_create_payment_intent") && app.includes("paragon_coin_request_withdrawal"), "FE coin RPCs missing");
 a7(app.includes("isRegisteredMember") && app.includes("Guests are free-play only"), "guest coin gate missing");
-a7(r7("service-worker.js").includes("paragon-archive-v84"), "cache must be v83");
+a7(r7("service-worker.js").includes("paragon-archive-v85"), "cache must be v83");
 console.log("PASS: P-102 — product skill depth complete + coins master phase2 authority RPCs + FE gates, cache v79");
 })();
 
@@ -1892,7 +1892,7 @@ a8(fs8.existsSync(path8.join(root8, "supabase/functions/COINS-PHASE3-DEPLOY.md")
 const wh = r8("supabase/functions/coin-payment-webhook/index.ts");
 a8(wh.includes("PARAGON_COIN_WEBHOOK_SECRET") && wh.includes("paystack") && wh.includes("paragon_coin_ingest_payment_event"), "webhook weak");
 a8(r8("team/desk.html").includes("probe-sql-health") && r8("team/team-pages.js").includes("paragon_sql_health"), "team SQL probe missing");
-a8(r8("service-worker.js").includes("paragon-archive-v84"), "cache must be v83");
+a8(r8("service-worker.js").includes("paragon-archive-v85"), "cache must be v83");
 a8(r8("supabase/SQL-RUN-PACK.md").includes("coins-master-phase3"), "sql pack missing phase3");
 console.log("PASS: P-103 — coins phase3 provider webhook/reconcile + Team SQL health probe, cache v80");
 })();
@@ -1914,7 +1914,7 @@ a9(r9("sites/flashcard-generator/study.html").includes("startQuiz"), "flash quiz
 a9(r9("sites/meal-planner/app.html").includes("calcTdee"), "meal TDEE missing");
 a9(r9("sites/invoice-generator/app.js").includes("scaleToFit") || r9("sites/invoice-generator/app.js").includes("shareUrl"), "invoice scale/share missing");
 a9(r9("app.js").includes("openFinancialCase"), "financial case UI missing");
-a9(r9("service-worker.js").includes("paragon-archive-v84"), "cache must be v83");
+a9(r9("service-worker.js").includes("paragon-archive-v85"), "cache must be v83");
 console.log("PASS: P-104 — coins phase4 compete/leaderboard/finance desk + skills matrix + remaining product depth, cache v81");
 })();
 
@@ -1938,7 +1938,7 @@ aA(app.includes("badge-archive-veteran.png") && app.includes("Fully Notified"), 
 aA(fsA.existsSync(pathA.join(rootA, "supabase/SUPABASE-AI-VERIFY-PROMPT.md")), "AI verify prompt missing");
 aA(fsA.existsSync(pathA.join(rootA, ".github/workflows/supabase-health.yml")), "github health workflow missing");
 aA(fsA.existsSync(pathA.join(rootA, "assets/brand/pwa-icon-192.png")), "pwa-icon-192 missing");
-aA(rA("service-worker.js").includes("paragon-archive-v84"), "cache must be v83");
+aA(rA("service-worker.js").includes("paragon-archive-v85"), "cache must be v83");
 aA(rA("style.css").includes("P-105"), "layout polish missing");
 console.log("PASS: P-105 — achievement badges 21-30, SQL assurance pack, layout polish, cache v82");
 })();
@@ -1971,7 +1971,7 @@ aB(titles.length === 50, "expected 50 achievement tasks, got " + titles.length);
 aB(app.includes("openEngagementLeaderboard") && app.includes("ParagonArchiveAdsBridge"), "leaderboard/ads bridge missing");
 aB(app.includes("adClickCount") && app.includes("leaderboardBestRank") && app.includes("dayStreak"), "engagement counters missing");
 aB(rB("ads/adsense.js").includes("onEngage") && rB("ads/adsense.js").includes("onImpression"), "adsense engagement hooks missing");
-aB(rB("service-worker.js").includes("paragon-archive-v84"), "cache must be v83");
+aB(rB("service-worker.js").includes("paragon-archive-v85"), "cache must be v83");
 aB(rB("style.css").includes("P-106") && rB("style.css").includes("leaderboard-list"), "leaderboard styles missing");
 console.log("PASS: P-106 — 50 achievements (ads + top-10 leaderboard + engagement), cache v83");
 })();
@@ -2001,6 +2001,38 @@ aC(rC("app.js").includes("opayMoniepointPayMarkup") && rC("app.js").includes("op
 aC(rC("team/desk.html").includes("phase5-rails-section") && rC("team/team-pages.js").includes("bindPhase5Rails"), "team phase5 rails missing");
 aC(fsC.existsSync(pathC.join(rootC, "docs/COINS-PHASES.md")), "COINS-PHASES.md missing");
 aC(rC("docs/COINS-PHASES.md").includes("Zero mandatory SQL phases remain") || rC("docs/COINS-PHASES.md").includes("1–5 are built"), "phases remaining doc unclear");
-aC(rC("service-worker.js").includes("paragon-archive-v84"), "cache must be v84");
+aC(rC("service-worker.js").includes("paragon-archive-v85"), "cache must be v84");
 console.log("PASS: P-107 — badge art polish 41-50, coins phase5 OPay/Moniepoint, cache v84");
+})();
+
+
+/* ================= FIXTURE: P-108 — Stage 1 foundation audit + hardening ================= */
+(function () {
+const fsD = require("fs");
+const pathD = require("path");
+const rootD = pathD.resolve(__dirname, "..");
+function aD(c, m) { if (!c) throw new Error(m); }
+const rD = p => fsD.readFileSync(pathD.join(rootD, p), "utf8");
+aD(fsD.existsSync(pathD.join(rootD, "docs/COINS-AUDIT-CHECKLIST.md")), "audit checklist missing");
+aD(fsD.existsSync(pathD.join(rootD, "docs/COINS-DISASTER-RECOVERY.md")), "DR doc missing");
+aD(fsD.existsSync(pathD.join(rootD, "supabase/coins-master-stage1-hardening.sql")), "stage1 hardening SQL missing");
+const h = rD("supabase/coins-master-stage1-hardening.sql");
+aD(h.includes("max_withdrawals_per_24h") && h.includes("max_payment_claims_per_24h"), "rate limits missing");
+aD(h.includes("paragon_platform_books") && h.includes("fee_to_reward_reserve_bps"), "reserves/30% fee missing");
+aD(h.includes("paragon_finance_report_snapshot") && h.includes("pg_advisory_xact_lock"), "report/locks missing");
+aD(/Does NOT enable real_money/i.test(h) || /real_money_enabled stays/i.test(h) || h.includes("real_money_default_off"), "must keep real_money off");
+const p1 = rD("supabase/coins-master-phase1.sql");
+aD(p1.includes("naira_per_coin_purchase") && p1.includes("default 1.0"), "1:1 rate missing");
+aD(p1.includes("min_stake_coins integer not null default 100"), "min stake 100 missing");
+aD(p1.includes("max_stake_coins integer not null default 10000"), "max stake 10k missing");
+aD(p1.includes("competition_fee_bps integer not null default 500"), "5% fee bps missing");
+aD(p1.includes("withdraw_fee_coins_at_or_above integer not null default 10000"), "10k withdraw fee threshold missing");
+aD(p1.includes("real_money_enabled boolean not null default false"), "real_money must default false");
+const p2 = rD("supabase/coins-master-phase2.sql");
+aD(p2.includes("paragon_coin_post_entry") && p2.includes("for update"), "ledger authority missing");
+aD(p2.includes("idempotency_key"), "idempotency missing");
+aD(rD("team/desk.html").includes("finance-report-snapshot"), "team finance report btn missing");
+aD(rD("service-worker.js").includes("paragon-archive-v85"), "cache must be v85");
+aD(rD("docs/COINS-AUDIT-CHECKLIST.md").includes("Stage 1 = complete"), "stage1 status unclear");
+console.log("PASS: P-108 — Stage 1 foundation audit checklist + hardening SQL, cache v85");
 })();

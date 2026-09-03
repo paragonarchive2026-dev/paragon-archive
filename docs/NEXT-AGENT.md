@@ -8,7 +8,7 @@
 
 # 🤝 NEXT-AGENT HANDOFF BRIEF — READ THIS FIRST
 
-**Last updated:** 2026-09-03 (EOP v1.01.0, prompt P-107)
+**Last updated:** 2026-09-03 (EOP v1.02.0, prompt P-108)
 **You are:** the owner's dedicated build agent for **Paragon Archive**, a large multi-product front-end platform.
 
 ## 1. WHO THE OWNER IS & HOW TO WORK WITH THEM
@@ -30,7 +30,7 @@
 - **P-001 preserve-first:** never destroy owner-approved work; extend it.
 - **P-014:** every new HTML/CSS/JS/SQL file starts with the `PARAGON ARCHIVE — EXPORT IDENTITY` comment header (REAL FILE NAME / EXPECTED PROJECT PATH / ROLE / RESTORE-LOAD NOTE).
 - **P-015:** responsive at all resolutions.
-- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v84**) AND the assertion in `tests/archive-hub.test.js`.
+- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v85**) AND the assertion in `tests/archive-hub.test.js`.
 - **NO `window.alert/prompt/confirm` anywhere** — use inline panels or `ParagonTeamConfirm` (in `team/nav.js`).
 - **Canonical entry = `paragon-archive.html`. NEVER create a root index.html.**
 - Progress % must be milestone-derived (D-116) or labelled "team-set".
@@ -193,3 +193,13 @@ Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop (shopper). Meal Plann
 **Remaining (owner):** run SQL 1–5, deploy Edge, paste OPay/Moniepoint account numbers, optional webhooks, licence before `real_money_enabled`.
 
 **Skills uploads/:** all 10 browser-complete at honest depth; native/API rows still out of scope.
+
+## 7n. WHERE WE STOPPED — after P-108 / EOP v1.02.0
+
+**Stage 1 foundation: COMPLETE in repo.** Checklist: `docs/COINS-AUDIT-CHECKLIST.md`.
+
+**Skipped (already done):** ledger, RLS, ₦1=1, stakes 100–10000, 5% fee, withdraw fee, guest rules, phases 3–5.
+
+**Filled this turn:** claim/withdraw rate limits, platform books, 30% fee→reward, finance report, DR doc.
+
+**Next:** owner runs SQL; owner pastes **Stage 2**.
