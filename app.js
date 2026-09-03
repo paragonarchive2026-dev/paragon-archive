@@ -3168,6 +3168,33 @@ window.openEmailAuth = function(mode = "signin") {
    • real_money_enabled comes from paragon_public_coin_config (default false).
    • No fake bank confirmations. Purchase = team/RPC confirm after real transfer.
    ===================================================================== */
+function opayMoniepointPayMarkup() {
+  const p = (window.ParagonCoinPublicConfig || {}).provider || {};
+  const rails = Array.isArray(p.preferred_rails) ? p.preferred_rails : ["opay", "moniepoint", "manual_bank"];
+  const opay = p.opay || {};
+  const moni = p.moniepoint || {};
+  const esc = (v) => String(v || "").replace(/[<>]/g, "");
+  const card = (title, acct) => {
+    if (!acct || (!acct.account_number && !acct.account_name)) return "";
+    return `<div class="coin-rail-card"><strong>${esc(title)}</strong>
+      <div>${esc(acct.bank_name || title)}</div>
+      <div>${esc(acct.account_name || "")}</div>
+      <div class="coin-rail-number">${esc(acct.account_number || "— set by team —")}</div>
+      ${acct.label ? `<small>${esc(acct.label)}</small>` : ""}</div>`;
+  };
+  const cards = [
+    rails.includes("opay") ? card("OPay", opay) : "",
+    rails.includes("moniepoint") ? card("Moniepoint", moni) : ""
+  ].filter(Boolean).join("");
+  const instructions = esc(p.bank_transfer_instructions || p.support_contact_note ||
+    "Transfer with OPay or Moniepoint. Put your Paragon email in the narration. Coins credit only after confirmation — never from this click alone.");
+  return `<div class="install-popup-note coin-rails-block" style="margin-top:10px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.08)">
+    <b>How to pay (Nigeria — OPay / Moniepoint first)</b>
+    <p style="margin:8px 0;font-size:12px;line-height:1.45">${instructions}</p>
+    <div class="coin-rails-grid">${cards || "<small>Team will publish OPay/Moniepoint account numbers after phase5 SQL + settings update. Flutterwave is <em>not</em> required.</small>"}</div>
+  </div>`;
+}
+
 function coinConfigFlags() {
   const cfg = window.ParagonCoinPublicConfig || {};
   const flags = cfg.flags || cfg.economy && cfg.flags || {};
@@ -3466,6 +3493,28 @@ window.openFinancialCase = function(caseType, summary) {
   });
 };
 
+
+window.openKycPayoutDraft = function() {
+  if (!requirePersonalSession("save payout details")) return;
+  const rail = window.prompt("Payout rail: type opay or moniepoint", "opay") || "opay";
+  const name = window.prompt("Account name on OPay/Moniepoint", accountProfile.displayName || "") || "";
+  const number = window.prompt("Wallet / account number", "") || "";
+  const phone = window.prompt("Phone (optional, E.164 e.g. +234…)", "") || "";
+  if (!number.trim()) { showToast("Account number required.", "warning"); return; }
+  supabaseRest("/rest/v1/rpc/paragon_kyc_upsert_draft", {
+    method: "POST",
+    body: JSON.stringify({
+      p_legal_name: name || null,
+      p_phone_e164: phone || null,
+      p_payout_account_name: name || null,
+      p_payout_account_number: number.trim(),
+      p_payout_bank_name: /monie/i.test(rail) ? "Moniepoint MFB" : "OPay",
+      p_payout_rail: /monie/i.test(rail) ? "moniepoint" : "opay"
+    })
+  }).then(() => showToast("Payout details saved for team review (KYC draft)."))
+    .catch(() => showToast("Saved locally note — run phase5 SQL for server KYC.", "warning"));
+};
+
 window.openCoinShop = function() {
   try { if (hasPersonalSession()) { accountProfile.coinShopOpenCount = Number(accountProfile.coinShopOpenCount || 0) + 1; persistPersonalState(); renderAchievementsAccount(); } } catch (_) {}
   if (typeof document.createElement !== "function") return;
@@ -3512,10 +3561,11 @@ window.openCoinShop = function() {
         <textarea id="coin-withdraw-bank" rows="2" placeholder="Bank · Account name · Account number" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit"></textarea>
         <button type="button" class="secondary-action" onclick="requestCoinWithdrawal()">Request withdrawal</button>
         <small class="install-popup-note" style="display:block;margin-top:8px;">Redeemable target ₦${cfg.nairaPerCoinOut}/coin; fee ${cfg.feeCoins} coins if ≥ ${cfg.feeAt.toLocaleString()} coins. Server ledger is authority when SQL Phase 2+ is live.</small>
-        ${((window.ParagonCoinPublicConfig||{}).provider||{}).bank_transfer_instructions ? `<div class="install-popup-note" style="margin-top:10px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.08)"><b>How to pay</b><br>${String(((window.ParagonCoinPublicConfig||{}).provider||{}).bank_transfer_instructions).replace(/[<>]/g,"")}</div>` : `<div class="install-popup-note" style="margin-top:10px">Pay by bank transfer using details the team shares after you request. Coins credit only after confirmation — never from this click alone.</div>`}
+${opayMoniepointPayMarkup()}
       </div>
       <div style="margin-top:8px"><b>Recent (this device)</b><ul style="margin:8px 0 0 18px;padding:0;font-size:13px">${history}</ul></div>
       <div class="install-popup-actions">
+        <button type="button" class="secondary-action" onclick="openKycPayoutDraft()">OPay / Moniepoint payout details</button>
         <button type="button" class="secondary-action" onclick="openFinancialCase('payment','Problem with a coin purchase or withdrawal')">Report a money problem</button>
         <button type="button" class="secondary-action" onclick="document.getElementById('coin-shop-overlay')?.remove();document.body.classList.remove('popup-lock')">Close</button>
       </div>

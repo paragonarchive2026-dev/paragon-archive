@@ -2,16 +2,15 @@
   PARAGON ARCHIVE — EXPORT IDENTITY
   REAL FILE NAME: CHANGES.md
 -->
-# Changed — P-106 (2026-09-03)
+# Changed — P-107 (2026-09-03)
 
 ## Added
-- 20 achievements (31–50): Ad Curious → Ad Patron, Leaderboard Scout → Podium Push, Daily/Week streak, Coin/Product/Install/Community/Detail/Category/Updates, Archive Legend
-- Badge art under `assets/achievement-badges/` for all 20 (50 total)
-- Engagement leaderboard panel (`openEngagementLeaderboard`) — climb to Top 10 / podium
-- Ad impression + intentional support-tap tracking via `ParagonArchiveAdsBridge` + `ads/adsense.js` (works on reserved slots until AdSense live)
-- Day streak tracking for Daily Return / Week Streak
+- AI badge art polish for achievements 41–50 (daily return → archive legend)
+- `supabase/coins-master-phase5.sql` — OPay/Moniepoint-first rails, KYC draft, payout rail events
+- Webhook normalizers for `opay` / `moniepoint`; deploy guide `COINS-PHASE5-OPAY-MONIEPOINT.md`
+- `docs/COINS-PHASES.md` — phases built vs remaining + payment story
+- Team desk Phase 5 rails panel; coin shop OPay/Moniepoint pay cards + KYC payout draft
 
 ## Changed
-- `app.js` BADGE_ART + `achievementTasks` (50), settings link to leaderboard, counter merges
-- `style.css` leaderboard styles; cache **v83**
-- IMAGE-REQUIREMENTS, EOP/SOP/NEXT-AGENT, file tree
+- Clarified: master coin spec never required Flutterwave; OPay/Moniepoint is preferred
+- Skills matrix + COIN-SYSTEM + SQL pack + VERIFY prompt; cache **v84**

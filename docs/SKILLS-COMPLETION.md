@@ -20,7 +20,7 @@
 | 7 | Photo-Editor.md | `sites/photo-editor` | Adjust, filters, crop, square, text, heal-fill, export | OpenCV inpaint, HEIC, face-detection model weights |
 | 8 | Travel-Assitance.md | `sites/travel-assistant` | Trips, pacing days, budget parts, entry lists, packing, print, flight/hotel **planning standards** | Live flights/hotels APIs, maps tiles paid keys, booking |
 | 9 | File-Converter.md | `sites/file-converter` | Images batch/ZIP, CSV/JSON/TSV/JSONL/YAML-lite, MD/HTML, ZIP pack | pandoc, ffmpeg, HEIC, Excel/Parquet native, PDF merge engine |
-| 10 | PARAGON-COINS-MASTER… | SQL + Edge + FE + Team | Phases 1–4: accounts, ledger, payments, webhooks, **compete settle**, leaderboard, prizes, cases, finance desk, health probe | Owner: run SQL, deploy Edge, provider keys, licence, `real_money_enabled` |
+| 10 | PARAGON-COINS-MASTER… | SQL + Edge + FE + Team | Phases **1–5**: + **OPay/Moniepoint-first** rails, KYC draft, payout rail log, coin shop pay cards | Owner: run SQL 1–5, deploy Edge, **your OPay/Moniepoint accounts**, licence, `real_money_enabled` |
 
 ## Coins phases
 
@@ -29,11 +29,14 @@
 | 1 | `coins-master-phase1.sql` | Built |
 | 2 | `coins-master-phase2.sql` | Built |
 | 3 | `coins-master-phase3.sql` + webhook/reconcile Edge | Built |
-| 4 | `coins-master-phase4.sql` + competition-settle Edge + finance desk | Built (this turn) |
+| 4 | `coins-master-phase4.sql` + competition-settle Edge + finance desk | Built |
+| 5 | `coins-master-phase5.sql` + OPay/Moniepoint webhook path + Team rails desk | Built (P-107) |
 | Live confirm | Team **Probe SQL health** | Owner browser (sandbox DNS blocked) |
+| Remaining | Owner activation + optional live wallet API / paid-quiz server / compliance | **Not** a missing phase1–5 file |
 
 ## Bottom line
 
-- **All 10 files are implemented** to the maximum honest free-browser / Supabase-SQL depth.
+- **All 10 upload skill files** are implemented to maximum honest free-browser depth; **coins phases 1–5** are in repo.
+- **OPay/Moniepoint** is the preferred payment story (Phase 5). Flutterwave was never required by the master spec.
 - **Nothing that requires your payment provider account, Edge deploy secrets, or gaming licence is pretended live.**
 - Catalogue buildProgress sits in the high 90s band for tools; **100% only after your demo pass.**

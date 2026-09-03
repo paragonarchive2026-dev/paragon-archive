@@ -3,7 +3,7 @@
   REAL FILE NAME: index.ts
   EXPECTED PROJECT PATH: /supabase/functions/coin-payment-webhook/index.ts
   ROLE: Provider-agnostic payment webhook ingress for Paragon Coins (Phase 3).
-        Accepts Paystack / Flutterwave / generic JSON; stores inbox + normalized events.
+        Accepts OPay / Moniepoint / manual bank (preferred) + optional Paystack/Flutterwave; stores inbox + normalized events.
         NEVER credits coins from an unverified client. HMAC/secret required.
   RESTORE/LOAD NOTE: Deploy with secrets only in Edge env. real_money_enabled is a DB flag —
         this function will refuse to auto-confirm if financial_pause is true.
@@ -14,6 +14,8 @@ const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const webhookSecret = Deno.env.get("PARAGON_COIN_WEBHOOK_SECRET") || "";
 const paystackSecret = Deno.env.get("PAYSTACK_SECRET_KEY") || "";
 const flutterwaveSecret = Deno.env.get("FLUTTERWAVE_SECRET_KEY") || "";
+const opayWebhookSecret = Deno.env.get("OPAY_WEBHOOK_SECRET") || "";
+const moniepointWebhookSecret = Deno.env.get("MONIEPOINT_WEBHOOK_SECRET") || "";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -119,6 +121,66 @@ function normalizeFlutterwave(payload: Record<string, unknown>): Normalized | nu
   };
 }
 
+/** OPay business webhook / transfer notice (shape varies — normalize defensively). */
+function normalizeOpay(payload: Record<string, unknown>): Normalized | null {
+  const data = (payload.data || payload.transaction || payload) as Record<string, unknown>;
+  const status = String(data.status || payload.status || data.orderStatus || "").toLowerCase();
+  if (status && !/(success|successful|paid|completed|credit)/.test(status)) return null;
+  const amount = Number(
+    data.amount || data.orderAmount || data.transAmount || payload.amount_naira || payload.amount || 0
+  );
+  // OPay amounts sometimes in kobo
+  let naira = amount;
+  if (amount >= 1000 && String(data.currency || payload.currency || "NGN").toUpperCase() === "NGN" && data.amountInKobo) {
+    naira = Math.round(Number(data.amountInKobo) / 100);
+  } else if (data.amountInKobo) {
+    naira = Math.round(Number(data.amountInKobo) / 100);
+  } else {
+    naira = Math.round(amount > 50000 && !data.amountNaira ? amount / 100 : amount);
+    if (data.amountNaira) naira = Math.round(Number(data.amountNaira));
+  }
+  const txId = String(
+    data.orderNo || data.reference || data.transactionId || data.transId ||
+    payload.provider_transaction_id || payload.reference || ""
+  );
+  if (!txId || naira <= 0) return null;
+  return {
+    provider: "opay",
+    providerTransactionId: txId,
+    amountNaira: naira,
+    currency: String(data.currency || "NGN"),
+    senderName: String(data.payerName || data.senderName || data.customerName || payload.sender_name || ""),
+    rawRef: String(data.reference || txId),
+    eventKey: `opay:${txId}`
+  };
+}
+
+/** Moniepoint / TeamApt style credit notification. */
+function normalizeMoniepoint(payload: Record<string, unknown>): Normalized | null {
+  const data = (payload.data || payload.transaction || payload) as Record<string, unknown>;
+  const status = String(data.status || payload.status || data.transactionStatus || "").toLowerCase();
+  if (status && !/(success|successful|paid|completed|credit|successful_credit)/.test(status)) return null;
+  const amount = Number(
+    data.amount || data.transactionAmount || data.settlementAmount ||
+    payload.amount_naira || payload.amount || 0
+  );
+  const naira = Math.round(Number(data.amountNaira || amount));
+  const txId = String(
+    data.transactionReference || data.paymentReference || data.reference ||
+    data.sessionId || payload.provider_transaction_id || payload.reference || ""
+  );
+  if (!txId || naira <= 0) return null;
+  return {
+    provider: "moniepoint",
+    providerTransactionId: txId,
+    amountNaira: naira,
+    currency: String(data.currency || "NGN"),
+    senderName: String(data.senderName || data.originatorName || data.accountName || payload.sender_name || ""),
+    rawRef: String(data.sessionId || data.reference || txId),
+    eventKey: `moniepoint:${txId}`
+  };
+}
+
 function normalizeGeneric(payload: Record<string, unknown>, providerHint: string): Normalized | null {
   const amount = Number(payload.amount_naira || payload.amount || payload.naira) || 0;
   const txId = String(payload.provider_transaction_id || payload.reference || payload.id || "");
@@ -141,7 +203,7 @@ Deno.serve(async (request) => {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "content-type, authorization, x-paragon-coin-secret, x-paystack-signature, verif-hash"
+        "Access-Control-Allow-Headers": "content-type, authorization, x-paragon-coin-secret, x-paystack-signature, verif-hash, x-opay-signature, x-moniepoint-signature"
       }
     });
   }
@@ -174,6 +236,15 @@ Deno.serve(async (request) => {
     const hash = request.headers.get("verif-hash") || "";
     if (safeEqual(hash, flutterwaveSecret)) authorized = true;
   }
+  if (!authorized && providerHint === "opay" && opayWebhookSecret) {
+    const sig = request.headers.get("x-opay-signature") || request.headers.get("X-OPay-Signature") || "";
+    if (safeEqual(sig, opayWebhookSecret) || safeEqual(shared, opayWebhookSecret)) authorized = true;
+  }
+  if (!authorized && providerHint === "moniepoint" && moniepointWebhookSecret) {
+    const sig = request.headers.get("x-moniepoint-signature") || "";
+    if (safeEqual(sig, moniepointWebhookSecret) || safeEqual(shared, moniepointWebhookSecret)) authorized = true;
+  }
+
 
   if (!authorized) {
     /* Allow shared secret alone even when provider keys not set yet */
@@ -182,7 +253,10 @@ Deno.serve(async (request) => {
   }
 
   let normalized: Normalized | null = null;
-  if (providerHint === "paystack") normalized = normalizePaystack(payload);
+  if (providerHint === "opay") normalized = normalizeOpay(payload) || normalizeGeneric(payload, "opay");
+  else if (providerHint === "moniepoint") normalized = normalizeMoniepoint(payload) || normalizeGeneric(payload, "moniepoint");
+  else if (providerHint === "manual_bank" || providerHint === "manual") normalized = normalizeGeneric(payload, "manual_bank");
+  else if (providerHint === "paystack") normalized = normalizePaystack(payload);
   else if (providerHint === "flutterwave") normalized = normalizeFlutterwave(payload);
   else normalized = normalizeGeneric(payload, providerHint);
 

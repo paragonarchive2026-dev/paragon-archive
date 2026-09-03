@@ -3796,3 +3796,24 @@ html.light #finance-desk-out {
   color: var(--text-dim);
   background: rgba(108, 92, 231, 0.08);
 }
+
+
+/* P-107 — OPay / Moniepoint pay rails in coin shop */
+.coin-rails-grid { display: grid; gap: 8px; margin-top: 8px; }
+@media (min-width: 520px) { .coin-rails-grid { grid-template-columns: 1fr 1fr; } }
+.coin-rail-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  background: rgba(45, 212, 191, 0.06);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.coin-rail-number {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+  color: var(--text);
+}

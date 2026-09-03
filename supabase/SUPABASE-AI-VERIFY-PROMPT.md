@@ -59,7 +59,9 @@ select * from (
     ('phase4','paragon_leaderboard_entries', to_regclass('public.paragon_leaderboard_entries') is not null),
     ('phase4','paragon_creator_prizes', to_regclass('public.paragon_creator_prizes') is not null),
     ('phase4','paragon_financial_cases', to_regclass('public.paragon_financial_cases') is not null),
-    ('phase4','paragon_risk_flags', to_regclass('public.paragon_risk_flags') is not null)
+    ('phase4','paragon_risk_flags', to_regclass('public.paragon_risk_flags') is not null),
+    ('phase5','paragon_kyc_profiles', to_regclass('public.paragon_kyc_profiles') is not null),
+    ('phase5','paragon_payout_rail_events', to_regclass('public.paragon_payout_rail_events') is not null)
 ) as t(pack, object_name, exists)
 order by pack, object_name;
 

@@ -53,6 +53,13 @@
 > fairness disclaimers for a skill-based (not luck-based) coin system in Nigeria. Keep
 > everything free-to-play friendly: no user ever needs to pay to enjoy the platform.
 
+## Phase 5 OPay / Moniepoint (P-107)
+- SQL: `coins-master-phase5.sql` — preferred rails `opay`/`moniepoint`, KYC draft, payout rail events.
+- Webhook: `?provider=opay|moniepoint|manual_bank` (Flutterwave **not** required).
+- FE: coin shop shows OPay/Moniepoint pay cards from public config.
+- Team: Phase 5 rails snapshot + record payout.
+- Details: `docs/COINS-PHASES.md`, `supabase/functions/COINS-PHASE5-OPAY-MONIEPOINT.md`.
+
 ## Phase 4 compete / leaderboard (P-104)
 - SQL: competition create/join/settle, leaderboard settle, creator prizes, financial cases, risk flags, pause.
 - Edge: `competition-settle`.
@@ -77,5 +84,5 @@
 
 ## Still needed from the owner (CTA)
 - The real ₦→coin rate, entry fees, prize amounts, withdrawal fee, payment channels
-  (transfer/OPay/Paystack free tier?), and reward schedule — then the placeholder numbers
+  (**OPay / Moniepoint preferred**; Paystack optional; Flutterwave not required), and reward schedule — then the placeholder numbers
   are replaced everywhere in one pass.

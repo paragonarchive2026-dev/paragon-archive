@@ -5540,3 +5540,14 @@ Paste Script A from `supabase/SUPABASE-AI-VERIFY-PROMPT.md` results into chat.
 3. Engagement leaderboard: device board with Top 10 / podium badges; not a money referee.
 4. Retention + product engagement badges (streak, coins shop, products, install, community, details, categories, updates).
 5. Suites + cache v83.
+
+## v1.01.0 — 2026-09-03 — Badge polish 41–50 + Coins Phase 5 OPay/Moniepoint (P-107)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Regenerated achievement badges 41–50 (full AI art).
+2. Built coins **Phase 5**: OPay/Moniepoint preferred rails, KYC profiles, payout rail log, public config, Team desk, FE pay cards.
+3. Webhook accepts `?provider=opay|moniepoint|manual_bank` (Flutterwave optional only).
+4. Documented: **SQL phases 1–5 complete**; remaining = owner run/deploy/accounts + optional live API/compliance — not a missing phase file.
+5. Audited all 10 `uploads/` skills — browser products already at honest max depth.

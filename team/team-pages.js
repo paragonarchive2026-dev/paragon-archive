@@ -4675,6 +4675,72 @@ if (paragonTeamPage() === "settings.html") {
       });
     });
   }
+
+  function bindPhase5Rails() {
+    var out = document.getElementById("phase5-rails-out");
+    var btn = document.getElementById("phase5-rails-refresh");
+    if (!out || !btn) return;
+    function snap() {
+      out.textContent = "Loading OPay/Moniepoint rails…";
+      Promise.all([
+        financeRest("/rest/v1/rpc/paragon_sql_health", { method: "POST", body: "{}" }).catch(function (e) { return { error: String(e.message || e) }; }),
+        financeRest("/rest/v1/rpc/paragon_public_coin_config", { method: "POST", body: "{}" }).catch(function () { return null; }),
+        financeRest("/rest/v1/paragon_kyc_profiles?select=user_id,status,payout_rail,payout_account_name,payout_account_number,updated_at&order=updated_at.desc&limit=15").catch(function () { return []; }),
+        financeRest("/rest/v1/paragon_payout_rail_events?select=id,provider,provider_reference,amount_naira,status,created_at&order=created_at.desc&limit=15").catch(function () { return []; })
+      ]).then(function (parts) {
+        var health = parts[0], cfg = parts[1], kyc = parts[2], rails = parts[3];
+        var lines = ["Phase 5 rails @ " + new Date().toISOString(), ""];
+        if (health && health.error) lines.push("Health: " + health.error);
+        else if (health) {
+          lines.push("SQL phase=" + (health.phase || "?") + " · preferred=" + (health.preferred_payment_story || "?"));
+          lines.push("active_provider=" + (health.active_provider || "?") + " payout_rail=" + (health.payout_rail || "?"));
+          lines.push("kyc_table=" + health.paragon_kyc_profiles + " payout_events=" + health.paragon_payout_rail_events);
+        }
+        var p = (cfg && cfg.provider) || {};
+        lines.push("", "Public pay config:");
+        lines.push("  rails: " + JSON.stringify(p.preferred_rails || []));
+        if (p.opay) lines.push("  OPay: " + (p.opay.account_name || "—") + " / " + (p.opay.account_number || "unset"));
+        if (p.moniepoint) lines.push("  Moniepoint: " + (p.moniepoint.account_name || "—") + " / " + (p.moniepoint.account_number || "unset"));
+        lines.push("", "KYC / payout drafts:");
+        if (!kyc || !kyc.length) lines.push("  (none yet or phase5 SQL not run)");
+        else kyc.forEach(function (row) {
+          lines.push("  · [" + row.status + "] " + (row.payout_rail || "?") + " " + (row.payout_account_name || "") + " " + (row.payout_account_number || ""));
+        });
+        lines.push("", "Payout rail events:");
+        if (!rails || !rails.length) lines.push("  (none yet)");
+        else rails.forEach(function (r) {
+          lines.push("  · " + r.provider + " ₦" + r.amount_naira + " [" + r.status + "] " + (r.provider_reference || ""));
+        });
+        lines.push("", "Flutterwave/Paystack are optional adapters only — not required for Nigeria-first.");
+        out.textContent = lines.join("\n");
+      }).catch(function (err) {
+        out.textContent = "Rails snapshot failed: " + err.message + "\nRun coins-master-phase5.sql as team.";
+      });
+    }
+    btn.addEventListener("click", snap);
+    document.getElementById("phase5-payout-record")?.addEventListener("click", function () {
+      var provider = window.prompt("Provider: opay | moniepoint | manual_bank", "opay");
+      if (!provider) return;
+      var amount = Number(window.prompt("Amount ₦", "1000") || 0);
+      var ref = window.prompt("Provider reference / receipt id", "") || "";
+      if (!amount || amount <= 0) return;
+      financeRest("/rest/v1/rpc/paragon_payout_rail_record", {
+        method: "POST",
+        body: JSON.stringify({
+          p_provider: provider,
+          p_amount_naira: Math.round(amount),
+          p_provider_reference: ref || null,
+          p_status: "sent"
+        })
+      }).then(function () {
+        showToast("Payout rail event recorded.");
+        snap();
+      }).catch(function (e) {
+        showToast("Record failed: " + e.message + " — need phase5 SQL + team login.");
+      });
+    });
+  }
+
   function bindFinanceDesk() {
     var out = document.getElementById("finance-desk-out");
     var btn = document.getElementById("finance-refresh");
@@ -4692,7 +4758,7 @@ if (paragonTeamPage() === "settings.html") {
         var lines = ["Finance snapshot @ " + new Date().toISOString(), ""];
         if (health && health.error) lines.push("Health: " + health.error);
         else if (health) {
-          lines.push("phase=" + (health.phase || "?") + " · compete_rpc=" + health.rpc_competition_settle + " · lb_rpc=" + health.rpc_leaderboard_settle);
+          lines.push("phase=" + (health.phase || "?") + " · compete_rpc=" + health.rpc_competition_settle + " · lb_rpc=" + health.rpc_leaderboard_settle + " · rails=" + (health.preferred_payment_story || health.active_provider || ""));
           if (health.flags) lines.push("flags: real_money=" + health.flags.real_money_enabled + " compete=" + health.flags.compete_enabled + " pause=" + health.flags.financial_pause);
         }
         lines.push("", "Competitions (latest):");
@@ -4975,6 +5041,7 @@ if (paragonTeamPage() === "settings.html") {
     bindCoinWithdrawals();
   bindSqlHealthProbe();
   bindFinanceDesk();
+  bindPhase5Rails();
       if (!document.getElementById("set-flags")) return;
       var settings = readSettings();
       document.getElementById("set-idle").value = settings.sessionIdleMinutes;
