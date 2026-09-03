@@ -1,0 +1,88 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: explore.html
+  EXPECTED PROJECT PATH: /paragon-quiz/explore.html
+  ROLE: Paragon Quiz browse page — search, category/difficulty filters, sorting, quiz grid.
+  RESTORE/LOAD NOTE: Keep inside /paragon-quiz/. Loads css/style.css, js/app.js, then js/explore.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Quizzes — Paragon Quiz</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <a class="quiz-brand-link" href="../paragon-archive.html?site=Paragon%20Quiz" title="View Paragon Quiz in the Paragon Archive"><span class="logo"><img class="quiz-logo-img" src="../assets/site-icons/paragon-quiz.png" alt="Paragon Quiz icon"></span>
+            <span class="brand">Paragon Quiz</span></a>
+        </div>
+        <nav class="header-nav">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="explore.html" class="nav-link active">Explore</a>
+            <a href="create.html" class="nav-link">Create</a>
+        </nav>
+    </header>
+
+    <section class="page-header">
+        <h1 class="page-title">🎮 Explore Quizzes</h1>
+        <p class="page-subtitle">Find your next challenge</p>
+    </section>
+
+    <!-- SEARCH AND FILTER -->
+    <section class="section">
+        <div class="search-bar">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search quizzes by name or topic...">
+        </div>
+        <div class="filter-row">
+            <select id="categoryFilter" class="filter-select">
+                <option value="all">All Categories</option>
+            </select>
+            <select id="difficultyFilter" class="filter-select">
+                <option value="all">All Difficulties</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+            <select id="sortFilter" class="filter-select">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="popular">Most Played</option>
+                <option value="highest">Highest Rated</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- RESULTS COUNT -->
+    <section class="section">
+        <p class="results-count" id="resultsCount">Showing 0 quizzes</p>
+    </section>
+
+    <!-- QUIZ GRID -->
+    <section class="section">
+        <div class="quiz-grid" id="exploreGrid">
+            <!-- Populated by JavaScript -->
+        </div>
+        <div class="empty-state" id="emptyState" style="display:none;">
+            <div class="empty-icon">🔍</div>
+            <h3>No quizzes found</h3>
+            <p>Try a different search or <a href="create.html">create one yourself!</a></p>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="logo"><img class="quiz-logo-img" src="../assets/site-icons/paragon-quiz.png" alt="Paragon Quiz icon"></span>
+                <span class="brand">Paragon Quiz</span>
+            </div>
+            <div class="footer-copy">© 2026 Paragon. Built free. For everyone.</div>
+        </div>
+    </footer>
+
+    <script src="js/quiz.js"></script>
+</body>
+</html>

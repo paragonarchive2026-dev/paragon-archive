@@ -1,0 +1,83 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: community-board.html
+  EXPECTED PROJECT PATH: /community-board.html
+  ROLE: P-077 (A1–A4, owner-approved plan) — the public Community Board: member composer, post feed with boards/sort, likes, comments, reports, mini member profiles, guidelines. Shares ONE store with the Team Community Posts desk (paragonTeamCommunityPosts.v1) so moderation is a REAL loop.
+  RESTORE/LOAD NOTE: Keep at project root. Members = real community membership records (paragonCommunityMembership:{userId}); non-members browse read-only with a join CTA. All counters real-zero; pendingBackendSync until the schema-backed community activates. Loads style.css, community-board.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Board — Paragon Archive</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="shortcut icon" href="assets/brand/favicon.ico">
+<link rel="stylesheet" href="style.css">
+<script>try{if((sessionStorage.getItem("paragonArchive.theme.v2")||localStorage.getItem("paragonArchive.theme.v2"))==="light")document.documentElement.classList.add("light");}catch(e){}</script>
+</head>
+<body class="hub-page-body board-page-body">
+
+<header class="board-topbar">
+  <a class="board-brand" href="paragon-archive-hub.html#community"><img src="assets/brand/logo-mark.png" alt=""> <b>PARAGON COMMUNITY BOARD</b></a>
+  <nav class="board-topnav">
+    <a href="paragon-archive.html">◂ Archive</a>
+    <a href="paragon-archive-hub.html#community">Community Hub</a>
+    <a href="developer-portal.html">Developer Portal</a>
+  </nav>
+</header>
+
+<main class="board-shell">
+  <!-- P-086 — read-only notice removed: non-members reach the board via the Account join popup flow -->
+
+  <section id="board-composer" class="board-composer" hidden>
+    <h2>✍️ Share with the community</h2>
+    <div class="board-composer-grid">
+      <input id="post-title" type="text" maxlength="90" placeholder="Post title">
+      <select id="post-board-select" aria-label="Board"></select>
+    </div>
+    <textarea id="post-body" rows="3" maxlength="600" placeholder="What do you want to say? (Guidelines apply)"></textarea>
+    <p id="composer-error" class="portal-lockout" style="display:none;"></p>
+    <div class="board-composer-foot">
+      <small>By posting you agree to the <a href="#board-guidelines">community guidelines</a>. Signed in? Your post publishes to the LIVE community backend. Offline or signed out, it queues on this device.</small>
+      <button type="button" id="post-submit" class="primary-action">Post</button>
+    </div>
+  </section>
+
+  <div class="board-filter-bar">
+    <div id="board-chips" class="chips" role="group" aria-label="Boards"></div>
+    <select id="board-sort" aria-label="Sort posts">
+      <option value="new">🆕 Newest</option>
+      <option value="top">🔥 Top (most liked)</option>
+    </select>
+  </div>
+
+  <div id="board-appeals" class="board-appeals"></div>
+
+  <p id="board-count" class="results-count team-site-count">0 posts</p>
+  <div id="board-feed" class="board-feed"></div>
+
+  <aside id="member-panel" class="member-mini-panel" hidden>
+    <button type="button" id="member-panel-close" aria-label="Close profile">×</button>
+    <div id="member-panel-body"></div>
+  </aside>
+
+  <section id="board-guidelines" class="board-guidelines">
+    <h2>📜 Community Guidelines</h2>
+    <ul>
+      <li><strong>Be human, be kind.</strong> No harassment, hate, or personal attacks — moderators can hide or remove posts with a written reason.</li>
+      <li><strong>No spam or ads.</strong> Promotion belongs to the official sponsored-notice system, never the board.</li>
+      <li><strong>Stay honest.</strong> Don't invent claims about Paragon products; real experiences only.</li>
+      <li><strong>Report, don't fight.</strong> Use the 🚩 report button — every report reaches the real moderation desk.</li>
+      <li><strong>Ideas welcome.</strong> Feature wishes belong on the Ideas board and genuinely reach the team's Suggestions desk.</li>
+    </ul>
+  </section>
+</main>
+
+<div id="dash-toast" class="team-dash-toast" role="status" hidden></div>
+
+<script src="config/supabase.js"></script>
+<script src="auth/supabase-auth.js"></script>
+<script src="community-board.js"></script>
+</body>
+</html>

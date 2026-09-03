@@ -1,0 +1,83 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: results.html
+  EXPECTED PROJECT PATH: /paragon-quiz/results.html
+  ROLE: Paragon Quiz results page — score ring, verdict, best-score tracking, answer review, retry actions.
+  RESTORE/LOAD NOTE: Keep inside /paragon-quiz/. Opened as results.html?session={resultId}. Loads css/style.css, js/app.js, then js/results.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results — Paragon Quiz</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <a class="quiz-brand-link" href="../paragon-archive.html?site=Paragon%20Quiz" title="View Paragon Quiz in the Paragon Archive"><span class="logo"><img class="quiz-logo-img" src="../assets/site-icons/paragon-quiz.png" alt="Paragon Quiz icon"></span>
+            <span class="brand">Paragon Quiz</span></a>
+        </div>
+        <nav class="header-nav">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="explore.html" class="nav-link">Explore</a>
+            <a href="create.html" class="nav-link">Create</a>
+        </nav>
+    </header>
+
+    <section class="section play-stage" id="resultsStage">
+        <div class="results-card">
+            <div class="results-verdict" id="resultsVerdict">🏆</div>
+            <h1 class="results-title" id="resultsTitle">Quiz complete!</h1>
+            <p class="results-quiz-name" id="resultsQuizName"></p>
+
+            <div class="score-ring-wrap">
+                <svg class="score-ring" viewBox="0 0 120 120" aria-hidden="true">
+                    <circle class="score-ring-track" cx="60" cy="60" r="52" pathLength="100"></circle>
+                    <circle class="score-ring-value" id="scoreRingValue" cx="60" cy="60" r="52" pathLength="100"></circle>
+                </svg>
+                <div class="score-ring-center">
+                    <span class="score-big" id="scoreBig">0/0</span>
+                    <span class="score-percent" id="scorePercent">0%</span>
+                </div>
+            </div>
+
+            <p class="results-message" id="resultsMessage"></p>
+            <div class="results-best" id="resultsBest"></div>
+
+            <div class="results-actions">
+                <button class="btn btn-primary" id="retryBtn">🔁 Play Again</button>
+                <a class="btn btn-secondary" href="explore.html">🎮 More Quizzes</a>
+                <button class="btn btn-outline" id="shareResultBtn">🔗 Share Score</button>
+            </div>
+        </div>
+
+        <div class="results-review" id="resultsReview">
+            <h2 class="section-title">📋 Answer Review</h2>
+            <div id="reviewList"></div>
+        </div>
+    </section>
+
+    <section class="section play-stage" id="resultsNotFound" style="display:none;">
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>No result to show</h3>
+            <p>Play a quiz first and your results appear here. <a href="explore.html">Explore quizzes</a>.</p>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="logo"><img class="quiz-logo-img" src="../assets/site-icons/paragon-quiz.png" alt="Paragon Quiz icon"></span>
+                <span class="brand">Paragon Quiz</span>
+            </div>
+            <div class="footer-copy">© 2026 Paragon. Built free. For everyone.</div>
+        </div>
+    </footer>
+
+    <script src="js/quiz.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# PARAGON ARCHIVE — EXPORT IDENTITY
+# REAL FILE NAME: ads.txt
+# EXPECTED PROJECT PATH: /ads.txt (site root when deployed)
+# ROLE: Authorized Digital Sellers record for Google AdSense (P-094 / D-179).
+# RESTORE-LOAD NOTE: Replace PUB-ID-PLACEHOLDER with the approved ca-pub-XXXXXXXXXXXXXXXX
+#                   after Google approves the site, then deploy at the domain root.
+# google.com, PUB-ID-PLACEHOLDER, DIRECT, f08c47fec0942fa0

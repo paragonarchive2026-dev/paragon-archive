@@ -1,0 +1,107 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: developer-portal.html
+  EXPECTED PROJECT PATH: /developer-portal.html
+  ROLE: P-077 (B1+B2+B3+B5, owner-approved plan) — the public Developer Portal: Build-for-Paragon landing, 3-step path, requirements + the REAL 8-point review gate (mirrors the Team desk), application form feeding paragonTeamApplications.v1 for real, and the accepted-developer dashboard submitting websites into the Team Deployed review store.
+  RESTORE/LOAD NOTE: Keep at project root. All loops are real on this device (application → Team Dev Applications desk; submission → Team Deployed Reviews desk → approval joins the public Deployed category). pendingBackendSync until the developer backend activates. Loads style.css, developer-portal.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Developer Portal — Paragon Archive</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="shortcut icon" href="assets/brand/favicon.ico">
+<link rel="stylesheet" href="style.css">
+<script>try{if((sessionStorage.getItem("paragonArchive.theme.v2")||localStorage.getItem("paragonArchive.theme.v2"))==="light")document.documentElement.classList.add("light");}catch(e){}</script>
+</head>
+<body class="hub-page-body board-page-body">
+
+<header class="board-topbar">
+  <a class="board-brand" href="paragon-archive-hub.html"><img src="assets/brand/logo-mark.png" alt=""> <b>PARAGON DEVELOPER PORTAL</b></a>
+  <nav class="board-topnav">
+    <a href="paragon-archive.html">◂ Archive</a>
+    <a href="paragon-archive-hub.html#deployed">Deployed rules</a>
+    <a href="community-board.html">Community Board</a>
+  </nav>
+</header>
+
+<main class="board-shell">
+  <section class="devportal-hero">
+    <img src="assets/illustrations/header-request.jpg" alt="" class="hub-page-illus">
+    <h1>Build for Paragon.</h1>
+    <p>Ship your website to the Deployed category and reach every Archive user — free hosting inside the Archive, honest review, real credit.</p>
+    <div class="devportal-steps">
+      <div><span>1</span><strong>Apply</strong><small>Tell us who you are and what you build</small></div>
+      <div><span>2</span><strong>Get approved</strong><small>The team reviews every application</small></div>
+      <div><span>3</span><strong>Submit websites</strong><small>Each one passes the real 8-point gate</small></div>
+    </div>
+  </section>
+
+  <section class="team-dash-section team-settings-card">
+    <h2 class="team-dash-sectitle">🛡️ The REAL review gate — every submitted website must pass all 8</h2>
+    <div id="gate-list" class="devportal-gate"></div>
+    <p class="team-site-sub">This is the exact checklist the Paragon Team uses on the Deployed Reviews desk — nothing hidden, no surprises.</p>
+  </section>
+
+  <section id="apply-section" class="team-dash-section team-settings-card">
+    <h2 class="team-dash-sectitle">💼 Apply as a developer</h2>
+    <div class="team-settings-grid">
+      <label>Developer username *<input id="app-username" type="text" maxlength="40" placeholder="e.g. JohnDev"></label>
+      <label>Email *<input id="app-email" type="email" maxlength="80" placeholder="you@example.com"></label>
+      <label>Portfolio link<input id="app-portfolio" type="url" placeholder="https://…"></label>
+      <label>Experience *
+        <select id="app-exp">
+          <option value="beginner">🌱 Beginner</option>
+          <option value="intermediate">🌿 Intermediate</option>
+          <option value="expert">🌳 Expert</option>
+        </select>
+      </label>
+    </div>
+    <label style="display:block;">Skills *<input id="app-skills" type="text" maxlength="160" placeholder="HTML, CSS, JavaScript…" style="width:100%;"></label>
+    <label style="display:block;">What do you want to build or bring? *<textarea id="app-pitch" rows="3" maxlength="500" style="width:100%;"></textarea></label>
+    <p id="apply-error" class="portal-lockout" style="display:none;"></p>
+    <div class="team-site-actions" style="padding-left:0;">
+      <button type="button" id="apply-submit" class="primary-action">💼 Submit application</button>
+    </div>
+    <p class="team-site-sub">Signed in? Your application ALSO publishes to the live developer backend. Either way it lands on the real Paragon Team desk.</p>
+    <div id="apply-status"></div>
+  </section>
+
+  <section id="dev-dashboard" class="team-dash-section team-settings-card" hidden>
+    <h2 class="team-dash-sectitle">🧑‍💻 Your developer dashboard</h2>
+    <p id="dev-welcome" class="team-site-sub"></p>
+    <h3 class="team-dash-sectitle" style="margin-top:14px;">🚀 Submit a website for review</h3>
+    <div class="team-settings-grid">
+      <label>Website name *<input id="sub-name" type="text" maxlength="60"></label>
+      <label>Icon (emoji)<input id="sub-icon" type="text" maxlength="4" placeholder="🚀"></label>
+      <label>Live URL<input id="sub-url" type="url" placeholder="https://…"></label>
+      <label>Pricing
+        <select id="sub-pricing">
+          <option value="Free">Free</option>
+          <option value="Free + Premium features">Free + Premium features (disclosed)</option>
+        </select>
+      </label>
+    </div>
+    <label style="display:block;">Description *<textarea id="sub-desc" rows="2" maxlength="240" style="width:100%;"></textarea></label>
+    <p id="sub-error" class="portal-lockout" style="display:none;"></p>
+    <div class="team-site-actions" style="padding-left:0;">
+      <button type="button" id="sub-submit" class="primary-action">🚀 Submit for the 8-point review</button>
+    </div>
+    <h3 class="team-dash-sectitle" style="margin-top:18px;">📦 My submissions</h3>
+    <div id="my-submissions" class="team-site-list"></div>
+  </section>
+</main>
+
+<div id="dash-toast" class="team-dash-toast" role="status" hidden></div>
+
+<script src="config/supabase.js"></script>
+<script src="auth/supabase-auth.js"></script>
+<script src="data/sites.js"></script>
+<script src="data/catalogue-expansion.js"></script>
+<script src="data/catalogue-expansion-45-100.js"></script>
+<script src="data/metrics.js"></script>
+<script src="developer-portal.js"></script>
+</body>
+</html>

@@ -1,0 +1,1356 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: paragon-archive-hub.html
+  EXPECTED PROJECT PATH: /paragon-archive-hub.html
+  ROLE: Official Archive Hub documentation, policy, roadmap, status, developer, Deployed, and community gateway.
+  RESTORE/LOAD NOTE: Keep at project root. Loads shared style.css, manifest, then archive-hub.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Paragon Archive Hub — Documentation &amp; Platform Gateway</title>
+<meta name="description" content="Official Paragon Archive documentation, terms, community rules, developer requirements, Deployed-category plans, roadmap, status, and community membership guidance.">
+<meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-180.png">
+<!-- P-069 — official brand (Concept B faceted ◈): favicons + share meta. og:image becomes absolute at production domain (CTA). -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png">
+<link rel="shortcut icon" href="assets/brand/favicon.ico">
+<meta property="og:title" content="Paragon Archive Hub">
+<meta property="og:description" content="The gateway to everything Paragon.">
+<meta property="og:image" content="assets/brand/og-default.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="style.css">
+<script>/* P-097 — auto day/night follows the clock unless a manual choice exists */
+try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=sessionStorage.getItem("paragonArchive.theme.v2")||localStorage.getItem("paragonArchive.theme.v2")||null;if(_m!=="manual"||!_p){var _h=new Date().getHours();if((_m==="auto"&&_h>=6&&_h<18))document.documentElement.classList.add("light");else if(_m==="auto")document.documentElement.classList.remove("light");else if(_p==="light")document.documentElement.classList.add("light");}else if(_p==="light")document.documentElement.classList.add("light");}catch(e){}</script>
+</head>
+<body class="hub-page-body">
+<a class="skip-link" href="#hub-main">Skip to Hub documentation</a>
+<header class="legal-topbar hub-topbar" role="banner">
+  <a class="logo-group" href="paragon-archive.html?site=Paragon%20Archive%20Hub" aria-label="Return to the Paragon Archive Hub detail">
+    <span class="logo-mark logo-mark-brand" aria-hidden="true"><img src="assets/brand/logo-mark.png" alt=""></span>
+    <span class="logo-text">PARAGON <span class="accent">ARCHIVE HUB</span></span>
+  </a>
+  <div class="hub-topbar-actions">
+    <div class="hub-topbar-search"><span aria-hidden="true">🔍</span><input id="hub-search-input" type="search" placeholder="Search Hub pages and documentation sections…" aria-label="Search Archive Hub destinations" autocomplete="off"><div id="hub-search-results" class="hub-search-results" role="listbox" hidden></div></div>
+    <!-- P-080 — Team Login button removed; the secret 🔒 in the footer is the only public passage -->
+    <button id="hub-back" class="legal-back" type="button">Back</button>
+  </div>
+</header>
+
+<!-- P-090 — old search panel removed; the topbar input is the one search -->
+
+<main id="hub-main" class="hub-page-shell">
+
+  <!-- P-094 — the Home tab navigation is REMOVED entirely: the board-style top bar carries the
+       Back button (appears whenever any other Hub section is viewed) + the centered smart search,
+       and the content below moves up into the freed space. Deep links (#home/#documentation/…) still work. -->
+
+  <div id="hub-page-home" class="hub-page-panel">
+
+    <section class="hub-landing-hero" aria-labelledby="hub-landing-title">
+      <img class="hub-landing-hero-image" src="assets/hub-hero.jpg" alt="" loading="eager">
+      <div class="hub-landing-hero-overlay">
+        <p class="hub-kicker"><img class="settings-brand-mark" src="assets/brand/logo-mark.png" alt=""> OFFICIAL ARCHIVE CHANNEL</p>
+        <h1 id="hub-landing-title">PARAGON ARCHIVE HUB</h1>
+        <p class="hub-landing-tagline">The gateway to everything Paragon.</p>
+        <!-- P-090 — hero action buttons removed per owner (quick cards handle navigation) -->
+      </div>
+    </section>
+
+    <nav class="hub-quick-grid" aria-label="Hub quick destinations">
+      <a class="hub-quick-card" href="#landing-stats" data-hub-scroll="home"><span aria-hidden="true">📊</span><strong>Stats</strong><small>Live Archive numbers</small></a>
+      <a class="hub-quick-card" href="#landing-roadmap" data-hub-scroll="home"><span aria-hidden="true">🗺️</span><strong>Roadmap</strong><small>What ships next</small></a>
+      <a class="hub-quick-card" href="#landing-docs" data-hub-scroll="home"><span aria-hidden="true">📄</span><strong>Docs</strong><small>Official documents &amp; guides</small></a>
+      <a class="hub-quick-card" href="#landing-join" data-hub-scroll="home"><span aria-hidden="true">👥</span><strong>Join Community</strong><small>The six-step join lives on the Community page</small></a>
+    </nav>
+
+    <section id="landing-stats" class="hub-doc-section hub-landing-stats" aria-labelledby="landing-stats-title">
+      <header class="hub-section-heading"><p class="eyebrow">Honest numbers</p><h2 id="landing-stats-title">📊 Paragon Archive Live Stats</h2></header>
+      <div class="hub-stats-grid">
+        <div class="hub-stat-box"><strong id="hub-stat-websites">—</strong><span>Websites</span><small>Catalogued in the Archive</small></div>
+        <div class="hub-stat-box"><strong id="hub-stat-reviews">0</strong><span>Reviews</span><small>Real user-written reviews (this device)</small></div>
+        <div class="hub-stat-box"><strong id="hub-stat-requests">0</strong><span>Requests</span><small>Live count — grows after activation</small></div>
+        <div class="hub-stat-box"><strong id="hub-stat-members">0</strong><span>Members</span><small>Community opens with accounts</small></div>
+      </div>
+      <p class="hub-join-note">Every number here is real: websites and reviews come from live catalogue data, requests use the zero-safe database aggregate, and members count actual Community joins. No made-up totals.</p>
+    </section>
+
+    <section id="landing-docs" class="hub-doc-section" aria-labelledby="landing-docs-title">
+      <header class="hub-section-heading hub-heading-row"><h2 id="landing-docs-title">📋 Official Document</h2><a class="hub-see-all" href="#documentation">See all →</a></header>
+      <div class="hub-official-chips">
+        <a href="#overview">◈ Archive Overview</a>
+        <a href="#about">📖 About</a>
+        <a href="#privacy-policy">🔒 Privacy</a>
+        <a href="#terms">📜 Terms</a>
+        <a href="#community-guidelines">🤝 Guidelines</a>
+        <a href="#cookie-policy">🍪 Cookies</a>
+        <a href="#help">🆘 Help &amp; Support</a>
+        <a href="#developers">💼 Developer Requirements</a>
+      </div>
+    </section>
+
+    <section id="landing-roadmap" class="hub-doc-section" aria-labelledby="landing-roadmap-title">
+      <header class="hub-section-heading hub-heading-row"><h2 id="landing-roadmap-title">🗺️ Roadmap</h2><a class="hub-see-all" href="#roadmap-full">See all →</a></header>
+      <ul class="hub-roadmap-list">
+        <li><span class="hub-roadmap-state done" aria-hidden="true">✅</span><div><strong>Archive catalogue documented</strong><small>107 websites recorded with previews</small></div><em>Complete</em></li>
+        <li><span class="hub-roadmap-state done" aria-hidden="true">✅</span><div><strong>Archive Hub published</strong><small>Documentation, policies, and forms live</small></div><em>Complete</em></li>
+        <li><span class="hub-roadmap-state active" aria-hidden="true">🔄</span><div><strong>Community platform</strong><small>Membership foundations built — backend next</small></div><em>In Progress</em></li>
+        <li><span class="hub-roadmap-state active" aria-hidden="true">🔄</span><div><strong>Developer portal &amp; Deployed</strong><small>Docs, form, and detail template ready</small></div><em>In Progress</em></li>
+        <li><span class="hub-roadmap-state" aria-hidden="true">🔮</span><div><strong>New Paragon products</strong><small>RxLife Network, Pharmapaedia, and more</small></div><em>Coming Soon</em></li>
+      </ul>
+    </section>
+
+    <section id="landing-join" class="hub-doc-section" aria-labelledby="landing-join-title">
+      <header class="hub-section-heading"><h2 id="landing-join-title">👥 Join the Community</h2></header>
+      <a class="hub-join-banner" href="#community">
+        <div>
+          <strong>For the people who support our world and our work.</strong>
+          <ul><li>🔭 Early previews of new Paragon websites</li><li>🗳️ Real influence on what gets built next</li><li>🧪 Beta invitations and contribution credits</li></ul>
+        </div>
+        <span class="primary-action">Join now →</span>
+      </a>
+    </section>
+
+    <!-- P-090 — section landing-discussions-title removed per owner (dev content moved to Account settings popup) -->
+
+    <!-- P-090 — section landing-requests-title removed per owner (dev content moved to Account settings popup) -->
+
+    <!-- P-090 — section landing-dev-title removed per owner (dev content moved to Account settings popup) -->
+
+    <!-- P-090 — Official Documents merged into the reformed Documentation section above -->
+
+  </div>
+
+  <div id="hub-page-roadmap" class="hub-page-panel" hidden>
+    <section class="hub-doc-section hub-roadmap-page" aria-labelledby="roadmap-page-title">
+      <header class="hub-section-heading">
+        <button type="button" class="hub-roadmap-back secondary-action" data-hub-goto="home">← Back to Hub Home</button>
+        <p class="eyebrow">🗺️ THE PARAGON ROADMAP</p>
+        <h2 id="roadmap-page-title">Here is exactly what we are building and when</h2>
+        <p class="hub-roadmap-status"><span class="hub-state-dot hub-state-prepared" aria-hidden="true"></span> Status: Foundations in development — honest snapshot, verified against <a href="#system-status">System Status</a>. This is not a production uptime monitor.</p>
+      </header>
+
+      <div class="hub-roadmap-group">
+        <h3 class="hub-roadmap-group-title done">✅ COMPLETED</h3>
+        <ol id="rm-pub-completed" class="hub-roadmap-timeline">
+          <li><span class="hub-roadmap-dot done" aria-hidden="true"></span><div><strong>Paragon Archive application built</strong><small>August 2026 — the three-tab Archive with search, details, accounts foundation, and PWA install</small></div></li>
+          <li><span class="hub-roadmap-dot done" aria-hidden="true"></span><div><strong>Archive catalogue documented</strong><small>August 2026 — 107 Paragon websites recorded with tailored concept previews</small></div></li>
+          <li><span class="hub-roadmap-dot done" aria-hidden="true"></span><div><strong>Archive Hub published</strong><small>August 2026 — documentation, policies, Request &amp; Help forms, honest status</small></div></li>
+          <li><span class="hub-roadmap-dot done" aria-hidden="true"></span><div><strong>Hub Home, Community &amp; Team pages</strong><small>August 17, 2026 — the Hub became a real multi-page product with its landing gateway</small></div></li>
+        </ol>
+      </div>
+
+      <div class="hub-roadmap-group">
+        <h3 class="hub-roadmap-group-title active">🔄 IN PROGRESS</h3>
+        <ol id="rm-pub-progress" class="hub-roadmap-timeline">
+          <li data-roadmap-title="Community Platform">
+            <span class="hub-roadmap-dot active" aria-hidden="true"></span>
+            <div>
+              <strong>Community Platform</strong>
+              <small>Building the discussion board and community features</small>
+              <div class="hub-progress-track" role="progressbar" aria-labelledby="roadmap-community-caption" aria-valuemin="0" aria-valuemax="100"><div class="hub-progress-fill" data-progress-for="community"></div></div>
+              <small id="roadmap-community-caption" class="hub-progress-caption" data-progress-caption="community">Calculating from milestones…</small>
+              <ul class="hub-milestone-list" data-milestones="community">
+                <li data-done="true">Community Guidelines published</li>
+                <li data-done="true">Membership rules — real accounts, one-time account-linked join</li>
+                <li data-done="true">Community page live in the Hub</li>
+                <li data-done="true">Protected member backend — profiles and boards (community tables live, probe-verified 2026-08-18)</li>
+                <li data-done="true">Q&amp;A, suggestions, and voting — Community Board live (backend sync pending)</li>
+                <li data-done="true">Moderation, reports, and appeals — full loop live (report, hide/remove, appeal, approve/deny)</li>
+              </ul>
+            </div>
+          </li>
+          <li data-roadmap-title="Developer Portal and Deployed Category">
+            <span class="hub-roadmap-dot active" aria-hidden="true"></span>
+            <div>
+              <strong>Developer Portal and Deployed Category</strong>
+              <small>Application system for new developers and third-party publishing</small>
+              <div class="hub-progress-track" role="progressbar" aria-labelledby="roadmap-developer-caption" aria-valuemin="0" aria-valuemax="100"><div class="hub-progress-fill" data-progress-for="developer"></div></div>
+              <small id="roadmap-developer-caption" class="hub-progress-caption" data-progress-caption="developer">Calculating from milestones…</small>
+              <ul class="hub-milestone-list" data-milestones="developer">
+                <li data-done="true">Developer requirements &amp; acceptance standards published</li>
+                <li data-done="true">Deployed specification, submission form, and detail template</li>
+                <li data-done="true">Application and trial backend (developer tables live, probe-verified 2026-08-18)</li>
+                <li data-done="true">Security review and moderation queue — 8-point Deployed Reviews desk live</li>
+                <li data-done="true">Publishing and hosting pipeline — approve-to-public pipeline live (production hosting at deploy)</li>
+                <li data-done="true">Protected developer analytics — own-site views and needs in the Developer Portal</li>
+              </ul>
+            </div>
+          </li>
+          <li data-roadmap-title="Paragon Archive App (Browser Install PWA)">
+            <span class="hub-roadmap-dot active" aria-hidden="true"></span>
+            <div>
+              <strong>Paragon Archive App (Browser Install PWA)</strong>
+              <small>A real app experience installed straight from the browser — no store, no fees</small>
+              <div class="hub-progress-track" role="progressbar" aria-labelledby="roadmap-mobileapp-caption" aria-valuemin="0" aria-valuemax="100"><div class="hub-progress-fill" data-progress-for="mobileapp"></div></div>
+              <small id="roadmap-mobileapp-caption" class="hub-progress-caption" data-progress-caption="mobileapp">Calculating from milestones…</small>
+              <ul class="hub-milestone-list" data-milestones="mobileapp">
+                <li data-done="true">Installable PWA foundation live with offline shell</li>
+                <li data-done="true">App plan FINAL (owner, 2026-08-24): the app exists 100% as a browser-installable PWA — Play Store packaging cancelled, zero fees; it runs fullscreen like a real app once installed</li>
+                <li data-done="true">Mobile-native design adaptation — safe-area insets, standalone-mode ergonomics, app shortcuts, iOS standalone metas</li>
+                <li data-done="true">Real-app polish — board-style app topbar, share sheet, notification permission opt-in with test notification (2026-08-24)</li>
+                <li data-done="true">App-mode hardening — offline shell, cached catalogue, install prompt handling, standalone display override</li>
+                <li data-done="false">Server push-notification delivery + final install verification on the production HTTPS domain (needs the domain — honest blocker)</li>
+              </ul>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <div class="hub-roadmap-group">
+        <h3 class="hub-roadmap-group-title">📅 PLANNED</h3>
+        <ol id="rm-pub-planned" class="hub-roadmap-timeline">
+          <li><span class="hub-roadmap-dot" aria-hidden="true"></span><div><strong>Paragon Archive Platform Launch</strong><small>Target: August 2027 — the archive goes live to the world</small></div></li>
+          <li><span class="hub-roadmap-dot" aria-hidden="true"></span><div><strong>Google AdSense Revenue Track</strong><small>Ad slots + policy pages built (2026-08-24) · free application opens with the production domain · ads run only after Google approves — see docs/ADSENSE-SETUP.md</small></div></li>
+          <li><span class="hub-roadmap-dot" aria-hidden="true"></span><div><strong>First 100 Websites Live</strong><small>2027 target — every catalogued Paragon website built and real</small></div></li>
+          <li><span class="hub-roadmap-dot" aria-hidden="true"></span><div><strong>Websites 101–200</strong><small>Second wave of Paragon websites</small></div></li>
+          <li><span class="hub-roadmap-dot" aria-hidden="true"></span><div><strong>Multi-language Support</strong><small>Archive in 10+ languages</small></div></li>
+          <li><span class="hub-roadmap-dot" aria-hidden="true"></span><div><strong>Paragon Archive Desktop App</strong><small>Native desktop experience</small></div></li>
+        </ol>
+      </div>
+
+      <div class="hub-roadmap-group">
+        <h3 class="hub-roadmap-group-title coming">🔮 COMING SOON — NEW PARAGON PRODUCTS</h3>
+        <ol id="rm-pub-coming" class="hub-roadmap-timeline">
+          <li><span class="hub-roadmap-dot coming" aria-hidden="true"></span><div><strong>🧬 RxLife Network</strong><small>A comprehensive platform connecting healthcare professionals, patients and pharmaceutical resources in one network. Reimagining how health information flows.</small></div></li>
+          <li><span class="hub-roadmap-dot coming" aria-hidden="true"></span><div><strong>💊 Pharmapaedia</strong><small>The world's most accessible encyclopedia of pharmaceutical knowledge. Drug info, interactions, research and education — free and open for everyone.</small></div></li>
+          <li><span class="hub-roadmap-dot coming" aria-hidden="true"></span><div><strong>🌐 More Paragon Platforms</strong><small>Multiple new Paragon products are in early concept stages. Each one built with the same mission: free, exceptional and accessible to the world.</small></div></li>
+          <li><span class="hub-roadmap-dot coming" aria-hidden="true"></span><div><strong>🏗️ Paragon Ecosystem</strong><small>The long-term vision is a complete ecosystem of Paragon products and platforms — all connected, all free, all built to make technology work for everyone, not just those who can afford it.</small></div></li>
+        </ol>
+      </div>
+
+      <blockquote class="hub-founder-quote hub-roadmap-quote">“We build what the world needs. We give it away for free. That is the Paragon way.”<footer>— Paragon, Founder</footer></blockquote>
+    </section>
+  </div>
+
+  <div id="hub-page-documentation" class="hub-page-panel" hidden>
+  <section class="hub-hero" aria-labelledby="hub-title">
+    <div class="hub-hero-grid" aria-hidden="true"></div>
+    <div class="hub-hero-orb hub-hero-orb-one" aria-hidden="true"></div>
+    <div class="hub-hero-orb hub-hero-orb-two" aria-hidden="true"></div>
+    <p class="hub-kicker"><img class="settings-brand-mark" src="assets/brand/logo-mark.png" alt=""> OFFICIAL ARCHIVE CHANNEL</p>
+    <h1 id="hub-title">Everything about the Archive.<br><span>One honest gateway.</span></h1>
+    <p>Policies, platform documentation, roadmap, status, developer standards, community rules, and the future path for publishing websites inside Paragon Archive.</p>
+    <div class="hub-hero-actions">
+      <a class="primary-action" href="#overview">Explore the Hub</a>
+      <a class="secondary-action" href="#terms">Read the Terms</a>
+    </div>
+    <div class="hub-launch-state" role="status">
+      <span class="hub-state-dot hub-state-prepared" aria-hidden="true"></span>
+      <div><strong>Documentation published · Platform foundations in development</strong><small>Community, Team Gateway, developer applications, and Deployed hosting are not accepting live activity yet.</small></div>
+    </div>
+  </section>
+
+  <nav class="hub-section-nav" aria-label="Archive Hub documentation sections">
+    <a href="#overview">Overview</a>
+    <a href="#about">About</a>
+    <a href="#privacy-policy">Privacy</a>
+    <a href="#terms">Terms</a>
+    <a href="#help">Help</a>
+    <a href="#request-site">Request</a>
+    <a href="#community-guidelines">Community</a>
+    <a href="#cookie-policy">Cookies</a>
+    <a href="#developers">Developers</a>
+    <a href="#deployed">Deployed</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#system-status">Status</a>
+    <a href="#membership">Membership</a>
+    <a href="#categories">Categories</a>
+  </nav>
+
+  <section id="overview" class="hub-doc-section hub-overview" aria-labelledby="overview-title">
+    <header class="hub-section-heading">
+      <p class="eyebrow">Archive gateway</p>
+      <h2 id="overview-title">Paragon Archive Hub</h2>
+      <p>The Hub is the official documentation and publishing channel connected to Paragon Archive. Public information is available now. Protected operational systems remain closed until their secure backends and authorization claims are activated.</p>
+    </header>
+    <div class="hub-gateway-grid">
+      <a href="#request-site"><span>💡</span><div><strong>Request a Website</strong><small>Submit an idea through the existing account-only request flow.</small></div><b>View</b></a>
+      <a href="#about"><span>◈</span><div><strong>About Paragon</strong><small>Story, mission, roadmap, values, founder, and team.</small></div><b>View</b></a>
+      <a href="#privacy-policy"><span>🔒</span><div><strong>Privacy &amp; Security</strong><small>Policy, consent controls, and available data tools.</small></div><b>View</b></a>
+      <a href="#help"><span>🆘</span><div><strong>Help &amp; Support</strong><small>Contact a real person and report bugs securely.</small></div><b>View</b></a>
+      <a href="#terms"><span>📜</span><div><strong>Terms &amp; Conditions</strong><small>Plain-language platform rules effective August 1, 2026.</small></div><b>View</b></a>
+      <a href="#system-status"><span>📊</span><div><strong>System Status</strong><small>Verified current readiness without false operational claims.</small></div><b>View</b></a>
+      <a href="#deployed" class="hub-planned-link"><span>🚀</span><div><strong>Deploy a Website</strong><small>Requirements and form preview · submissions not open.</small></div><b>Planned</b></a>
+      <a href="#team-gateway" class="hub-planned-link"><span>🛡️</span><div><strong>Paragon Team Gateway</strong><small>Protected staff/developer access · authorization not launched.</small></div><b>Planned</b></a>
+    </div>
+    <aside class="hub-honesty-note">
+      <strong>Current implementation boundary</strong>
+      <p>This page publishes approved documentation and front-end previews. It does not grant developer status, accept website ZIP uploads, process payments, expose private analytics, moderate a live community, or authorize Team access. Those actions require protected Supabase claims, private storage, moderation tools, and production activation.</p>
+    </aside>
+  </section>
+
+
+  <section id="about" class="hub-integrated-page hub-doc-section" aria-label="About Paragon">
+<header class="about-page-hero">
+    <img class="hub-page-illus" src="assets/illustrations/header-about.jpg" alt="" loading="lazy">
+    <div class="about-page-kicker"><span aria-hidden="true">◈</span> ABOUT PARAGON</div>
+    <h1>Built with purpose.<br><span>Driven by passion.</span></h1>
+    <p>Free for everyone.</p>
+    <a class="request-hero-action" href="#about-story">Read our story </a>
+    <div class="about-hero-mark" aria-hidden="true">◈</div>
+    <div class="about-hero-orb about-hero-orb-one" aria-hidden="true"></div>
+    <div class="about-hero-orb about-hero-orb-two" aria-hidden="true"></div>
+  </header>
+
+  <section id="about-story" class="about-story-card about-section" aria-labelledby="about-story-title">
+    <div class="about-section-label"><span>01</span><p class="eyebrow">The Story</p></div>
+    <h2 id="about-story-title">Where It All Started</h2>
+    <div class="about-prose">
+      <p>On August 1, 2026 one idea changed everything.</p>
+      <p>It started simply — a desire to build. Not just one website but many. A growing list of tools, platforms and experiences that people actually needed.</p>
+      <p>But as the list grew a new question emerged: <em>how do people find all of this?</em></p>
+      <p>How does someone know where to go for the right tool, the right resource, the right experience — without wasting time, filling their phone with apps or fighting through the noise of the internet?</p>
+      <p>The answer became Paragon Archive.</p>
+      <p>Not a search engine. Not a directory. Something entirely different — a handcrafted collection of free, high-quality websites all built by the same team, all living in one place, all accessible with a single account.</p>
+      <p class="about-prose-emphasis">One home. No stress. No storage problems. No cost. Just everything you need, right here.</p>
+      <p>That was the vision on day one. It still is today.</p>
+    </div>
+  </section>
+
+  <section class="about-mission-card about-section" aria-labelledby="about-mission-title">
+    <div class="about-section-label"><span>02</span><p class="eyebrow">The Mission</p></div>
+      <h2 id="about-mission-title">Why We Exist</h2>
+    <img class="hub-page-illus about-inline-illus" src="assets/illustrations/free-for-everyone.jpg" alt="" loading="lazy">
+    <div class="about-prose">
+      <p>The world should not be divided into those who have access to great tools and those who do not.</p>
+      <p>The best calendar app should not cost money. The best design tool should not require a subscription. The best place to learn, create, play, communicate and manage your life should not be locked behind a paywall or buried under a hundred different downloads.</p>
+      <p>Paragon exists to change that.</p>
+      <p>We build websites — real, fully-featured, thoughtfully designed websites — and we give them to the world for free. Not free with a catch. Not free until you need the good stuff. Actually free.</p>
+      <p>Because we believe that is what the internet was always supposed to be.</p>
+    </div>
+    <div class="about-mission-mantra"><span>One account.</span><span>One archive.</span><span>Everything you need.</span><strong>Free.</strong></div>
+  </section>
+
+  <section class="about-name-card about-section" aria-labelledby="about-name-title">
+    <div class="about-name-mark" aria-hidden="true">◈</div>
+    <div>
+      <div class="about-section-label"><span>03</span><p class="eyebrow">The Name</p></div>
+      <h2 id="about-name-title">What Paragon Means</h2>
+      <div class="about-prose">
+        <p>Paragon means a perfect example. Something exceptional in every way.</p>
+        <p>We chose that name deliberately because it is not just what we aspire to build — it is what we believe the world deserves.</p>
+        <p class="about-prose-emphasis">Exceptional tools. Exceptional access. Exceptional ease.</p>
+        <p>The name is a promise we make with every website we add to the archive. Whatever we build will be built right.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="about-vision-card about-section" aria-labelledby="about-vision-title">
+    <div class="about-section-label"><span>04</span><p class="eyebrow">The Vision</p></div>
+    <h2 id="about-vision-title">Where We Are Going</h2>
+    <div class="about-roadmap" aria-label="Paragon timeline">
+      <img class="hub-page-illus about-inline-illus" src="assets/illustrations/timeline-journey.jpg" alt="" loading="lazy">
+      <h3>PARAGON TIMELINE</h3>
+      <div class="about-roadmap-list">
+        <article><span class="about-roadmap-dot" aria-hidden="true"></span><div><strong>August 2026</strong><p>The idea is born. One person, one vision, one belief that the web could be better.</p></div></article>
+        <article><span class="about-roadmap-dot" aria-hidden="true"></span><div><strong>2027</strong><p>Paragon Archive launches. The first home of free, curated, Paragon-built websites goes live.</p></div></article>
+        <article><span class="about-roadmap-dot" aria-hidden="true"></span><div><strong>2027</strong><p>The first 100 websites go live inside the archive. Every category. Every need. One place.</p></div></article>
+        <article><span class="about-roadmap-dot" aria-hidden="true"></span><div><strong>The Future</strong><p>Paragon Archive becomes the home of all websites. Free. For everyone. Forever. More Paragon products are coming. The mission does not stop at 100.</p></div></article>
+      </div>
+    </div>
+    <div class="about-prose about-vision-copy">
+      <p>We see a future where you do not need to kill your phone storage with dozens of apps. Where you do not need ten different accounts to manage your digital life. Where everything you need is one tap away and it costs you nothing.</p>
+      <p>That is what we are building toward every single day.</p>
+      <p class="about-prose-emphasis">More Paragon products are on the way. This is only the beginning.</p>
+    </div>
+  </section>
+
+  <section class="about-values-card about-section" aria-labelledby="about-values-title">
+    <div class="about-section-label"><span>05</span><p class="eyebrow">The Values</p></div>
+    <h2 id="about-values-title">What We Stand For</h2>
+    <div class="about-values-grid">
+      <article><span aria-hidden="true">◎</span><h3>Free and Accessible Above All</h3><p>Every single thing we build is free. Not freemium. Free. We believe access to great tools should never depend on how much money someone has or where in the world they live. This value is non-negotiable at Paragon.</p></article>
+      <article><span aria-hidden="true">◆</span><h3>Quality Over Quantity</h3><p>We would rather build one exceptional website than ten mediocre ones. Everything that goes into the archive is thought through, designed carefully and tested properly. If it is not ready it does not ship.</p></article>
+      <article><span aria-hidden="true">♧</span><h3>Built for Real People</h3><p>We build for the person who needs a better budget, the student who needs a free study tool, the creator who cannot afford expensive design software and everyone who deserves better from the web.</p></article>
+      <article><span aria-hidden="true">◌</span><h3>Honest and Open</h3><p>No hidden fees. No dark patterns. No confusing terms. We tell you what we collect, what we do with it and how to request its removal. Privacy is a right, not a feature.</p></article>
+      <article><span aria-hidden="true">✦</span><h3>Community Driven</h3><p>Paragon Archive grows because of the people who use it. Every request submitted, every review written and every idea shared makes the archive better. You are not just a user here. You are part of what this is.</p></article>
+    </div>
+  </section>
+
+  <section class="about-founder-card about-section" aria-labelledby="about-founder-title">
+    <div class="about-founder-layout">
+      <figure class="about-founder-photo">
+        <div role="img" aria-label="Founder photo placeholder"><span>◈</span><strong>Founder photo</strong><small>Placeholder</small></div>
+        <figcaption>Paragon · Founder</figcaption>
+      </figure>
+      <div class="about-founder-letter">
+        <div class="about-section-label"><span>06</span><p class="eyebrow">A Message from the Founder</p></div>
+        <h2 id="about-founder-title">From Paragon, To You</h2>
+        <blockquote>
+          <p>My name is Paragon.</p>
+          <p>I got into tech because I wanted to change the world. That sounds like something everyone says — but I mean it in the most specific way possible. I wanted to change the experience of being a person on the internet. I learned everything I could: frontend, backend, web development, software development, design, systems — everything. Not to get a job. To build something.</p>
+          <p>Paragon Archive is that something.</p>
+          <p>I built it because I was tired of the way things worked. Too many apps. Too little storage. Too many subscriptions. Too many websites that charge you for things that should be free. I wanted one place where anyone — regardless of where they are from or what they have — could find exactly what they need and use it without friction.</p>
+          <p>This is not just a website to me. It is my life's work as a tech person. It is proof that things can be different. That free does not mean low quality. That accessible does not mean basic. That one person with a vision and a team that believes in it can build something that genuinely helps people.</p>
+          <p>We are just getting started. Stay with us.</p>
+          <footer>— Paragon<br><span>Founder, Paragon Archive</span></footer>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <section class="about-team-card about-section" aria-labelledby="about-team-title">
+    <div class="about-section-label"><span>07</span><p class="eyebrow">The Team</p></div>
+    <h2 id="about-team-title">The People Behind the Archive</h2>
+    <div class="about-prose">
+      <p>Paragon Archive is led by its founder and supported by a dedicated team working behind the scenes — developers, designers and builders who share the same belief that the web should be better and freer for everyone.</p>
+      <p>We operate as a lean, passionate team. We do not have a massive office or a boardroom. We have a shared mission and we show up for it every day.</p>
+      <p class="about-prose-emphasis">More of our team will step forward as Paragon grows. For now the work speaks for itself.</p>
+    </div>
+    <div class="about-team-roles" aria-label="Team roles"><span>⌨ Developers</span><span>✎ Designers</span><span>◇ Builders</span></div>
+  </section>
+
+  <section class="about-contact-card about-section" aria-labelledby="about-contact-title">
+    <div class="about-section-label"><span>08</span><p class="eyebrow">Contact and More</p></div>
+    <h2 id="about-contact-title">Get In Touch</h2>
+    <p>For anything at all — questions, feedback, ideas, concerns or just to say hello:</p>
+    <a class="about-contact-email" href="mailto:paragon.archive.2026@gmail.com?subject=Other">📧 paragon.archive.2026@gmail.com</a>
+    <p>Change the subject line to whatever fits:</p>
+    <div class="about-subject-links" aria-label="Email subject choices">
+      <a href="mailto:paragon.archive.2026@gmail.com?subject=Support">Support</a>
+      <a href="mailto:paragon.archive.2026@gmail.com?subject=Privacy">Privacy</a>
+      <a href="mailto:paragon.archive.2026@gmail.com?subject=Bug">Bug</a>
+      <a href="mailto:paragon.archive.2026@gmail.com?subject=Partnership">Partnership</a>
+      <a href="mailto:paragon.archive.2026@gmail.com?subject=Press">Press</a>
+      <a href="mailto:paragon.archive.2026@gmail.com?subject=Other">Other</a>
+    </div>
+    <div class="about-contact-promise"><p>We read everything. We respond to everything. Give us up to 72 hours.</p><strong>More Paragon products are coming soon.</strong><span>Watch this space. The archive is just the beginning.</span></div>
+  </section>
+
+  <section class="about-signoff" aria-label="Paragon signoff">
+    <div aria-hidden="true">◈</div>
+    <h2>PARAGON</h2>
+    <p>The Web, Reimagined — Every Website You Need, One Archive.</p>
+    <small>© 2026 Paragon. Built free. For everyone.</small>
+  </section>
+  </section>
+
+
+  <section id="privacy-policy" class="hub-integrated-page hub-doc-section" aria-label="Privacy & Security">
+<header class="legal-hero">
+    <img class="hub-page-illus" src="assets/illustrations/header-privacy.jpg" alt="" loading="lazy">
+    <p class="eyebrow">Paragon Archive</p>
+    <h1>Privacy &amp; Security Policy</h1>
+    <div class="legal-dates"><span><strong>Effective Date:</strong> August 1, 2026</span><span><strong>Last Updated:</strong> August 5, 2026</span></div>
+    <p>At Paragon, we believe the internet should be free, accessible and safe for everyone. Your privacy is not an afterthought here — it is built into everything we do. This policy is written in plain human language because we respect you enough to be honest and clear about how we handle your data. No legal maze. No confusing jargon. Just the truth.</p>
+  </header>
+
+  <aside class="legal-status-note"><strong>Current implementation note:</strong> Google Analytics and Google Ads scripts are not currently connected in this exported front end. Privacy preferences are ready so future integrations can respect consent before loading.</aside>
+
+  <nav class="legal-toc" aria-label="Policy sections">
+    <strong>On this page</strong>
+    <div><a href="#who-we-are">Who We Are</a><a href="#data-we-collect">Data We Collect</a><a href="#data-use">How We Use Data</a><a href="#cookies">Cookies</a><a href="#rights">Your Rights</a><a href="#security">Security</a><a href="#contact">Contact</a></div>
+  </nav>
+
+  <article class="legal-article">
+    <section id="who-we-are"><h2>1. Who We Are</h2><p>Paragon Archive is a product of Paragon, a tech brand founded and led by a passionate team based in Nigeria. We build free, accessible web tools for everyone on the planet. You can reach us at any time at <a href="mailto:paragon.archive.2026@gmail.com">paragon.archive.2026@gmail.com</a> — just change the subject line depending on what you need to talk about.</p></section>
+
+    <section id="data-we-collect"><h2>2. What Data We Collect</h2><p>When you use Paragon Archive we collect the following information to make your experience work properly and improve over time:</p>
+      <h3>Account Information</h3><ul><li>Your name or username</li><li>Your email address</li><li>Your password (stored securely, never readable by anyone including us)</li><li>Your profile picture if you choose to upload one</li><li>The date you created your account</li></ul>
+      <h3>Usage Data</h3><ul><li>Which websites inside the archive you visit and when</li><li>How long you spend on each website</li><li>Websites you save, bookmark or add to collections</li><li>Reviews and ratings you write</li><li>Website requests you submit</li><li>Support messages, bug reports and optional screenshots you submit</li><li>Your recently visited history</li><li>Your recent search phrases, stored on this device or temporarily in Guest mode</li><li>Your achievements and stats</li></ul>
+      <h3>Device and Technical Data</h3><p>Our hosting, authentication and security providers may process technical request data needed to deliver and protect the service:</p><ul><li>Your browser type and version</li><li>Your device type (mobile, tablet, desktop)</li><li>Your operating system</li><li>Your IP address in infrastructure/security logs</li><li>Approximate country or city derived by a provider, not your exact address</li><li>Pages requested and basic navigation events only when the relevant service is active and permitted</li></ul>
+      <h3>Cookie Data</h3><ul><li>Essential storage that keeps you logged in and makes the site function</li><li>Optional tracking cookies only if a future tracking integration is activated and you consent</li></ul>
+      <h3>Analytics Data</h3><ul><li>Google Analytics is not currently connected</li><li>If it is activated later, it may collect consented aggregate traffic patterns, popular sections and general usage so we can improve the Archive</li></ul>
+    </section>
+
+    <section id="data-use"><h2>3. What We Do With Your Data</h2><p>We use your data for these purposes only:</p><ul><li>To create and manage your account</li><li>To personalize your experience (recently visited, recommendations, saved sites)</li><li>To remember your preferences (dark mode, notification settings)</li><li>To show you relevant content inside the archive</li><li>To improve Paragon Archive based on how people use it</li><li>To respond to your support requests, bug reports and feedback</li><li>To send you notifications about saved-website updates if you opt in and the production notification service is activated</li><li>To process your website requests and notify you if your requested website gets built</li></ul></section>
+
+    <section id="advertisements"><h2>4. Advertisements</h2><p>Paragon Archive does not currently load an advertising service. We may apply for a consent-aware ad service later to help keep the platform free. If ads are activated:</p><ul><li>You will be given control through the available consent and ad preferences</li><li>Ads will be clearly labeled so you know what is an ad and what is Paragon content</li><li>We will not sell your personal information to advertisers</li><li>Any permitted targeting will use consented general category signals rather than a hidden Paragon identity profile</li><li>You will be able to manage the available ad preferences in Account settings</li></ul></section>
+
+    <section id="cookies"><h2>5. Cookies</h2><h3>Essential Cookies</h3><p>These are required for the website to work. Without them you cannot log in, stay logged in or use core features. You cannot opt out of essential cookies and still use the site.</p><h3>Tracking Cookies</h3><p>No tracking-cookie integration is currently connected. If one is activated later, it may measure pages visited, time spent and navigation patterns only after the relevant consent. You can keep tracking disabled in Privacy Controls and the core site will still work.</p><p>A cookie notice will appear on your first visit giving you the option to accept or manage your cookie preferences.</p></section>
+
+    <section id="analytics"><h2>6. Google Analytics</h2><p>Google Analytics is not currently connected. If we activate it later, it must first respect your Analytics Tracking preference and will be used for aggregate usage statistics rather than to expose your Paragon account identity. You can keep Analytics Tracking turned off under Privacy Controls.</p></section>
+
+    <section id="sharing"><h2>7. Data Sharing</h2><p>We do not sell your data. We do not trade your data. We do not give your data to anyone for their own marketing purposes. Period.</p><p>The only situations where your data may be seen by others:</p><ul><li><strong>Email delivery providers</strong> receive the destination email address and message content only to deliver requested authentication or transactional messages</li><li><strong>Google Analytics</strong> may receive consented aggregate usage data only if the future integration is activated</li><li><strong>Google Ads or AdSense</strong> may receive consented ad-delivery/category signals only if Paragon is approved and the future integration is activated</li><li><strong>Legal requirement</strong> — if a valid legal authority in Nigeria requires us to disclose data we will comply with Nigerian law and notify you where legally permitted to do so</li></ul></section>
+
+    <section id="retention"><h2>8. How Long We Keep Your Data</h2><p>We keep account data while your account is active and retain support/request records only as needed to operate, secure and improve the service. Secure account deletion and automated 30-day purging are not yet activated. Until that workflow exists, use the Delete Account control for current status and contact Privacy support with a deletion request.</p></section>
+
+    <section id="rights"><h2>9. Your Rights and Controls</h2><p>You are in full control of your data on Paragon Archive. Here is what you can do at any time:</p>
+      <h3>Delete Your Account</h3><p>Go to Account, then Settings, then Privacy &amp; Security, then Delete Account. The current control explains that secure deletion processing is pending and directs you to Privacy support; it does not falsely claim immediate deletion.</p>
+      <h3>Download Your Data</h3><p>Go to Account, then Settings, then Privacy &amp; Security, then Download My Data. You will receive a file containing the account/browser data currently available to the Archive, excluding passwords and authentication tokens.</p>
+      <h3>Opt Out of Analytics</h3><p>Go to Account, then Settings, then Privacy &amp; Security, then Privacy Controls, then Turn off Analytics Tracking.</p>
+      <h3>Manage Cookies</h3><p>Go to Account, then Settings, then Privacy &amp; Security, then Cookie Preferences.</p>
+      <h3>Manage Ad Preferences</h3><p>Go to Account, then Settings, then Privacy &amp; Security, then Ad Preferences.</p>
+      <h3>Edit or Update Your Information</h3><p>Profile editing is planned for Account settings. Until it is activated, contact Support if account information needs correction.</p>
+    </section>
+
+    <section id="privacy-controls" class="legal-controls"><h2>Privacy Controls</h2><p>Essential authentication/site storage always remains enabled. Optional integrations must respect these choices.</p>
+      <label><span><strong>Analytics tracking</strong><small>Allow future anonymous analytics integration.</small></span><input id="privacy-analytics" class="toggle" type="checkbox"></label>
+      <label><span><strong>Tracking cookies</strong><small>Allow future usage/navigation tracking cookies.</small></span><input id="privacy-tracking" class="toggle" type="checkbox"></label>
+      <label><span><strong>Ad personalization</strong><small>Allow future general category-based ad preferences.</small></span><input id="privacy-ads" class="toggle" type="checkbox"></label>
+      <div class="legal-control-actions"><button id="privacy-controls-save" class="primary-action" type="button">Save Preferences</button><button id="privacy-download-data" class="secondary-action" type="button">Download My Data</button><button id="privacy-delete-account" class="danger-action" type="button">Delete Account</button></div>
+      <p id="privacy-controls-status" class="auth-form-status" aria-live="polite"></p>
+    </section>
+
+    <section id="security"><h2>10. Account Security</h2><h3>HTTPS Encryption</h3><p>The production Archive and every submission/authentication endpoint must be served over HTTPS so data is encrypted in transit. Do not submit sensitive information through an unencrypted local or preview address.</p><h3>Password Security</h3><p>Your password is never stored in plain text. It is hashed and encrypted before storage meaning even our team cannot see what your password is.</p><h3>Your Responsibility</h3><p>Please use a strong password and keep it safe. Do not share your account with others. If you believe your account has been compromised contact us immediately at <a href="mailto:paragon.archive.2026@gmail.com?subject=Account%20Security">paragon.archive.2026@gmail.com</a> with the subject line <strong>Account Security</strong>.</p></section>
+
+    <section id="children"><h2>11. Children and Age</h2><p>Paragon Archive is open to users of all ages. We do not specifically target children but we do not restrict access by age either. Parents and guardians are encouraged to supervise younger users. We do not knowingly collect data from children in a way that would harm them and if you believe a child's data has been collected inappropriately please contact us immediately.</p></section>
+
+    <section id="international"><h2>12. Nigeria and International Users</h2><p>Paragon Archive is based in Nigeria. If you are accessing the archive from outside Nigeria your data may be processed under Nigerian standards. We do our best to align with international privacy principles including the spirit of GDPR and similar frameworks even though we are not legally bound by them as a Nigerian-based platform. We believe good privacy practices are universal.</p></section>
+
+    <section id="changes"><h2>13. Changes to This Policy</h2><p>If we update this privacy policy we will post the new version here with an updated date at the top. For significant changes we will notify you through the Updates tab or via email. Continuing to use Paragon Archive after changes means you accept the updated policy.</p></section>
+
+    <section id="contact"><h2>14. Contact Us About Privacy</h2><p>For any privacy-related questions, concerns or requests contact us at:</p><p>📧 <a href="mailto:paragon.archive.2026@gmail.com?subject=Privacy"><strong>paragon.archive.2026@gmail.com</strong></a><br>Subject line: <strong>Privacy</strong></p><p>We will respond within 72 hours.</p></section>
+  </article>
+  </section>
+
+
+  <section id="help" class="hub-integrated-page hub-doc-section" aria-label="Help & Support">
+<header class="support-page-hero">
+    <img class="hub-page-illus" src="assets/illustrations/header-support.jpg" alt="" loading="lazy">
+    <div class="support-page-kicker"><span aria-hidden="true">🆘</span> HELP &amp; SUPPORT</div>
+    <h1>We are here.<br><span>Ask us anything.</span></h1>
+    <p>Whatever you need — we will sort it out together.</p>
+    <a class="request-hero-action" href="#support-form-section">Get help </a>
+    <div class="support-hero-orb support-hero-orb-one" aria-hidden="true"></div>
+    <div class="support-hero-orb support-hero-orb-two" aria-hidden="true"></div>
+  </header>
+
+  <section class="support-intro-card" aria-labelledby="support-intro-title">
+    <p class="eyebrow">Human support</p>
+    <h2 id="support-intro-title">We Are Real People</h2>
+    <div class="support-intro-copy">
+      <img class="support-bug-illus" src="assets/illustrations/bug-report.png" alt="" loading="lazy">
+      <p>Paragon Archive is built by real people who care deeply about your experience. If something is not working the way it should, if you have a question, if you found a bug or if you just need guidance — we are here.</p>
+      <p>Reach out through the form below or send us a direct email and we will get back to you within <strong>72 hours</strong>.</p>
+      <p class="support-intro-closing">No bots. No automated runaround. A real person from the Paragon team will read your message and respond.</p>
+    </div>
+  </section>
+
+  <section class="support-options" aria-label="Contact options">
+    <article class="support-option-card">
+      <span class="support-option-icon" aria-hidden="true">📬</span>
+      <h2>Contact Form</h2>
+      <p>Fill in the form below and we will get back to you within 72 hours.</p>
+      <a href="#support-form-section">Open contact form </a>
+    </article>
+    <article class="support-option-card support-email-card">
+      <span class="support-option-icon" aria-hidden="true">✉️</span>
+      <h2>Direct Email</h2>
+      <a class="support-email-address" href="mailto:paragon.archive.2026@gmail.com?subject=Support">paragon.archive.2026@gmail.com</a>
+      <p>Use subject lines:</p>
+      <div class="support-subject-links" aria-label="Direct email subject choices">
+        <a href="mailto:paragon.archive.2026@gmail.com?subject=Support">Support</a>
+        <a href="mailto:paragon.archive.2026@gmail.com?subject=Bug">Bug</a>
+        <a href="mailto:paragon.archive.2026@gmail.com?subject=Billing">Billing</a>
+        <a href="mailto:paragon.archive.2026@gmail.com?subject=Privacy">Privacy</a>
+        <a href="mailto:paragon.archive.2026@gmail.com?subject=Other">Other</a>
+      </div>
+    </article>
+  </section>
+
+  <section id="support-form-section" class="support-form-card" aria-labelledby="support-form-title">
+    <div class="support-form-heading">
+      <p class="eyebrow">Contact Paragon</p>
+      <h2 id="support-form-title">Send Us a Message</h2>
+      <p>Tell us what happened and give us enough detail to help you properly.</p>
+    </div>
+
+    <form id="support-form" enctype="multipart/form-data">
+      <div class="support-form-grid">
+        <label class="auth-field" for="support-name">
+          <span>Your Name <b aria-hidden="true">*</b></span>
+          <input id="support-name" name="name" type="text" minlength="2" maxlength="80" autocomplete="name" required placeholder="What should we call you?">
+        </label>
+        <label class="auth-field" for="support-email">
+          <span>Your Email <b aria-hidden="true">*</b></span>
+          <input id="support-email" name="email" type="email" maxlength="254" inputmode="email" autocomplete="email" required placeholder="We will reply here">
+        </label>
+      </div>
+
+      <label class="auth-field" for="support-topic">
+        <span>What do you need help with? <b aria-hidden="true">*</b></span>
+        <select id="support-topic" name="topic" required>
+          <option value="">Select topic</option>
+          <option>General Question</option>
+          <option>Bug Report</option>
+          <option>Account Issue</option>
+          <option>Website Not Loading</option>
+          <option>Privacy Concern</option>
+          <option>Feature Suggestion</option>
+          <option>Other</option>
+        </select>
+      </label>
+
+      <label class="auth-field" for="support-message">
+        <span>Describe your issue <b aria-hidden="true">*</b></span>
+        <textarea id="support-message" name="message" minlength="20" maxlength="2000" required aria-describedby="support-message-count" placeholder="Tell us exactly what happened, what you were trying to do and what went wrong. The more detail you give us the faster we can help you."></textarea>
+        <output id="support-message-count" class="request-character-count" for="support-message" aria-live="polite">0 / 2000 characters</output>
+      </label>
+
+      <div class="support-upload-group">
+        <span class="support-field-label">Attach a Screenshot <small>(optional)</small></span>
+        <label id="support-drop-zone" class="support-drop-zone" for="support-attachment" tabindex="0">
+          <input id="support-attachment" name="attachment" type="file" accept="image/png,image/jpeg,image/gif" hidden>
+          <span class="support-upload-icon" aria-hidden="true">📎</span>
+          <strong>Click to attach or drag and drop</strong>
+          <small>PNG, JPG, GIF up to 10MB</small>
+        </label>
+        <div id="support-file-state" class="support-file-state" aria-live="polite" hidden>
+          <span id="support-file-name"></span>
+          <button id="support-file-remove" type="button" aria-label="Remove attached screenshot">Remove</button>
+        </div>
+      </div>
+
+      <label class="support-honeypot" for="support-company" aria-hidden="true">Company<input id="support-company" name="company" type="text" tabindex="-1" autocomplete="off"></label>
+      <p class="support-rate-note">To reduce spam, one email address can send up to three support messages in 24 hours. We do not store an IP address for this limit.</p>
+      <button id="support-submit" type="submit" class="primary-action support-submit-action">SEND MESSAGE 📬</button>
+      <p id="support-status" class="auth-form-status" aria-live="polite"></p>
+      <p class="local-data-note request-page-data-note">Your message and optional screenshot are used only to investigate and respond. Screenshots are stored privately.</p>
+    </form>
+  </section>
+
+  <section class="support-bug-card" aria-labelledby="support-bug-title">
+    <div class="support-bug-heading">
+      <span aria-hidden="true">🐞</span>
+      <div><p class="eyebrow">Help us fix it</p><h2 id="support-bug-title">Reporting a Bug</h2></div>
+    </div>
+    <p>A bug is when something on Paragon Archive does not work the way it is supposed to. Before you report please read this so we can fix it as fast as possible:</p>
+    <div class="support-bug-columns">
+      <section class="support-bug-list support-bug-yes" aria-labelledby="support-bug-counts">
+        <h3 id="support-bug-counts">What counts as a bug:</h3>
+        <ul>
+          <li>A page that will not load or crashes</li>
+          <li>A button that does not do anything when clicked</li>
+          <li>A website inside the archive that breaks or shows an error</li>
+          <li>Your account data not saving correctly</li>
+          <li>Features that are broken or behaving unexpectedly</li>
+        </ul>
+      </section>
+      <section class="support-bug-list support-bug-no" aria-labelledby="support-not-bug">
+        <h3 id="support-not-bug">What is NOT a bug:</h3>
+        <ul>
+          <li>A website you want that does not exist yet — <a href="#request-site">use Request a Website instead</a></li>
+          <li>A design choice you disagree with</li>
+          <li>Slow internet on your end</li>
+          <li>A feature you think should work differently — use Feature Suggestion instead</li>
+        </ul>
+      </section>
+    </div>
+    <section class="support-bug-include" aria-labelledby="support-bug-include-title">
+      <h3 id="support-bug-include-title">When reporting a bug please include:</h3>
+      <ul>
+        <li>What you were doing when it happened</li>
+        <li>What device and browser you were using</li>
+        <li>What you expected to happen</li>
+        <li>What actually happened</li>
+        <li>A screenshot if possible — this saves us a lot of time</li>
+      </ul>
+    </section>
+    <p class="support-bug-action">Use the contact form above and select <strong>Bug Report</strong> as your topic. Attach your screenshot directly in the form.</p>
+  </section>
+
+  <section class="support-faq-card" aria-labelledby="support-faq-title">
+    <div class="support-section-heading">
+      <p class="eyebrow">Quick answers</p>
+      <h2 id="support-faq-title">Frequently Asked Questions</h2>
+    </div>
+
+    <section class="faq-group" aria-labelledby="faq-account-title">
+      <h3 id="faq-account-title">🔑 Account</h3>
+      <div class="faq-list">
+        <details><summary>How do I create an account?</summary><p>Tap the Account tab at the bottom of the screen. You will see options to sign up with Google or with your email. Follow the steps and your account will be ready in under a minute.</p></details>
+        <details><summary>I forgot my password. What do I do?</summary><p>On the login screen tap Forgot Password and enter your email address. We will send you a link to reset your password. Check your spam folder if you do not see it within a few minutes.</p></details>
+        <details><summary>Can I use Paragon Archive without an account?</summary><p>Yes. You can browse and open all websites as a Guest. Guest saves, reviews, collections, history and progress are temporary. A Guest session ends after 30 continuous minutes away or offline, or immediately when you choose End Guest Session. If you sign in or create an account before that, the live Guest activity merges into your account.</p></details>
+        <details><summary>How do I delete my account?</summary><p>Go to Account, then Settings, then Privacy &amp; Security, then Delete Account. Secure permanent deletion still requires the planned backend deletion workflow, so the current control explains the status instead of claiming your account was deleted. You can contact Privacy support while that workflow is pending.</p></details>
+        <details><summary>Can I download my data?</summary><p>Yes. Go to Account, then Settings, then Privacy &amp; Security, then Download My Data and we will prepare a file with the data currently available to your browser and account. Passwords and authentication tokens are excluded.</p></details>
+      </div>
+    </section>
+
+    <section class="faq-group" aria-labelledby="faq-websites-title">
+      <h3 id="faq-websites-title">🌐 Websites</h3>
+      <div class="faq-list">
+        <details><summary>How do I open a website?</summary><p>Find the website on the browse page, tap it to open the detail page and then tap the OPEN button. When the website allows framing it loads inside Paragon Archive. If the website blocks embedded previews, use Open in New Tab.</p></details>
+        <details><summary>Why is a website not loading inside the archive?</summary><p>This is usually temporary or the website may block embedded previews through its security policy. Try refreshing, closing and reopening it, or use Open in New Tab. If the problem continues report it with the Bug Report form above, including the website and your browser.</p></details>
+        <details><summary>How do I save or bookmark a website?</summary><p>Open the website detail page and tap the Bookmark action. Authenticated saves appear under Saved &amp; Bookmarked in your Account tab and sync after Supabase activation. Guest saves last only for the current browser session.</p></details>
+        <details><summary>How do I write a review?</summary><p>Open the website detail page and scroll to Ratings &amp; Reviews. Tap Write a Review, choose your stars, write your thoughts and submit. Authenticated reviews can sync to your account; Guest reviews are temporary for the session.</p></details>
+        <details><summary>How do I request a website that does not exist yet?</summary><p>Go to Account, then Settings, then Request a Website or open the Request a Website page from the menu. Sign in, fill in your idea and submit it. Each account can submit one request in every rolling seven-day period.</p></details>
+      </div>
+    </section>
+
+    <section class="faq-group" aria-labelledby="faq-settings-title">
+      <h3 id="faq-settings-title">🔔 Notifications and Settings</h3>
+      <div class="faq-list">
+        <details><summary>How do I turn on notifications for a website I like?</summary><p>Save the website first, then go to Account, then Settings, then Notifications. Saved website updates are highlighted in the Updates tab for authenticated users. Optional email delivery will become available after the production notification service is activated.</p></details>
+        <details><summary>How do I switch between dark mode and light mode?</summary><p>Go to Account, then Settings, then Dark Mode toggle. You can switch between dark and light mode at any time. The site defaults to dark mode.</p></details>
+        <details><summary>How do I opt out of analytics tracking?</summary><p>Go to Account, then Settings, then Privacy &amp; Security, then Privacy Controls and turn off Analytics Tracking. Analytics scripts are not currently connected in this export.</p></details>
+      </div>
+    </section>
+
+    <section class="faq-group" aria-labelledby="faq-pricing-title">
+      <h3 id="faq-pricing-title">💰 Pricing</h3>
+      <div class="faq-list">
+        <details><summary>Is Paragon Archive free?</summary><p>Yes. Paragon Archive and every Paragon-built website are intended to remain completely free, and creating an account is free. Future approved Deployed websites may offer clearly labelled premium features under the Deployed rules; those transactions are not handled by Paragon.</p></details>
+        <details><summary>Will it always be free?</summary><p>That is the plan and the promise. Paragon exists to make things free and easy for everyone. The future plan is to keep the lights on through optional ads that you control. No advertising scripts are currently connected, and any future integration must respect your consent choices.</p></details>
+      </div>
+    </section>
+  </section>
+
+  <section class="support-docs-card" aria-labelledby="support-docs-title">
+    <div class="support-section-heading">
+      <p class="eyebrow">Start here</p>
+      <h2 id="support-docs-title">How to Use Paragon Archive</h2>
+      <p>New here? This quick guide will get you up and running in no time.</p>
+    </div>
+
+    <div class="docs-steps">
+      <article class="docs-step">
+        <div class="docs-step-number">1</div>
+        <div class="docs-step-content"><h3>Step 1 — Account</h3><p>Tap the Account tab at the bottom to open your personal Paragon space. From there you can sign in, create an account or continue temporarily as Guest, then manage your saved activity and settings.</p><div class="docs-shot-placeholder docs-shot-dashboard" role="img" aria-label="Screenshot placeholder: Account area"><span>⚙️</span><strong>Account area</strong><small>Screenshot placeholder</small></div></div>
+      </article>
+      <article class="docs-step">
+        <div class="docs-step-number">2</div>
+        <div class="docs-step-content"><h3>Step 2 — Create Account</h3><p>Choose Google or email signup from Account. An authenticated account can keep bookmarks, reviews, collections, history and progress across Paragon products after Supabase activation.</p><div class="docs-shot-placeholder docs-shot-account" role="img" aria-label="Screenshot placeholder: Create account screen"><span>👤</span><strong>Create account screen</strong><small>Screenshot placeholder</small></div></div>
+      </article>
+      <article class="docs-step">
+        <div class="docs-step-number">3</div>
+        <div class="docs-step-content"><h3>Step 3 — Archive</h3><p>Return to the Websites tab to explore Website of the Day, Trending, Staff Picks, Recently Added and category-led discovery. You can also use the Search icon to find a website by name, purpose or feature.</p><div class="docs-shot-placeholder docs-shot-browse" role="img" aria-label="Screenshot placeholder: Paragon Archive browse view"><span>◈</span><strong>Archive browse view</strong><small>Screenshot placeholder</small></div></div>
+      </article>
+      <article class="docs-step">
+        <div class="docs-step-number">4</div>
+        <div class="docs-step-content"><h3>Step 4 — Open Website</h3><p>Tap any website card to open its Archive detail. Review screenshots, description, features, versions, ratings and related suggestions, then use OPEN for the embedded preview or Open in New Tab when framing is blocked.</p><div class="docs-shot-placeholder docs-shot-detail" role="img" aria-label="Screenshot placeholder: Open website detail"><span>🌐</span><strong>Website detail</strong><small>Screenshot placeholder</small></div></div>
+      </article>
+      <article class="docs-step">
+        <div class="docs-step-number">5</div>
+        <div class="docs-step-content"><h3>Step 5 — Save</h3><p>From a website detail, select Bookmark to save it. Authenticated bookmarks appear under Saved &amp; Bookmarked in Account, and you can also place websites inside collections.</p><div class="docs-shot-placeholder docs-shot-bookmark" role="img" aria-label="Screenshot placeholder: Save website action"><span>🔖</span><strong>Save website</strong><small>Screenshot placeholder</small></div></div>
+      </article>
+      <article class="docs-step">
+        <div class="docs-step-number">6</div>
+        <div class="docs-step-content"><h3>Step 6 — Stay Updated</h3><p>Tap Updates to view new websites, product changes, maintenance, announcements and featured entries. Authenticated notifications begin with a welcome message and then include new Archive activity from the account’s activation day onward.</p><div class="docs-shot-placeholder docs-shot-updates" role="img" aria-label="Screenshot placeholder: Stay Updated timeline"><span>↻</span><strong>Stay Updated</strong><small>Screenshot placeholder</small></div></div>
+      </article>
+    </div>
+  </section>
+  </section>
+
+
+  <section id="request-site" class="hub-integrated-page hub-doc-section" aria-label="Request a Website">
+<header class="request-page-hero">
+    <img class="hub-page-illus" src="assets/illustrations/header-request.jpg" alt="" loading="lazy">
+    <div class="request-page-kicker"><span aria-hidden="true">💡</span> REQUEST A WEBSITE</div>
+    <h1>You imagine it.<br><span>We build it.</span></h1>
+    <p>Paragon Archive exists because of ideas — and your idea could be the next website thousands of people use.</p>
+    <a class="request-hero-action" href="#request-form-section">Share your idea </a>
+    <div class="request-hero-orb request-hero-orb-one" aria-hidden="true"></div>
+    <div class="request-hero-orb request-hero-orb-two" aria-hidden="true"></div>
+  </header>
+
+  <div class="request-page-layout">
+    <section class="request-intro-card" aria-labelledby="request-intro-title">
+      <p class="eyebrow">Build with Paragon</p>
+      <h2 id="request-intro-title">Tell Us What You Need</h2>
+      <div class="request-intro-copy">
+        <p>Paragon Archive started with one simple belief — everything you need should be free, easy to find and actually work.</p>
+        <p>We have mapped out our first 100 websites and we are not stopping there. But the next one we build? It could be yours.</p>
+        <p>If there is something you wish existed on the web — a tool, a game, a resource, a creative space — tell us about it.</p>
+        <p>We read every single request that comes in. The most requested ideas get moved to the top of our build list and when we start working on your idea we will make sure you know about it.</p>
+        <p>No idea is too big or too small.</p>
+        <p class="request-intro-closing">This is how Paragon grows — with you.</p>
+      </div>
+      <div class="request-process" aria-label="What happens after you submit">
+        <div><span>1</span><p><strong>You share</strong><small>Tell us what should exist.</small></p></div>
+        <div><span>2</span><p><strong>We review</strong><small>Every request is read.</small></p></div>
+        <div><span>3</span><p><strong>Ideas rise</strong><small>Popular needs move up the list.</small></p></div>
+      </div>
+    </section>
+
+    <section id="request-form-section" class="request-form-card" aria-labelledby="request-form-title">
+      <div class="request-form-heading">
+        <p class="eyebrow">Your idea</p>
+        <h2 id="request-form-title">Submit Your Request</h2>
+        <p>Fill in the details below and send it our way. The more detail you give us the better we can understand what you need and the faster we can build it right.</p>
+      </div>
+
+      <div id="request-identity-status" class="request-identity-status" aria-live="polite">Checking your Paragon account and request eligibility…</div>
+      <aside class="request-limit-note" aria-label="Request submission limit">
+        <strong>One request every 7 days</strong>
+        <p>Submissions require a Paragon account. Guests can save a session-only draft, then sign in to submit. This prevents logout or Guest-mode bypass without using an IP address or device fingerprint for this limit.</p>
+      </aside>
+
+      <form id="request-page-form">
+        <label class="auth-field" for="request-page-name">
+          <span>Website Name or Idea <b aria-hidden="true">*</b></span>
+          <input id="request-page-name" name="websiteName" type="text" minlength="2" maxlength="120" autocomplete="off" required placeholder="What would you call it? e.g. Paragon Maps">
+        </label>
+        <label class="auth-field" for="request-page-category">
+          <span>Category <b aria-hidden="true">*</b></span>
+          <select id="request-page-category" name="category" required>
+            <option value="">Select a category</option>
+          </select>
+        </label>
+        <label class="auth-field" for="request-page-reason">
+          <span>What should it do? <b aria-hidden="true">*</b></span>
+          <textarea id="request-page-reason" name="reason" minlength="10" maxlength="1000" required aria-describedby="request-page-reason-help request-page-reason-count" placeholder="Describe what you want this website to do. What problem does it solve? What features should it have? The more detail the better."></textarea>
+          <small id="request-page-reason-help">Please do not include passwords or private information.</small>
+          <output id="request-page-reason-count" class="request-character-count" for="request-page-reason" aria-live="polite">0 / 1000 characters</output>
+        </label>
+        <label class="auth-field" for="request-page-need">
+          <span>Why do you think people need this? <b aria-hidden="true">*</b></span>
+          <textarea id="request-page-need" name="needReason" minlength="10" maxlength="500" required aria-describedby="request-page-need-count" placeholder="Help us understand the problem this solves and who it would help most."></textarea>
+          <output id="request-page-need-count" class="request-character-count" for="request-page-need" aria-live="polite">0 / 500 characters</output>
+        </label>
+        <label class="auth-field" for="request-page-email">
+          <span>Your Email <small>(optional but recommended)</small></span>
+          <input id="request-page-email" name="contactEmail" type="email" maxlength="254" inputmode="email" autocomplete="email" placeholder="We will notify you when your website is built">
+        </label>
+        <label class="request-consent" for="request-page-acknowledgement">
+          <input id="request-page-acknowledgement" name="termsAcknowledged" type="checkbox" required>
+          <span>I understand that submitting a request does not guarantee it will be built</span>
+        </label>
+        <button id="request-page-submit" type="submit" class="primary-action request-submit-action">SUBMIT MY REQUEST 💡</button>
+        <p id="request-page-status" class="auth-form-status" aria-live="polite"></p>
+        <p class="local-data-note request-page-data-note">Authenticated requests submit to Supabase and are limited to one per rolling 7-day period. Add an email for an inbox receipt, or leave it blank to receive the receipt in Archive notifications. Guest drafts stay temporary.</p>
+      </form>
+
+      <a id="request-account-link" class="request-account-link" href="paragon-archive.html#account">Sign in or continue as Guest from Account, then</a>
+    </section>
+  </div>
+
+  <section class="request-counter-card" aria-labelledby="request-counter-label">
+    <div id="request-counter-value" class="request-counter-value" aria-label="0 website requests" aria-live="polite">
+      <span class="request-counter-icon" aria-hidden="true">💡</span>
+      <strong id="request-counter-number">0</strong>
+    </div>
+    <p id="request-counter-label">website requests submitted so far</p>
+    <span>and we are building them one by one</span>
+  </section>
+
+  <section class="request-built-section" aria-labelledby="request-built-title">
+    <div class="request-built-heading">
+      <p class="eyebrow">Community ideas in action</p>
+      <h2 id="request-built-title"><span aria-hidden="true">✅</span> RECENTLY BUILT FROM YOUR REQUESTS</h2>
+    </div>
+    <div class="request-built-grid" role="list">
+      <a class="request-built-card request-built-vibe" href="paragon-archive.html?site=Paragon%20Vibe" role="listitem" aria-label="Open Paragon Vibe in the Archive">
+        <span class="request-built-icon" aria-hidden="true">🌐</span>
+        <span class="request-built-copy"><small>Entertainment</small><strong>Paragon Vibe</strong><span>Mood-based experience</span></span>
+        
+      </a>
+      <a class="request-built-card request-built-sounds" href="paragon-archive.html?site=Paragon%20Sounds" role="listitem" aria-label="Open Paragon Sounds in the Archive">
+        <span class="request-built-icon" aria-hidden="true">🎧</span>
+        <span class="request-built-copy"><small>Entertainment</small><strong>Paragon Sounds</strong><span>Ambient sound mixer</span></span>
+        
+      </a>
+      <a class="request-built-card request-built-journal" href="paragon-archive.html?site=Paragon%20Journal" role="listitem" aria-label="Open Paragon Journal in the Archive">
+        <span class="request-built-icon" aria-hidden="true">📔</span>
+        <span class="request-built-copy"><small>Lifestyle</small><strong>Paragon Journal</strong><span>Daily journal</span></span>
+        
+      </a>
+    </div>
+    <p class="request-built-note">These started as requests just like yours.</p>
+  </section>
+  </section>
+
+  <section id="terms" class="hub-doc-section" aria-labelledby="terms-title">
+    <header class="hub-section-heading">
+      <p class="eyebrow">Part 1 · Legal</p>
+      <h2 id="terms-title">📜 Terms and Conditions</h2>
+      <div class="hub-policy-dates"><span>Effective: August 1, 2026</span><span>Last Updated: August 5, 2026</span></div>
+    </header>
+    <aside class="hub-status-note"><strong>Implementation note:</strong> These terms cover current Archive features and approved rules for future Community/Deployed features. A future rule does not mean its related product is already operational.</aside>
+
+    <article class="hub-policy-card">
+      <h3>Welcome to Paragon Archive</h3>
+      <p>These Terms and Conditions govern your use of Paragon Archive and all websites, services, and features within it. By creating an account, browsing the Archive, or using a website inside it, you agree to these terms. If you do not agree, please do not use the platform.</p>
+      <p>We wrote these terms in plain language because we believe you deserve to understand what you are agreeing to.</p>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>1. What Paragon Archive Is</h3>
+      <p>Paragon Archive is a free web-based platform presenting a curated collection of websites built by Paragon. The Deployed category is an approved future path for reviewed third-party websites; no public third-party deployment service is live in this build.</p>
+      <p>Paragon-built websites are intended to remain free to use. Future approved third-party websites may include free and premium content at the discretion of their creators, subject to the transparency rules below.</p>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>2. Your Account</h3>
+      <h4>2.1 Creating an Account</h4>
+      <p>You may create one account per person using a valid email address or Google sign-in. You must provide accurate information. You may not create multiple accounts to manipulate platform activity, impersonate another person, or use a deceptive identity.</p>
+      <h4>2.2 Account Security</h4>
+      <p>You are responsible for keeping your login credentials safe. Do not share your password. If you believe your account has been compromised, email <a href="mailto:paragon.archive.2026@gmail.com?subject=Account%20Security">paragon.archive.2026@gmail.com</a> with subject <strong>Account Security</strong>.</p>
+      <h4>2.3 Account Suspension, Termination, and Deletion</h4>
+      <p>Paragon may suspend or permanently ban accounts that violate these terms. Secure self-service account deletion is not yet activated. The current Privacy control explains this status; until the protected workflow exists, request deletion through <a href="#privacy-policy">Privacy &amp; Security</a> or <a href="#help">Support</a>. We do not claim data is deleted until processing is actually completed.</p>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>3. Acceptable Use</h3>
+      <p>When using Paragon Archive, you agree to:</p>
+      <ul>
+        <li>Use the platform for its intended purpose.</li>
+        <li>Treat other users with respect.</li>
+        <li>Provide honest and genuine reviews.</li>
+        <li>Report bugs and issues through proper channels.</li>
+        <li>Respect the intellectual property of Paragon and other creators.</li>
+      </ul>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>4. Prohibited Conduct</h3>
+      <p>Violation may result in content removal, suspension, or a permanent ban.</p>
+      <div class="hub-rule-grid">
+        <section><h4>4.1 Spam and Manipulation</h4><ul><li>No spam in reviews, future community boards, suggestions, or requests.</li><li>No fake or duplicate website requests intended to manipulate priority.</li><li>No multiple accounts used to inflate ratings, reviews, requests, or votes.</li><li>No bots, unauthorized scripts, or automated interaction.</li><li>No repeatedly reposting removed content.</li></ul></section>
+        <section><h4>4.2 Abuse and Harassment</h4><ul><li>No harassment, threats, bullying, intimidation, hate, or discriminatory content.</li><li>No doxxing, stalking, obsessive contact, or targeting people/groups.</li><li>Do not share another person’s private information without consent.</li></ul></section>
+        <section><h4>4.3 Fraud and Deception</h4><ul><li>Do not impersonate Paragon staff, developers, or other users.</li><li>Do not falsely claim affiliation, create fake reviews, or mislead users.</li><li>No phishing, scams, fraud, or attempts to obtain private information.</li></ul></section>
+        <section><h4>4.4 Hacking and Security Violations</h4><ul><li>No unauthorized account, Team Gateway, or administrative access.</li><li>No exploitation, reverse engineering intended to break security, SQL injection, XSS, code injection, scraping, bulk downloads, or bypassing controls/rate limits.</li><li>No malware, malicious uploads, denial-of-service activity, or vulnerability probing without written authorization.</li></ul></section>
+        <section><h4>4.5 Content Violations</h4><ul><li>No sexually explicit, violent/graphic, illegal, or unauthorized copyrighted content.</li><li>No external advertising without Paragon approval.</li></ul></section>
+        <section><h4>4.6 Platform Misuse</h4><ul><li>Do not load unapproved destinations into Archive previews, inject ads, modify Archive website behavior, distribute unauthorized software, or resell Archive access.</li></ul></section>
+      </div>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>5. Reviews and Future Community Content</h3>
+      <h4>5.1 Review Guidelines</h4>
+      <ul><li>Base reviews on genuine personal experience.</li><li>Remain honest and independent of payment or favors.</li><li>Do not include spam, external promotional links, attacks, or harassment.</li><li>Use English so the current moderation standard can be applied consistently.</li></ul>
+      <p>Paragon may remove reviews that violate these rules.</p>
+      <h4>5.2 Community Board Content</h4>
+      <p>When Community Board, Q&amp;A, and Suggestions launch, posts must be relevant, written in English, respectful, constructive, and free of spam, self-promotion, offensive, harmful, or illegal content. Those community surfaces are not live yet.</p>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>6. Future Third-Party Hosted Websites (Deployed Category)</h3>
+      <p>The following rules take effect for a website once the Deployed platform launches and that website is approved.</p>
+      <h4>6.1 Developer Responsibility</h4><p>Third-party developers are responsible for their content, functionality, security, maintenance, and legality. Paragon review does not guarantee ongoing compliance.</p>
+      <h4>6.2 Premium Content</h4><p>Approved Deployed websites may contain premium features only when pricing is clearly disclosed before engagement. Paragon takes no commission unless separately agreed and does not currently process third-party transactions.</p>
+      <h4>6.3 User Data</h4><p>Developers must disclose and obtain consent for any data collection beyond Paragon Archive’s own disclosed processing. Hidden collection is prohibited.</p>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>7. Intellectual Property</h3>
+      <h4>7.1 Paragon Content</h4><p>Paragon-built websites, designs, branding, text, images, and code are Paragon intellectual property. You may not copy, reproduce, redistribute, or create derivative works without written permission, except where an explicit license says otherwise.</p>
+      <h4>7.2 User Content</h4><p>You retain ownership of reviews, future community posts, suggestions, and website requests, while granting Paragon a worldwide, non-exclusive, royalty-free license to display, use, and distribute that content within the platform for operating and promoting the relevant feature.</p>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>8. Disclaimer</h3>
+      <p>Paragon Archive is provided as-is. We work to keep it reliable but do not guarantee 100% availability, perfect operation of every website, accuracy of user content, or that a future third-party Deployed website will meet every user’s expectations.</p>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>9. Limitation of Liability</h3>
+      <p>To the extent allowed by applicable law, Paragon is not liable for indirect damages, losses, or issues arising from platform use, downtime, content posted by others, future third-party deployments, or data intentionally removed through a completed account-deletion request.</p>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>10. Enforcement and Penalties</h3>
+      <div class="hub-table-wrap"><table><thead><tr><th>Violation level</th><th>Policy action</th></tr></thead><tbody>
+        <tr><td>Minor first offence</td><td>Warning sent to the account</td></tr>
+        <tr><td>Repeated minor offence</td><td>Content removal and possible 7-day suspension</td></tr>
+        <tr><td>Major offence</td><td>Possible immediate 30-day suspension</td></tr>
+        <tr><td>Severe offence: hacking, fraud, harassment</td><td>Immediate permanent ban</td></tr>
+        <tr><td>Criminal activity</td><td>Permanent ban and, where appropriate, report to relevant authorities</td></tr>
+      </tbody></table></div>
+      <p>Enforcement requires the future moderation/admin workflow. Banned users may appeal within 14 days by emailing <a href="mailto:paragon.archive.2026@gmail.com?subject=Account%20Appeal">paragon.archive.2026@gmail.com</a> with subject <strong>Account Appeal</strong>.</p>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>11. Changes to These Terms</h3>
+      <p>We may update these terms. We will update the date above and use the Updates tab for material changes. Continued use after an effective update means you accept the revised terms.</p>
+    </article>
+
+    <article class="hub-policy-card">
+      <h3>12. Contact</h3>
+      <p>Questions: <a href="mailto:paragon.archive.2026@gmail.com?subject=Terms"><strong>paragon.archive.2026@gmail.com</strong></a> · Subject: <strong>Terms</strong>.</p>
+    </article>
+  </section>
+
+  <section id="community-guidelines" class="hub-doc-section" aria-labelledby="community-title">
+    <header class="hub-section-heading">
+      <p class="eyebrow">Part 2 · Shared spaces</p>
+      <h2 id="community-title">📋 Community Guidelines</h2>
+      <div class="hub-policy-dates"><span>Effective: August 1, 2026</span><span>Community product: Planned</span></div>
+    </header>
+    <aside class="hub-status-note"><strong>Not launched:</strong> Reviews exist in the Archive front end; the discussion board, Q&amp;A, Suggestions, report queue, membership badge, and active community moderation are future systems.</aside>
+    <article class="hub-policy-card"><h3>The Paragon Community Standard</h3><p>Paragon Archive is built for everyone. Reviews and future public community spaces are shared spaces. Everyone must contribute positively, respectfully, and honestly so the community can remain safe, useful, and welcoming.</p></article>
+    <div class="hub-guideline-grid">
+      <article><span>1</span><h3>Language</h3><p>Community content must be written in English under the initial moderation policy. Other-language posts may be removed with a request to repost in English. Multi-language support is planned for a later phase.</p></article>
+      <article><span>2</span><h3>Be Respectful</h3><ul><li>Treat everyone with dignity.</li><li>Disagree without attacking.</li><li>Do not mock or belittle.</li><li>Welcome newcomers.</li><li>Remember the person behind the username.</li></ul></article>
+      <article><span>3</span><h3>Be Constructive</h3><ul><li>Explain what could improve and suggest solutions.</li><li>Give useful bug details rather than only complaints.</li><li>Make specific, thoughtful suggestions.</li><li>Help conversations move forward.</li></ul></article>
+      <article><span>4</span><h3>Be Honest</h3><ul><li>Review only websites you used.</li><li>Do not manipulate ratings.</li><li>Do not impersonate others.</li><li>Do not fabricate problems or bugs.</li><li>Be transparent about your experience.</li></ul></article>
+      <article><span>5</span><h3>Stay On Topic</h3><ul><li>Keep discussion connected to Paragon and its websites.</li><li>No personal promotion or unrelated advertising.</li><li>External links need context and relevance.</li><li>Do not recruit users for unrelated services.</li></ul></article>
+      <article><span>6</span><h3>Protect Privacy</h3><ul><li>Do not overshare private information.</li><li>Never expose another user’s information.</li><li>Do not publish private conversations without consent.</li><li>Respect permitted anonymity.</li></ul></article>
+      <article><span>7</span><h3>No Spam</h3><ul><li>No repeated or flooded low-effort content.</li><li>No unsolicited advertising, referral links, or chain messages.</li><li>No promotion disguised as discussion.</li></ul></article>
+      <article><span>8</span><h3>Report, Do Not Retaliate</h3><ul><li>Use the future report control when available.</li><li>Do not fight trolls or take enforcement into your own hands.</li><li>Until reporting launches, use Help &amp; Support.</li></ul></article>
+    </div>
+    <article class="hub-policy-card">
+      <h3>9. Consequences</h3>
+      <div class="hub-table-wrap"><table><thead><tr><th>Behaviour</th><th>Policy consequence after moderation launches</th></tr></thead><tbody>
+        <tr><td>Off-topic posting</td><td>Post removed, friendly reminder</td></tr><tr><td>Non-English content</td><td>Post removed, asked to repost</td></tr><tr><td>Minor disrespect</td><td>Warning</td></tr><tr><td>Repeated disrespect</td><td>7-day community suspension</td></tr><tr><td>Harassment or hate speech</td><td>Immediate 30-day suspension</td></tr><tr><td>Doxxing/privacy violation</td><td>Immediate permanent ban</td></tr><tr><td>Spam/manipulation</td><td>Content removal and account suspension</td></tr><tr><td>Severe/criminal behaviour</td><td>Permanent ban and appropriate authority report</td></tr>
+      </tbody></table></div>
+    </article>
+    <article class="hub-policy-card"><h3>10. Moderation and Appeals</h3><p>Active community moderation is not yet operating because the Community product is not launched. Once launched, Paragon will apply these rules and accept appeals within 14 days at <a href="mailto:paragon.archive.2026@gmail.com?subject=Community%20Appeal">paragon.archive.2026@gmail.com</a> with subject <strong>Community Appeal</strong>.</p></article>
+  </section>
+
+  <section id="cookie-policy" class="hub-doc-section" aria-labelledby="cookies-title">
+    <header class="hub-section-heading"><p class="eyebrow">Part 3 · Browser storage</p><h2 id="cookies-title">🛡️ Cookie Policy</h2><div class="hub-policy-dates"><span>Effective: August 1, 2026</span><span>Last Updated: August 5, 2026</span></div></header>
+    <article class="hub-policy-card"><h3>What Are Cookies?</h3><p>Cookies are small text files a website may store on your device. Paragon Archive also uses browser storage such as localStorage and sessionStorage for preferences, authenticated-session data, temporary Guest activity, and PWA operation. The exact storage used depends on the feature.</p></article>
+    <div class="hub-cookie-grid">
+      <article><span>✓</span><h3>Essential Storage</h3><p>Required to keep the current application working: authentication session data after Supabase activation, cross-page state, bookmarks/progress according to identity mode, theme, consent choices, security/session values, and PWA caching. Essential operation cannot be fully disabled while using account features.</p><strong>Current: Used where required</strong></article>
+      <article><span>○</span><h3>Analytics Cookies</h3><p>Future aggregate measurements may cover pages visited, time spent, navigation patterns, popular websites, and general device/browser data. Google Analytics is not connected now and must respect <code>ParagonPrivacy.analyticsAllowed()</code> before future loading.</p><strong>Current: Not connected</strong></article>
+      <article><span>○</span><h3>Tracking &amp; Advertising</h3><p>Future consented systems could use general interests, ad interaction, or content preferences. Tracking cookies and Google Ads/AdSense are not connected and must respect tracking/ad consent before loading.</p><strong>Current: Not connected</strong></article>
+    </div>
+    <article class="hub-policy-card"><h3>Your Cookie Choices</h3><ul><li><strong>Accept All</strong> — records consent for all categories, but does not activate services that have not been integrated.</li><li><strong>Essential Only</strong> — keeps optional Analytics, tracking, and ads disabled.</li><li><strong>Manage Preferences</strong> — opens detailed controls.</li></ul><p>Change your choices at any time through Account, then Settings, then Privacy &amp; Security, or open the <a href="paragon-archive-hub.html#privacy-controls">Privacy Controls</a> page.</p><p>Questions: <a href="mailto:paragon.archive.2026@gmail.com?subject=Cookies">paragon.archive.2026@gmail.com</a> · Subject: Cookies.</p></article>
+  </section>
+
+  <section id="developers" class="hub-doc-section" aria-labelledby="developers-title">
+    <header class="hub-section-heading"><p class="eyebrow">Part 4 · Future contributor programme</p><h2 id="developers-title">💼 Developer Requirements &amp; Acceptance</h2><div class="hub-policy-dates"><span>Programme: Planned</span><span>Applications: Not open</span></div></header>
+    <aside class="hub-status-note"><strong>Documentation only:</strong> Developer status, trial projects, Team Gateway access, badges, and deployment permissions require protected authorization and are not being issued in this build.</aside>
+    <article class="hub-policy-card"><h3>Who Can Apply?</h3><p>When applications open, anyone with the skills, passion, and time to build quality websites may apply. A degree or formal job title is not required. Applicants must demonstrate the ability to build and a commitment to quality.</p></article>
+    <div class="hub-skill-grid">
+      <article><h3>Required — at least one</h3><ul><li>Strong HTML and CSS</li><li>Intermediate-or-above JavaScript</li><li>Responsive design across mobile, tablet, and desktop</li></ul></article>
+      <article><h3>Preferred</h3><ul><li>React/Next.js or Tailwind</li><li>Node.js/Express and APIs</li><li>MongoDB/PostgreSQL</li><li>UI/UX, Git, Python/backend</li><li>Accessibility and performance</li></ul></article>
+      <article><h3>Bonus</h3><ul><li>Published portfolio</li><li>Open-source contributions</li><li>Tools/utilities experience</li><li>Original ideas</li><li>Independent working ability</li></ul></article>
+    </div>
+    <div class="hub-process" aria-label="Future developer acceptance process">
+      <article><span>1</span><div><h3>Submit Application</h3><p>Future Hub form: details, skills, portfolio, and why you want to join.</p></div><b>Not open</b></article>
+      <article><span>2</span><div><h3>Review · target 3–7 days</h3><p>Paragon evaluates skills, previous work, and the proposed build.</p></div><b>Future</b></article>
+      <article><span>3</span><div><h3>Trial Project</h3><p>A small 14-day challenge requiring responsiveness, dark mode, iframe compatibility, and Paragon design guidance.</p></div><b>Future</b></article>
+      <article><span>4</span><div><h3>Evaluation</h3><p>Code/design quality, responsiveness, performance, accessibility, and fit with the Paragon standard.</p></div><b>Future</b></article>
+      <article><span>5</span><div><h3>Acceptance or Feedback</h3><p>Successful applicants may later receive protected Developer status; others receive feedback and may reapply after 30 days.</p></div><b>Future</b></article>
+    </div>
+    <article class="hub-policy-card"><h3>Developer Responsibilities</h3><ul><li>Meet Paragon quality, responsive, accessibility, and design standards.</li><li>Test thoroughly before deployment and maintain accepted websites.</li><li>Respond to valid bug reports.</li><li>Never deploy malicious code, hidden collection, or misuse developer access.</li><li>Protect internal information and represent Paragon professionally.</li></ul></article>
+    <article class="hub-policy-card"><h3>Developer Removal</h3><p>Future Developer status may be revoked for repeated quality failures, missed deadlines without communication, malicious code, broken trust, or more than 90 days of unexplained inactivity.</p></article>
+  </section>
+
+  <section id="deployed" class="hub-doc-section" aria-labelledby="deployed-title">
+    <header class="hub-section-heading"><p class="eyebrow">Part 5 · Future third-party publishing</p><h2 id="deployed-title">🚀 The Deployed Category</h2><div class="hub-policy-dates"><span>Category documented</span><span>Public hosting: Not launched</span></div></header>
+    <p style="margin:12px 0;"><a class="primary-action" href="developer-portal.html" style="text-decoration:none;">🧑‍💻 Open the Developer Portal — apply &amp; submit websites</a></p>
+    <aside class="hub-status-note"><strong>Planned empty category:</strong> Deployed is visible in Archive category discovery as an honest empty placeholder. No third-party website, developer profile, rating, premium offer, analytics dashboard, upload, or transaction is fabricated.</aside>
+    <article class="hub-policy-card hub-template-preview-card">
+      <h3>🧪 Preview the Deployed detail template</h3>
+      <p>See exactly how a future approved Deployed website will be presented inside the Archive — developer identity, premium disclosure, screenshots, updates, and reviews — using the clearly labelled illustrative example “My Cool App” by @JohnDev.</p>
+      <a class="secondary-action" href="paragon-archive.html?site=My%20Cool%20App">Open the illustrative template preview</a>
+    </article>
+    <article class="hub-policy-card"><h3>What Is Deployed?</h3><p>Deployed is the planned category for websites not built by Paragon but submitted by approved external developers or users. The Archive is the building; Paragon websites are spaces Paragon built and owns; Deployed websites are spaces operated by approved tenants under their own creator identity and additional rules.</p></article>
+
+    <div class="hub-deployed-example" aria-label="Illustrative future Deployed website card">
+      <div class="hub-sample-banner">SAMPLE · NOT A REAL LISTING</div>
+      <div class="hub-sample-preview"><span>Preview Screenshot</span></div>
+      <div class="hub-sample-row"><span class="hub-sample-icon">M</span><div><strong>My Cool App</strong><small>by @JohnDev · Deployed Tools</small></div><span>⭐ 4.2</span></div>
+      <div class="hub-premium-pill">💎 Illustrative premium features</div>
+    </div>
+
+    <article class="hub-policy-card"><h3>Key Differences</h3><div class="hub-table-wrap"><table><thead><tr><th>Feature</th><th>Paragon Website</th><th>Future Deployed Website</th></tr></thead><tbody>
+      <tr><td>Creator shown</td><td>by Paragon</td><td>by @username</td></tr><tr><td>Pricing</td><td>Always free</td><td>May have clearly labelled free/premium features</td></tr><tr><td>Quality guarantee</td><td>Paragon standard</td><td>Reviewed but creator-maintained</td></tr><tr><td>Category badge</td><td>Category name</td><td>Deployed 🚀 + subcategory</td></tr><tr><td>Support</td><td>Paragon team</td><td>Deploying developer</td></tr><tr><td>Premium label</td><td>Never shown</td><td>Required when paid features exist</td></tr>
+    </tbody></table></div></article>
+
+    <div class="hub-process" aria-label="Future Deployed review process">
+      <article><span>1</span><div><h3>Build Your Website</h3><p>Responsive, dark-mode capable, iframe-aware, accessible, secure, and aligned with deployment guidance.</p></div><b>Developer</b></article>
+      <article><span>2</span><div><h3>Submit for Review</h3><p>Name, creator, description, subcategory, 3–8 screenshots, pricing disclosure, ZIP up to 50MB or hosted URL, icon, contact email, and agreements.</p></div><b>Not open</b></article>
+      <article><span>3</span><div><h3>Paragon Review · target 7–14 days</h3><p>Security, code/design quality, responsiveness, iframe compatibility, content, privacy, performance, and premium transparency.</p></div><b>Future</b></article>
+      <article><span>4</span><div><h3>Approval or Feedback</h3><p>Approved submissions may go live; others receive actionable feedback and may resubmit.</p></div><b>Future</b></article>
+      <article><span>5</span><div><h3>Live in the Archive</h3><p>Future users may view, rate, review, save, preview, and share. Private developer analytics requires a protected dashboard that is not built yet.</p></div><b>Future</b></article>
+    </div>
+
+    <article class="hub-policy-card"><h3>Deployed Subcategories</h3><div class="hub-table-wrap"><table><thead><tr><th>Subcategory</th><th>Description</th></tr></thead><tbody>
+      <tr data-deployed-subcategory><td>🛠️ Deployed Tools</td><td>Productivity, utilities, and tools</td></tr>
+      <tr data-deployed-subcategory><td>🎨 Deployed Creative</td><td>Design, art, and creative websites</td></tr>
+      <tr data-deployed-subcategory><td>📚 Deployed Education</td><td>Learning, courses, and educational websites</td></tr>
+      <tr data-deployed-subcategory><td>🎮 Deployed Games</td><td>Browser games and interactive entertainment</td></tr>
+      <tr data-deployed-subcategory><td>💬 Deployed Social</td><td>Community, messaging, and social websites</td></tr>
+      <tr data-deployed-subcategory><td>💰 Deployed Business</td><td>Finance, commerce, and business tools</td></tr>
+      <tr data-deployed-subcategory><td>🍕 Deployed Lifestyle</td><td>Health, lifestyle, and personal websites</td></tr>
+      <tr data-deployed-subcategory><td>🌐 Deployed Dev</td><td>Developer tools and coding resources</td></tr>
+      <tr data-deployed-subcategory><td>🎵 Deployed Media</td><td>Music, video, and entertainment media</td></tr>
+      <tr data-deployed-subcategory><td>📦 Deployed Other</td><td>Everything else</td></tr>
+    </tbody></table></div></article>
+
+    <article class="hub-policy-card"><h3>Rules for Deployed Websites</h3>
+      <div class="hub-rule-grid">
+        <section><h4>Must Follow</h4><ul><li>Work in the approved Archive preview or provide a safe New Tab fallback where browser frame policy blocks embedding.</li><li>Be responsive and support dark mode at minimum.</li><li>Disclose all data collection and obtain required consent.</li><li>Label premium features before engagement.</li><li>No malware, unauthorized trackers, illegal/harmful content, impersonation, or unapproved advertising.</li><li>Meet Paragon’s review standard.</li></ul></section>
+        <section><h4>Premium Rules</h4><ul><li>Free features must be genuinely usable.</li><li>Pricing must be clear before purchase.</li><li>No tricking or pressuring users.</li><li>The developer owns transaction/refund responsibility.</li><li>Misleading premium practices can result in removal.</li></ul></section>
+        <section><h4>Maintenance</h4><ul><li>Developers maintain their websites and respond to valid bug reports.</li><li>A site broken/offline for more than 30 days without communication may be removed.</li><li>Paragon may contact developers about quality issues.</li></ul></section>
+      </div>
+    </article>
+
+    <article class="hub-policy-card"><h3>Future Detail-Page Differences</h3><div class="hub-deployed-detail">
+      <div><strong>My Cool App</strong><small>by @JohnDev · Deployed · Tools</small></div><span class="hub-sample-label">Sample only</span>
+      <div class="hub-sample-stats"><span>⭐ 4.2</span><span>👁️ 3.2K sample views</span><span>📝 247 sample reviews</span></div>
+      <section><h4>💎 Premium disclosure example</h4><div class="hub-pricing-columns"><div><strong>FREE</strong><ul><li>Basic editor</li><li>5 projects</li><li>PNG export</li></ul></div><div><strong>PREMIUM · example $4.99/month</strong><ul><li>Unlimited projects</li><li>SVG/PDF export</li><li>Custom fonts</li><li>Developer priority support</li></ul></div></div><p>Example purchases would be handled by the developer, not Paragon Archive.</p></section>
+      <section><h4>About the Developer</h4><p>@JohnDev · illustrative profile only. Real joined dates, deployment counts, biographies, analytics, and badges will come from protected production data rather than fabricated values.</p></section>
+    </div></article>
+
+    <article id="deploy-form" class="hub-policy-card hub-deploy-form-card">
+      <div class="hub-form-heading"><span>🚀</span><div><h3>Deploy Your Website in Paragon Archive</h3><p class="hub-deploy-pitch">Host your website inside the world's free website archive. Reach thousands of users without building your own audience from scratch — the developer programme opens submissions when the review backend launches.</p><p>Future submission-form preview. Nothing entered here is uploaded or sent.</p></div></div>
+      <form id="hub-deploy-form" novalidate aria-describedby="hub-deploy-status">
+        <label><span>Website Name <b>*</b></span><input id="hub-website-name" name="websiteName" maxlength="120" required placeholder="My Cool App"></label>
+        <label><span>Your Creator/Developer Name <b>*</b></span><input id="hub-creator-name" name="creatorName" maxlength="80" required placeholder="Your display name"></label>
+        <label><span>Website Description <b>*</b></span><textarea id="hub-description" name="description" minlength="20" maxlength="1000" required placeholder="Explain what the website does and who it helps."></textarea><output id="hub-description-count" for="hub-description">0 / 1000 characters</output></label>
+        <label><span>Sub-Category <b>*</b></span><select id="hub-subcategory" name="subcategory" required><option value="">Select sub-category</option><option>Deployed Tools</option><option>Deployed Creative</option><option>Deployed Education</option><option>Deployed Games</option><option>Deployed Social</option><option>Deployed Business</option><option>Deployed Lifestyle</option><option>Deployed Dev</option><option>Deployed Media</option><option>Deployed Other</option></select></label>
+        <fieldset class="hub-choice-field"><legend>Does your website have premium features? <b>*</b></legend><label><input type="radio" name="pricing" value="free" required> No — completely free</label><label><input type="radio" name="pricing" value="premium" required> Yes — has free and premium features</label></fieldset>
+        <label id="hub-premium-field" hidden><span>If yes: List what is free and what is premium <b>*</b></span><textarea id="hub-premium-details" name="premiumDetails" maxlength="1500" placeholder="FREE: ...&#10;PREMIUM: ..."></textarea></label>
+        <fieldset class="hub-source-field"><legend>Website Files or URL <b>*</b></legend>
+          <label class="hub-source-option"><span>📎 Upload files (ZIP, max 50MB)</span><input id="hub-website-files" type="file" accept=".zip,application/zip"><small>Local selection preview only; no upload endpoint is connected.</small></label>
+          <div class="hub-source-or" aria-hidden="true">OR</div>
+          <label class="hub-source-option"><span>Provide hosted URL</span><input id="hub-hosted-url" name="hostedUrl" type="url" placeholder="https://example.com"></label>
+        </fieldset>
+        <div class="hub-upload-grid">
+          <label><span>Website Icon <b>*</b> · 200×200 PNG</span><input id="hub-website-icon" type="file" accept="image/png"><small>📎 Upload icon · local selection preview only.</small></label>
+          <label><span>Screenshots <b>*</b> · minimum 3, maximum 8</span><input id="hub-screenshots" type="file" accept="image/png,image/jpeg,image/webp" multiple><small>📎 Upload screenshots · local selection preview only.</small></label>
+        </div>
+        <label><span>Your Contact Email <b>*</b></span><input id="hub-contact-email" name="contactEmail" type="email" maxlength="254" required placeholder="developer@example.com"></label>
+        <div class="hub-agreements">
+          <label><input type="checkbox" required> I agree to the Deployed Website Terms.</label>
+          <label><input type="checkbox" required> My website does not contain malicious code.</label>
+          <label><input type="checkbox" required> I clearly label all premium features.</label>
+          <label><input type="checkbox" required> I take responsibility for my website.</label>
+        </div>
+        <button id="hub-deploy-submit" class="primary-action" type="submit">SUBMIT FOR REVIEW 🚀</button>
+        <p class="hub-deploy-review-note">When submissions open: review takes 7–14 days, and you will be notified by email when your website is approved or when feedback is provided.</p>
+        <p id="hub-deploy-status" class="hub-form-status" aria-live="polite">Submissions are not open. The button checks this preview but sends no data or files.</p>
+      </form>
+    </article>
+  </section>
+
+  <section id="roadmap" class="hub-doc-section" aria-labelledby="roadmap-title">
+    <header class="hub-section-heading"><p class="eyebrow">Part 6 · Future products</p><h2 id="roadmap-title">🗺️ Updated Paragon Roadmap</h2><p>Dates and status are interpreted against August 5, 2026. Future 2027 milestones are not marked completed early.</p></header>
+    <div class="hub-roadmap-list">
+      <article class="hub-roadmap-current"><span>NOW</span><div><small>August 2026 · Foundation in development</small><h3>Paragon Archive front end, documentation, schema, and integration foundations</h3><p>Core interface and documentation are prepared; deployment, provider activation, real assets, and owner testing remain.</p></div><b>In progress</b></article>
+      <article><span>2027</span><div><small>Planned</small><h3>Paragon Archive platform launch</h3><p>Production origin, activated authentication/database/email, policies, moderation, monitoring, and real product destinations.</p></div><b>Planned</b></article>
+      <article><span>100</span><div><small>2027 · Planned milestone</small><h3>First 100 websites live</h3><p>The first catalogue is mapped; “live” requires completed products, URLs, assets, and production testing.</p></div><b>Planned</b></article>
+      <article><span>💬</span><div><small>Future phase</small><h3>Community Platform</h3><p>Discussion board, Q&amp;A, suggestions, reporting, moderation, membership, and credits.</p></div><b>Not started</b></article>
+      <article><span>🚀</span><div><small>Future phase</small><h3>Developer Portal &amp; Deployed Category</h3><p>Applications, trials, protected roles, review queue, private uploads, publishing, support, and analytics.</p></div><b>Documented</b></article>
+      <article><span>📱</span><div><small>Future phase</small><h3>Paragon Archive Mobile App</h3><p>Native/mobile experience after web production stability.</p></div><b>Planned</b></article>
+      <article><span>200</span><div><small>Second wave</small><h3>Websites 101–200</h3><p>Additional Paragon products after the first wave is genuinely live.</p></div><b>Planned</b></article>
+      <article><span>文</span><div><small>Future</small><h3>Multi-language Support</h3><p>Archive and moderation support for 10+ languages.</p></div><b>Planned</b></article>
+      <article><span>🖥️</span><div><small>Future</small><h3>Desktop App</h3><p>A native desktop experience after the web and mobile foundations.</p></div><b>Planned</b></article>
+    </div>
+    <div class="hub-future-products">
+      <article><span>🧬</span><h3>RxLife Network</h3><p>Concept: connect healthcare professionals, patients, and pharmaceutical resources while reimagining responsible health-information flow.</p><b>Early concept</b></article>
+      <article><span>💊</span><h3>Pharmapaedia</h3><p>Concept: an accessible pharmaceutical knowledge encyclopedia covering drug information, interactions, research, and education.</p><b>Early concept</b></article>
+      <article><span>🌐</span><h3>More Paragon Platforms</h3><p>Additional concepts guided by the same free, exceptional, and accessible mission.</p><b>Concept stage</b></article>
+      <article><span>🏗️</span><h3>Paragon Ecosystem</h3><p>Long-term vision: connected Paragon products designed to make useful technology available beyond ability to pay.</p><b>Long-term vision</b></article>
+    </div>
+    <blockquote class="hub-founder-quote">“We build what the world needs. We give it away for free. That is the Paragon way.”<footer>— Paragon, Founder</footer></blockquote>
+  </section>
+
+  <section id="system-status" class="hub-doc-section" aria-labelledby="status-title">
+    <header class="hub-section-heading"><p class="eyebrow">Part 7 · Honest readiness</p><h2 id="status-title">📊 PARAGON ARCHIVE — SYSTEM STATUS</h2></header>
+
+    <div class="hub-overall-status status-banner">
+      <span class="hub-state-dot hub-state-prepared status-pulse" aria-hidden="true"></span>
+      <div>
+        <strong>Current Status: FRONT-END PREVIEW AVAILABLE</strong>
+        <small id="hub-status-checked">Checking…</small>
+        <small>Production monitoring is not connected yet, so this page reports honest readiness instead of claiming “All Systems Operational”.</small>
+      </div>
+    </div>
+
+    <div class="status-rows">
+      <article class="status-row" data-status="available"><span class="status-icon" aria-hidden="true">📦</span><div><h3>Core Platform</h3><p class="status-state"><i></i> Operational — front-end preview</p><p>Browse, search, cards, detail pages</p></div></article>
+      <article class="status-row" data-status="limited"><span class="status-icon" aria-hidden="true">🌐</span><div><h3>Website Iframe System</h3><p class="status-state"><i></i> Operational with limitations</p><p>Loading websites inside the archive; some destinations block framing and need New Tab</p></div></article>
+      <article class="status-row" data-status="operational"><span class="status-icon" aria-hidden="true">👤</span><div><h3>Authentication</h3><p class="status-state"><i></i> Operational — Email + Google sign-in LIVE</p><p>Supabase project connected; Email provider enabled (verified 2026-08-17) and Google OAuth enabled (verified by live settings probe 2026-08-18). Email verification required on signup.</p></div></article>
+      <article class="status-row" data-status="operational"><span class="status-icon" aria-hidden="true">💾</span><div><h3>Database</h3><p class="status-state"><i></i> Connected — schema LIVE</p><p>schema.sql executed 2026-08-18 and verified by live probe: paragon_request_count() returns the real count (0), paragon_username_available() responds, and private tables correctly refuse anonymous reads (authenticated-only grants working as designed)</p></div></article>
+      <article class="status-row" data-status="available"><span class="status-icon" aria-hidden="true">📰</span><div><h3>Updates System</h3><p class="status-state"><i></i> Operational — front-end preview</p><p>Timeline and changelog</p></div></article>
+      <article class="status-row" data-status="operational"><span class="status-icon" aria-hidden="true">💬</span><div><h3>Community Platform</h3><p class="status-state"><i></i> Operational — board + backend tables LIVE</p><p>Join wizard, Community Board, likes/comments/reports/appeals and the moderation desks are live; community tables probe-verified 2026-08-18</p></div></article>
+      <article class="status-row" data-status="operational"><span class="status-icon" aria-hidden="true">🚀</span><div><h3>Deployed Platform</h3><p class="status-state"><i></i> Operational — portal + review pipeline LIVE</p><p>Developer Portal, applications, 8-point review desk and the approve-to-public pipeline are live; developer tables probe-verified 2026-08-18</p></div></article>
+      <article class="status-row" data-status="prepared"><span class="status-icon" aria-hidden="true">🔔</span><div><h3>Notifications</h3><p class="status-state"><i></i> Prepared — awaiting activation</p><p>Email and in-app notifications — in-app foundation built, Brevo delivery pending</p></div></article>
+    </div>
+
+    <article class="hub-policy-card"><h3>STATUS LEGEND</h3>
+      <div class="hub-status-legend status-legend-current"><strong>Pre-launch readiness states (in use now)</strong>
+        <span><i data-tone="available"></i> Operational (preview) — working front end</span>
+        <span><i data-tone="limited"></i> Partially available — some parts live, some pending</span>
+        <span><i data-tone="prepared"></i> Prepared — built, awaiting activation</span>
+        <span><i data-tone="planned"></i> Planned — not launched</span>
+      </div>
+      <div class="hub-status-legend"><strong>Production states (activate with monitoring)</strong>
+        <span><i data-tone="available"></i> Operational — everything working normally</span>
+        <span><i data-tone="limited"></i> Degraded — working but slower than usual</span>
+        <span><i data-tone="prepared"></i> Partial Outage — some features unavailable</span>
+        <span><i data-tone="outage"></i> Major Outage — system is down</span>
+        <span><i data-tone="planned"></i> Maintenance — planned downtime</span>
+      </div>
+    </article>
+
+    <article class="hub-policy-card"><h3>📅 RECENT INCIDENTS</h3>
+      <p>Incident tracking begins when production monitoring is connected. No monitoring is active yet, so this page makes no incident-free claims — the incident feed will appear here at launch.</p>
+    </article>
+
+    <article class="hub-policy-card"><h3>📧 Report an issue</h3>
+      <p><a href="mailto:paragon.archive.2026@gmail.com?subject=System%20Status">paragon.archive.2026@gmail.com</a> · Subject: <strong>System Status</strong></p>
+    </article>
+  </section>
+
+  <section id="membership" class="hub-doc-section" aria-labelledby="membership-title">
+    <header class="hub-section-heading"><p class="eyebrow">Part 8 · Future participation</p><h2 id="membership-title">👥 Community Membership Process</h2><div class="hub-policy-dates"><span>Membership: Not open</span><span>Guest access: Not eligible after launch</span></div></header>
+    <aside class="hub-status-note"><strong>Future workflow:</strong> No membership record, badge, board access, monthly email, beta invitation, or community credit is created by this documentation page.</aside>
+    <div class="hub-process">
+      <article><span>1</span><div><h3>Have a Paragon Account</h3><p>A registered account will be required; Guest will not join persistent community features.</p></div><b>Future</b></article>
+      <article><span>2</span><div><h3>Hub Join Community</h3><p>A protected Join action will appear after the Community backend launches.</p></div><b>Not available</b></article>
+      <article><span>3</span><div><h3>Accept Guidelines</h3><p>Read and explicitly accept the Community Guidelines.</p></div><b>Future</b></article>
+      <article><span>4</span><div><h3>Verify Email</h3><p>Verification will use activated Supabase Auth/Brevo delivery rather than browser-generated tokens.</p></div><b>Future</b></article>
+      <article><span>5</span><div><h3>Complete Profile</h3><p>Optional bio, interests, and a community display name subject to moderation.</p></div><b>Future</b></article>
+      <article><span>6</span><div><h3>Community Access</h3><p>Planned board, Q&amp;A, suggestions, early-access notices, beta invitations, monthly updates, badge, and credits.</p></div><b>Future</b></article>
+    </div>
+  </section>
+
+  <section id="categories" class="hub-doc-section" aria-labelledby="categories-title">
+    <header class="hub-section-heading"><p class="eyebrow">Updated family map</p><h2 id="categories-title">Archive Categories with Deployed</h2><p>The Archive currently keeps granular visible labels such as Tools, Productivity, Media, Entertainment, Health, Lifestyle, and Dev Tools. This Hub table documents the eleven broader category families, with Deployed reserved as an empty future family.</p></header>
+    <div class="hub-table-wrap"><table class="hub-category-table"><thead><tr><th>#</th><th>Category family</th><th>Icon</th><th>Type</th><th>Current state</th></tr></thead><tbody>
+      <tr><td>1</td><td>Productivity &amp; Tools</td><td>🛠️</td><td>Paragon Built</td><td>Catalogue family</td></tr>
+      <tr><td>2</td><td>Creative &amp; Design</td><td>🎨</td><td>Paragon Built</td><td>Catalogue family</td></tr>
+      <tr><td>3</td><td>Education &amp; Learning</td><td>📚</td><td>Paragon Built</td><td>Catalogue family</td></tr>
+      <tr><td>4</td><td>Social &amp; Communication</td><td>💬</td><td>Paragon Built</td><td>Catalogue family</td></tr>
+      <tr><td>5</td><td>Entertainment &amp; Media</td><td>🎵</td><td>Paragon Built</td><td>Catalogue family</td></tr>
+      <tr><td>6</td><td>Games</td><td>🎮</td><td>Paragon Built</td><td>Catalogue family</td></tr>
+      <tr><td>7</td><td>Finance &amp; Business</td><td>💰</td><td>Paragon Built</td><td>Catalogue family</td></tr>
+      <tr><td>8</td><td>Lifestyle &amp; Health</td><td>🍕</td><td>Paragon Built</td><td>Catalogue family</td></tr>
+      <tr><td>9</td><td>Web &amp; Developer Tools</td><td>🌐</td><td>Paragon Built</td><td>Catalogue family</td></tr>
+      <tr><td>10</td><td>Paragon Originals</td><td>🌟</td><td>Paragon Built</td><td>Archive Hub only · Hub website icon remains ◈</td></tr>
+      <tr class="hub-category-planned"><td>11</td><td><strong>Deployed</strong></td><td>🚀</td><td>Third-Party Hosted</td><td><strong>Planned · empty</strong></td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section id="team-gateway" class="hub-doc-section" aria-labelledby="team-title">
+    <header class="hub-section-heading"><p class="eyebrow">Protected operations</p><h2 id="team-title">🛡️ Paragon Team Gateway</h2></header>
+    <div class="hub-locked-gateway"><span>🔐</span><div><h3>Not publicly available</h3><p>The future Team Gateway will require protected Supabase claims and server-side authorization. Creator email matching is not sufficient and this page contains no admin bypass, password, service-role key, or privileged browser action.</p></div><b>Planned</b></div>
+  </section>
+
+  <section id="completion" class="hub-doc-section" aria-labelledby="completion-title">
+    <header class="hub-section-heading"><p class="eyebrow">Documentation completion</p><h2 id="completion-title">✅ Published and Clearly Scoped</h2></header>
+    <div class="hub-table-wrap"><table><thead><tr><th>Document/system</th><th>Documentation</th><th>Live operation</th></tr></thead><tbody>
+      <tr><td>Terms and Conditions</td><td>Published</td><td>Current/future scope labelled</td></tr>
+      <tr><td>Community Guidelines</td><td>Published</td><td>Community not launched</td></tr>
+      <tr><td>Cookie Policy</td><td>Published</td><td>Optional services disconnected</td></tr>
+      <tr><td>Developer Requirements</td><td>Published</td><td>Applications not open</td></tr>
+      <tr><td>Deployed specification/form</td><td>Published preview</td><td>Submission/hosting not launched</td></tr>
+      <tr><td>Future Products Roadmap</td><td>Published</td><td>2027/future items remain planned</td></tr>
+      <tr><td>System Status</td><td>Published</td><td>Honest prepared/pending states</td></tr>
+      <tr><td>Community Membership</td><td>Published</td><td>Membership not open</td></tr>
+      <tr><td>Updated Category Families</td><td>Published</td><td>Deployed is an empty placeholder</td></tr>
+    </tbody></table></div>
+  </section>
+  </div>
+
+  <div id="hub-page-community" class="hub-page-panel" hidden>
+    <section class="hub-hero hub-community-hero" aria-labelledby="community-page-title">
+      <p class="hub-kicker">👥 PARAGON COMMUNITY</p>
+      <h1 id="community-page-title">For the people who support<br><span>our world and our work.</span></h1>
+      <p style="margin-top:10px;"><a class="primary-action" href="community-board.html" style="text-decoration:none;">💬 Open the Community Board</a></p>
+      <p>The Paragon Community is the inner circle of Paragon Archive — members who believe in free, honest web tools and want to help shape what gets built next.</p>
+    </section>
+
+    <section class="hub-doc-section" aria-labelledby="community-benefits-title">
+      <header class="hub-section-heading"><p class="eyebrow">Why join</p><h2 id="community-benefits-title">Member benefits</h2></header>
+      <div class="hub-card-grid">
+        <article class="hub-benefit-card"><span aria-hidden="true">🔭</span><h4>Early previews</h4><p>See new Paragon websites and features before public announcement as preview infrastructure rolls out.</p></article>
+        <article class="hub-benefit-card"><span aria-hidden="true">🗳️</span><h4>Real influence</h4><p>Member suggestions and votes are planned to weigh directly on the build roadmap.</p></article>
+        <article class="hub-benefit-card"><span aria-hidden="true">🏅</span><h4>Member badge</h4><p>A community badge on your Paragon account identity as protected profile systems activate.</p></article>
+        <article class="hub-benefit-card"><span aria-hidden="true">🧪</span><h4>Beta invitations</h4><p>Priority invitations to test new products and report issues before launch.</p></article>
+        <article class="hub-benefit-card"><span aria-hidden="true">📬</span><h4>Monthly updates</h4><p>A member update summarizing what shipped, what changed, and what is coming.</p></article>
+        <article class="hub-benefit-card"><span aria-hidden="true">🤝</span><h4>Credits</h4><p>Contribution credits for members whose reports and ideas ship into the Archive.</p></article>
+      </div>
+    </section>
+
+    <section class="hub-doc-section" aria-labelledby="community-join-title">
+      <header class="hub-section-heading"><p class="eyebrow">Membership · six steps</p><h2 id="community-join-title">Join the Community</h2></header>
+
+      <ol id="community-steps" class="community-steps">
+        <li data-community-step="1"><span class="community-step-mark" aria-hidden="true"></span><div><strong>Have a Paragon Archive account</strong><small>You must be a registered user first. Guest users cannot join the community.</small></div></li>
+        <li data-community-step="2"><span class="community-step-mark" aria-hidden="true"></span><div><strong>Verify your email</strong><small>A verification email confirms your account email is real and active. Click the link in that email.</small></div></li>
+        <li data-community-step="3"><span class="community-step-mark" aria-hidden="true"></span><div><strong>Go to the Paragon Community in your Account Profile</strong><small>Open the Account tab, scroll to Settings and tap Paragon Community.</small></div></li>
+        <li data-community-step="4"><span class="community-step-mark" aria-hidden="true"></span><div><strong>Complete your community profile</strong><small>Use the “📝 Complete your community profile” button right in the join popup — fill the form (display name, optional bio, interests) and press Save.</small></div></li>
+        <li data-community-step="5"><span class="community-step-mark" aria-hidden="true"></span><div><strong>Accept the Community Guidelines</strong><small>Read them and confirm you agree — they pop up right there, no documentation trip.</small></div></li>
+        <li data-community-step="6"><span class="community-step-mark" aria-hidden="true"></span><div><strong>Join the Community</strong><small>Click the Join the Paragon Community button — and boom, you are in! Your badge appears and member access unlocks.</small></div></li>
+      </ol>
+
+      <div id="community-join-card" class="hub-join-card">
+        <div id="community-join-status" class="hub-join-status" role="status">Checking your Paragon account…</div>
+        <a id="community-signin-link" class="secondary-action" href="paragon-archive.html" hidden>Sign in from the Archive first</a>
+
+        <form id="community-join-form" hidden novalidate>
+          <label class="community-guidelines-check"><input id="community-guidelines-agree" type="checkbox" required> I have read and accept the <a href="#community-guidelines">Community Guidelines</a>.</label>
+          <p id="community-email-state" class="community-email-state"></p>
+          <label class="community-field"><span>Community display name <b>*</b></span><input id="community-display-name" maxlength="40" required placeholder="How members will see you"></label>
+          <label class="community-field"><span>Short bio <small>(optional but encouraged)</small></span><textarea id="community-bio" maxlength="240" placeholder="A line or two about you"></textarea></label>
+          <fieldset class="community-interests"><legend>Select your interests</legend>
+            <div id="community-interest-chips" class="community-interest-chips">
+              <label><input type="checkbox" value="Productivity & Tools"> 🧰 Productivity &amp; Tools</label>
+              <label><input type="checkbox" value="Creative & Design"> 🎨 Creative &amp; Design</label>
+              <label><input type="checkbox" value="Education & Learning"> 🎓 Education &amp; Learning</label>
+              <label><input type="checkbox" value="Social & Communication"> 💬 Social &amp; Communication</label>
+              <label><input type="checkbox" value="Entertainment & Media"> 🎬 Entertainment &amp; Media</label>
+              <label><input type="checkbox" value="Games"> 🎮 Games</label>
+              <label><input type="checkbox" value="Finance"> 💰 Finance</label>
+              <label><input type="checkbox" value="Lifestyle & Health"> 🌱 Lifestyle &amp; Health</label>
+              <label><input type="checkbox" value="Web & Developer Tools"> 💻 Developer</label>
+            </div>
+          </fieldset>
+          <button type="submit" class="primary-action">Join the Paragon Community</button>
+        </form>
+
+        <div id="community-member-panel" hidden>
+          <div class="community-member-head"><span class="community-badge">👥 COMMUNITY MEMBER</span><strong id="community-member-name"></strong><small id="community-member-meta"></small></div>
+          <div class="community-benefits">
+            <strong>You now have access to:</strong>
+            <ul>
+              <li>💬 Community discussion board <em>opens with the Community backend</em></li>
+              <li>❓ Q&amp;A — Ask the Team <em>opens with the Community backend</em></li>
+              <li>💡 Suggestions box <em>opens with the Community backend</em></li>
+              <li>🔔 Early access notifications</li>
+              <li>🧪 Beta testing invites</li>
+              <li>📬 Monthly Paragon update email <em>starts with email activation</em></li>
+              <li>🏆 Your name in community credits</li>
+            </ul>
+          </div>
+          <button id="community-back-home" type="button" class="secondary-action" data-hub-goto="home">← Back to Hub Home</button>
+        </div>
+
+        <ul class="hub-join-rules">
+          <li>Joining links Community membership to your Paragon account — you only ever join once.</li>
+          <li>A real Paragon account (Email or Google) is required. Temporary Guest sessions cannot join.</li>
+        </ul>
+        <p class="hub-join-note">Your membership profile is stored with your account state and syncs to the protected Community backend when it activates. Boards, Q&amp;A, and suggestions open with that backend — no fake activity is shown before then.</p>
+      </div>
+    </section>
+  </div>
+
+  <div id="hub-page-team" class="hub-page-panel" hidden>
+    <section class="hub-team-secure" aria-labelledby="team-page-title">
+      <div class="hub-team-secure-inner">
+        <p class="hub-team-brand" aria-hidden="true">◈ PARAGON ARCHIVE HUB</p>
+        <h1 id="team-page-title">TEAM SECURE ACCESS</h1>
+        <p class="hub-team-sub">Authorized personnel only</p>
+
+        <form id="team-login-form" class="hub-team-secure-card" novalidate aria-describedby="team-login-status">
+          <label><span>Team Email</span><input id="team-login-email" type="email" name="email" autocomplete="username" required placeholder="you@paragon.team"></label>
+          <label><span>Access Key</span><input id="team-login-password" type="password" name="password" autocomplete="current-password" required placeholder="●●●●●●●●●●●●"></label>
+          <button type="submit" class="primary-action hub-team-secure-submit">SECURE LOGIN <span aria-hidden="true">🔐</span></button>
+          <p id="team-login-status" class="hub-join-status" role="status" hidden></p>
+        </form>
+
+        <p class="hub-team-warning">This portal is for Paragon team members only. Unauthorized access attempts will be logged and reported when the protected gateway activates.</p>
+
+        <a class="hub-team-back" href="paragon-archive.html">← Back to Archive</a>
+        <a class="portal-forgot" href="team/login.html">Team members: open the dedicated Secure Team Portal 🔒</a>
+
+        <details class="hub-team-honesty hub-team-honesty-compact">
+          <summary>Current state — honest and clear</summary>
+          <p>Team authorization runs on protected server-side claims that are not activated yet. This template validates the form only; no credentials are sent anywhere and no browser-side access key can ever grant Team access. When the backend activates, only server-authorized Paragon Team accounts will pass this gateway.</p>
+        </details>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer id="footer" class="legal-footer hub-page-footer">
+  <p>© 2026 Paragon · <a href="paragon-archive.html">Archive</a></p>
+  <p>Official Archive documentation · Current-state claims verified August 18, 2026 <a class="hub-hidden-lock" href="team/login.html" aria-label="Paragon Team secure portal">🔒</a></p>
+</footer>
+<section id="cookie-banner" class="cookie-banner" aria-label="Cookie preferences" hidden>
+  <div><strong>Your privacy choices</strong><p>Essential storage keeps Paragon working. Optional analytics, tracking, and ad preferences stay off unless you allow them.</p></div>
+  <div class="cookie-actions"><button id="cookie-essential" type="button" class="secondary-action">Essential Only</button><button id="cookie-manage" type="button" class="secondary-action">Manage</button><button id="cookie-accept-all" type="button" class="primary-action">Accept All</button></div>
+</section>
+<script src="config/supabase.js" defer></script>
+<script src="auth/supabase-auth.js" defer></script>
+<script src="auth/paragon-sync.js" defer></script>
+<script src="data/sites.js" defer></script>
+<script src="data/catalogue-expansion.js" defer></script>
+<script src="data/catalogue-expansion-45-100.js" defer></script>
+<script src="privacy.js" defer></script>
+<script src="archive-hub.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: play.html
+  EXPECTED PROJECT PATH: /paragon-quiz/play.html
+  ROLE: Paragon Quiz play page v2 (owner design) — start screen, circular timer, inline feedback, complete screen with review modal.
+  RESTORE/LOAD NOTE: Keep inside /paragon-quiz/. Opened as play.html?id={quizId}. Loads css/style.css, js/app.js, js/play.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playing Quiz — Paragon Quiz</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <a class="quiz-brand-link" href="../paragon-archive.html?site=Paragon%20Quiz" title="View Paragon Quiz in the Paragon Archive"><span class="logo"><img class="quiz-logo-img" src="../assets/site-icons/paragon-quiz.png" alt="Paragon Quiz icon"></span>
+            <span class="brand">Paragon Quiz</span></a>
+        </div>
+        <nav class="header-nav">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="explore.html" class="nav-link">Explore</a>
+            <a href="create.html" class="nav-link">Create</a>
+        </nav>
+    </header>
+
+    <!-- QUIZ START SCREEN -->
+    <section class="play-start" id="startScreen">
+        <div class="play-start-card">
+            <div class="play-category-badge" id="playCategory">🧠 General</div>
+            <h1 class="play-title" id="playTitle">Loading...</h1>
+            <p class="play-description" id="playDescription"></p>
+            <div class="play-meta">
+                <div class="play-meta-item">
+                    <span class="meta-icon">📝</span>
+                    <span id="playQuestionCount">0</span> Questions
+                </div>
+                <div class="play-meta-item" id="playTimeWrap">
+                    <span class="meta-icon">⏱️</span>
+                    <span id="playTimeLimit">30</span>s per question
+                </div>
+                <div class="play-meta-item">
+                    <span class="meta-icon">📊</span>
+                    <span id="playDifficulty">Medium</span>
+                </div>
+                <div class="play-meta-item">
+                    <span class="meta-icon">🎮</span>
+                    Played <span id="playCount">0</span> times
+                </div>
+            </div>
+            <div class="play-best" id="playBest" style="display:none;"></div>
+            <button class="btn btn-primary btn-large" id="startQuizBtn">
+                🎮 Start Quiz
+            </button>
+            <a href="explore.html" class="btn btn-outline">← Back to Explore</a>
+        </div>
+    </section>
+
+    <!-- NOT FOUND -->
+    <section class="play-start" id="notFoundScreen" style="display:none;">
+        <div class="play-start-card">
+            <div class="play-category-badge">❓</div>
+            <h1 class="play-title">Quiz not found</h1>
+            <p class="play-description">This quiz may have been deleted.</p>
+            <a href="explore.html" class="btn btn-primary">🎮 Browse all quizzes</a>
+        </div>
+    </section>
+
+    <!-- QUIZ PLAYING SCREEN -->
+    <section class="play-area" id="playScreen" style="display:none;">
+
+        <!-- PROGRESS BAR -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-info">
+                <span id="currentQuestion">1</span> / <span id="totalQuestions">10</span>
+            </div>
+        </div>
+
+        <!-- TIMER -->
+        <div class="timer-container" id="timerContainer">
+            <div class="timer-ring">
+                <svg class="timer-svg" viewBox="0 0 100 100">
+                    <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+                    <circle class="timer-fill" cx="50" cy="50" r="45" id="timerCircle"></circle>
+                </svg>
+                <span class="timer-number" id="timerNumber">30</span>
+            </div>
+        </div>
+
+        <!-- QUESTION -->
+        <div class="question-container">
+            <h2 class="question-text" id="questionText">Loading question...</h2>
+        </div>
+
+        <!-- OPTIONS -->
+        <div class="options-container" id="optionsContainer">
+            <!-- Options rendered by JavaScript -->
+        </div>
+
+        <!-- FEEDBACK -->
+        <div class="feedback-container" id="feedbackContainer" style="display:none;">
+            <div class="feedback-icon" id="feedbackIcon"></div>
+            <div class="feedback-text" id="feedbackText"></div>
+            <div class="correct-answer" id="correctAnswer"></div>
+            <button class="btn btn-primary" id="nextBtn">Next Question →</button>
+        </div>
+
+    </section>
+
+    <!-- QUIZ COMPLETE SCREEN -->
+    <section class="play-complete" id="completeScreen" style="display:none;">
+        <div class="complete-card">
+            <div class="complete-icon" id="completeIcon">🏆</div>
+            <h1 class="complete-title" id="completeTitle">Quiz Complete!</h1>
+            <div class="score-display">
+                <div class="score-circle">
+                    <svg class="score-svg" viewBox="0 0 120 120">
+                        <circle class="score-bg" cx="60" cy="60" r="54"></circle>
+                        <circle class="score-fill" cx="60" cy="60" r="54" id="scoreCircle"></circle>
+                    </svg>
+                    <div class="score-text">
+                        <span class="score-number" id="scoreNumber">0</span>
+                        <span class="score-percent">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="score-details">
+                <div class="score-detail">
+                    <span class="detail-label">Correct</span>
+                    <span class="detail-value correct" id="correctCount">0</span>
+                </div>
+                <div class="score-detail">
+                    <span class="detail-label">Wrong</span>
+                    <span class="detail-value wrong" id="wrongCount">0</span>
+                </div>
+                <div class="score-detail">
+                    <span class="detail-label">Skipped</span>
+                    <span class="detail-value skipped" id="skippedCount">0</span>
+                </div>
+                <div class="score-detail">
+                    <span class="detail-label">Time</span>
+                    <span class="detail-value" id="totalTime">0s</span>
+                </div>
+            </div>
+            <div class="complete-message" id="completeMessage"></div>
+            <div class="complete-best" id="completeBest"></div>
+            <div class="complete-actions">
+                <button class="btn btn-primary" id="retryBtn">🔄 Try Again</button>
+                <button class="btn btn-secondary" id="reviewBtn">📋 Review Answers</button>
+                <a href="explore.html" class="btn btn-outline">🎮 More Quizzes</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- REVIEW ANSWERS MODAL -->
+    <div class="modal-overlay" id="reviewModal" style="display:none;">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2>📋 Answer Review</h2>
+                <button class="modal-close" id="closeReview" aria-label="Close review">✕</button>
+            </div>
+            <div class="modal-body" id="reviewContent">
+                <!-- Review content -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeReviewBtn">Close</button>
+                <button class="btn btn-primary" id="retryFromReview">🔄 Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/quiz.js"></script>
+</body>
+</html>
