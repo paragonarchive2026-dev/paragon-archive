@@ -1031,6 +1031,17 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <pre id="sql-health-out" class="team-site-sub" style="white-space:pre-wrap;max-height:280px;overflow:auto;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">Not probed yet.</pre>
   </section>
 
+  <!-- P-110 — Stage 3 games settle -->
+  <section class="team-dash-section" id="stage3-games-section">
+    <h2 class="team-section-title">⚔️ Stage 3 — 1v1 settle (server only)</h2>
+    <p class="team-site-sub">Browser never referees money. Outcomes: <code>settled_win</code> (5% fee from pool), <code>settled_draw</code> / <code>voided</code> (stakes returned). Awards competitive points on win/draw.</p>
+    <div class="team-site-actions" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px">
+      <button type="button" class="team-mini-link" id="stage3-games-refresh">Refresh competitions</button>
+      <button type="button" class="team-mini-link" id="stage3-anticheat-flag">Flag user (anti-cheat)</button>
+    </div>
+    <div id="stage3-games-list" class="team-site-list"></div>
+  </section>
+
   <!-- P-104 — Phase 4 finance desk overview -->
   <section class="team-dash-section" id="finance-desk-section">
     <h2 class="team-section-title">💼 Finance desk (Phase 4)</h2>

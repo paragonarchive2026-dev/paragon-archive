@@ -5574,3 +5574,13 @@ Run SQL including `coins-master-stage1-hardening.sql`. Paste **Stage 2** when re
 2. Purchase request → claim → team confirm credit path end-to-end in UI.
 3. Transaction history from server ledger; locked/available/pending/restricted shown.
 4. real_money remains OFF; request click never credits.
+
+## v1.04.0 — 2026-09-03 — Stage 3 Games (P-110)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Audited phase4 1v1 create/join/settle/draw/void — already present; extended Stage 3.
+2. Competitive points + leaderboard upsert; anticheat foundations; stake preflight.
+3. FE compete desk + Team settle UI; client cannot settle money.
+4. real_money / compete flags unchanged (default off).

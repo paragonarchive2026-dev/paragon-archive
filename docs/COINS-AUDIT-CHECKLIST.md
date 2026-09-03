@@ -37,9 +37,9 @@
 | Duplicate-payment protection | ✅ | Unique `(provider, provider_transaction_id)` + idempotent ingest |
 | Idempotency | ✅ | Ledger + intents + withdrawals + competition join keys |
 | Race-condition protection | ✅ | `FOR UPDATE` on accounts/intents; advisory locks (hardening) |
-| Server-authoritative games | 🟡 | Competition settle is server/team only; full game clients still free-local |
+| Server-authoritative games | ✅ | Stage 3 settle + points; free UI can still be local |
 | Quiz security (paid) | ❌ | Free quiz is client; paid competitive quiz needs server answers/results (**Stage 2+**) |
-| Anti-cheat/collusion | 🟡 | Risk flags + cases tables; scoring heuristics not fully productized |
+| Anti-cheat/collusion | 🟡 | Foundations ✅ (flags/events/preflight); full graph still later |
 | Multiple-account controls | 🟡 | KYC draft + risk flags; no automated device graph yet |
 | Admin/Team financial permissions | ✅ | `paragon_is_team_member` + team-only RPCs + audit log |
 | Financial ledger architecture | ✅ | Multi-bucket accounts + append-only `paragon_coin_ledger_v2` |
@@ -108,3 +108,18 @@ coins-master-phase5.sql             ← OPay/Moniepoint
 | Duplicate-payment protection | ✅ unique (provider, provider_transaction_id) |
 
 **SQL:** `coins-master-stage2-coin-system.sql` after phase2 (+ stage1-hardening recommended).
+
+---
+
+## Stage 3 — Games (P-110)
+
+| Item | Status |
+|------|--------|
+| 1v1 staking | ✅ |
+| 5% competition fee | ✅ |
+| Server-authoritative settlement | ✅ |
+| Draw/void/refund | ✅ |
+| Competitive points | ✅ |
+| Anti-cheat foundations | ✅ |
+
+See `docs/COINS-STAGE3.md`.

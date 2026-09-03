@@ -520,6 +520,7 @@ Use the applicable subset for each change:
 | D-230 | 2026-09-03 | Stage 1 foundation complete in repo; real_money stays OFF. | Master Stage 1. | Confirmed |
 | D-231 | 2026-09-03 | Stage 2 waits for owner brief; do not rebuild completed phases. | Workflow. | Confirmed |
 | D-232 | 2026-09-03 | Stage 2 coin system complete; credit only after confirm/match. | Master Stage 2. | Confirmed |
+| D-233 | 2026-09-03 | Stage 3 games: server settle only; 5% fee; points; anticheat foundations. | Master Stage 3. | Confirmed |
 | D-205 | 2026-08-26 | PARAGON COINS CORE: balance in personal state, Account coin stat + styled shop popup (₦500/₦1,000/₦5,000 packs at placeholder ₦1=2), buy requests -> Team settings panel (super-admin approve/reject) -> paragonArchive.coinCredits.v1 mirror -> user's device credits with a toast; addCoins/spendCoins helpers + history. Full economics + games/quiz integration rules + the owner's ChatGPT heads-up prompt recorded in docs/COIN-SYSTEM.md (creator-quiz no-win rule, bet-only leaderboards, weekly top-10 rewards, withdrawal flow). | Owner's P-098 coin order. | Confirmed |
 | D-204 | 2026-08-26 | SITE SPECS FROM OWNER SKILLS: all 9 uploaded skill files (recipe-creator, meal-planner, file-converter, invoice-generator, flashcard-generator, personal-shopper, photo-editor, resume-maker, travel-assistant) merged into docs/site-specs/<slug>.md — verbatim use/never-use rules + the FREE adaptation law (vanilla HTML/CSS/JS + localStorage engines replacing the skills' full-stack/API/React architecture; adapters ready for free APIs). Websites build in-project under /sites/<slug>/ in the quiz layout family. | Owner's P-098 skill uploads. | Confirmed |
 | D-203 | 2026-08-26 | RxLife Network + Pharmapaedia added to the catalogue as honest Deployed-family Paragon products (0% build, preview route, no fake progress; AI Brain rows added). | Owner's P-098 order. | Confirmed |
@@ -2688,3 +2689,8 @@ Use the applicable subset for each change:
 
 **D-232:** Stage 2 (purchase, reconcile, credits, history, buckets, idempotency, duplicate protection) complete in repo; credits only via confirm/match.
 **Delivered:** stage2 SQL, shop claim/history/buckets, Team reconcile desk, cache v86.
+
+### P-110 — 2026-09-03 — Stage 3 Games
+
+**D-233:** Stage 3 games complete in repo: 1v1 stake, 5% fee, server settle, draw/void, points, anticheat foundations. Browser never settles money.
+**Delivered:** stage3-games.sql, FE desk, Team settle, COINS-STAGE3.md, cache v87.

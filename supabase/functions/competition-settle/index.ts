@@ -99,6 +99,16 @@ Deno.serve(async (request) => {
           p_correlation_id: body.correlation_id || null
         })
       });
+      try {
+        const fee = Number((result as { fee_coins?: number })?.fee_coins) || 0;
+        const cid = body.competition_id;
+        if (fee > 0 && cid) {
+          await rest("/rest/v1/rpc/paragon_record_competition_fee_revenue", {
+            method: "POST",
+            body: JSON.stringify({ p_competition_id: cid, p_fee_coins: fee })
+          }).catch(() => null);
+        }
+      } catch { /* optional stage1 books */ }
       return json({ ok: true, settlement: result });
     }
 

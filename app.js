@@ -2643,6 +2643,7 @@ function renderAccount() {
       <div class="row"><button type="button" class="settings-link" onclick="openParagonInstall()"><span>📲 Install Paragon Archive &amp; app permissions</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openCoinShop()"><span>🪙 Paragon Coins — balance ${coinBalance().toLocaleString()} · buy (real-money OFF)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openEngagementLeaderboard()"><span>🏆 Engagement leaderboard — climb to Top 10</span></button></div>
+      <div class="row"><button type="button" class="settings-link" onclick="openGamesCompeteDesk()"><span>⚔️ 1v1 competitive stake (server settle · free play separate)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="shareParagonApp()"><span>📤 Share Paragon Archive (install link)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openCommunityEntry()"><span>${communityMembershipRecord() ? "👥 Paragon Community · Open the Board" : "👥 Paragon Community"}</span></button></div>
       <div class="row"><a class="settings-link" href="paragon-archive-hub.html"><span><img class="settings-brand-mark" src="assets/brand/logo-mark.png" alt=""> Paragon Archive Hub</span></a></div>
@@ -3586,6 +3587,134 @@ window.openKycPayoutDraft = function() {
   }).then(() => showToast("Payout details saved for team review (KYC draft)."))
     .catch(() => showToast("Saved locally note — run phase5 SQL for server KYC.", "warning"));
 };
+
+
+/* =====================================================================
+   P-110 — Stage 3 Games desk (1v1 stake UI)
+   Free play always available outside this desk. Stakes lock via server RPC.
+   Browser NEVER settles winners — team/service only.
+   ===================================================================== */
+window.openGamesCompeteDesk = function() {
+  if (!requirePersonalSession("open competitive games")) return;
+  if (!isRegisteredMember()) {
+    showToast("Sign in with a real account to stake coins. Guests stay free-play only.", "warning");
+    return;
+  }
+  const cfg = coinConfigFlags();
+  document.getElementById("games-compete-overlay")?.remove();
+
+  const run = (view) => {
+    const buckets = coinBalanceBuckets();
+    const pre = view?.preflight || {};
+    const matches = Array.isArray(view?.matches) ? view.matches : [];
+    const matchHtml = matches.slice(0, 10).map(m => {
+      return `<li class="coin-intent-row"><span><b>${String(m.game_key || "1v1").replace(/[<>]/g, "")}</b> · ${Number(m.stake_coins || 0)}c · ${String(m.status || "").replace(/[<>]/g, "")} · me: ${String(m.result || "pending").replace(/[<>]/g, "")}</span></li>`;
+    }).join("") || "<li><small>No staked matches yet. Free play never needs this desk.</small></li>";
+
+    const warnings = Array.isArray(pre.warnings) ? pre.warnings : [];
+    const warnHtml = warnings.length
+      ? `<ul style="margin:8px 0;padding-left:18px;font-size:12px">${warnings.map(w => `<li>${String(w.code || JSON.stringify(w)).replace(/[<>]/g, "")}</li>`).join("")}</ul>`
+      : "<p class=\"install-popup-note\">Preflight clear (or SQL not live yet).</p>";
+
+    const overlay = document.createElement("div");
+    overlay.id = "games-compete-overlay";
+    overlay.className = "install-popup-overlay active";
+    overlay.innerHTML = `
+      <div class="install-popup-card" role="dialog" aria-modal="true" aria-label="Competitive 1v1">
+        <header><h2>1v1 Competitive stake</h2>
+          <button type="button" class="icon-btn-small" onclick="document.getElementById('games-compete-overlay')?.remove();document.body.classList.remove('popup-lock')" aria-label="Close">×</button>
+        </header>
+        <p class="install-popup-note">Free play is always available without coins. This desk locks stakes on the <strong>server</strong> (100–10,000 coins). House fee = <strong>5% of the two-player pool</strong>. Winners are settled by the Paragon Team / Edge only — your browser cannot credit a win.</p>
+        <div class="leaderboard-you">Available <b>${buckets.available.toLocaleString()}</b> · locked <b>${buckets.locked.toLocaleString()}</b>
+          · compete_flag=${cfg.compete ? "on" : "off"} · real_money=${cfg.realMoney ? "on" : "OFF"}</div>
+        ${warnHtml}
+        <label style="display:block;margin:10px 0 4px;font-size:12px">Game key</label>
+        <input id="compete-game-key" value="1v1-practice" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit">
+        <label style="display:block;margin:10px 0 4px;font-size:12px">Stake (coins)</label>
+        <input id="compete-stake" type="number" min="100" max="10000" step="50" value="100" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit">
+        <div class="install-popup-actions" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+          <button type="button" class="primary-action" onclick="createOneVOneChallenge()">Create challenge (lock my stake)</button>
+          <button type="button" class="secondary-action" onclick="refreshOpenChallenges()">Open challenges</button>
+          <button type="button" class="secondary-action" onclick="document.getElementById('games-compete-overlay')?.remove();document.body.classList.remove('popup-lock')">Close</button>
+        </div>
+        <div id="compete-open-list" style="margin-top:12px"></div>
+        <h4 style="margin:14px 0 6px;font-size:13px">My recent stakes</h4>
+        <ul style="list-style:none;padding:0;margin:0;display:grid;gap:6px">${matchHtml}</ul>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.body.classList.add("popup-lock");
+  };
+
+  supabaseRest("/rest/v1/rpc/paragon_competition_my_list", {
+    method: "POST", body: JSON.stringify({ p_limit: 15 })
+  }).then(run).catch(() => run(null));
+};
+
+window.createOneVOneChallenge = function() {
+  if (!isRegisteredMember()) return;
+  const gameKey = String(document.getElementById("compete-game-key")?.value || "1v1").trim() || "1v1";
+  const stake = Math.round(Number(document.getElementById("compete-stake")?.value) || 0);
+  if (stake < 100 || stake > 10000) {
+    showToast("Stake must be between 100 and 10,000 coins.", "warning");
+    return;
+  }
+  const fee = Math.round(stake * 2 * 0.05);
+  supabaseRest("/rest/v1/rpc/paragon_competition_create", {
+    method: "POST",
+    body: JSON.stringify({
+      p_game_key: gameKey,
+      p_stake_coins: stake,
+      p_opponent: null,
+      p_metadata: { client: "archive-games-desk", fee_preview: fee }
+    })
+  }).then(row => {
+    showToast(`Challenge created — ${stake} coins locked. Fee preview ${fee}c (5% of pool when settled as a win). Waiting for opponent.`);
+    refreshCoinAccountFromServer();
+    openGamesCompeteDesk();
+  }).catch(err => {
+    const msg = String(err?.message || err || "");
+    showToast("Could not create challenge: " + msg.slice(0, 140), "warning");
+  });
+};
+
+window.refreshOpenChallenges = function() {
+  const host = document.getElementById("compete-open-list");
+  if (!host) return;
+  host.innerHTML = "<small>Loading open challenges…</small>";
+  supabaseRest("/rest/v1/rpc/paragon_competition_open_challenges", {
+    method: "POST",
+    body: JSON.stringify({ p_game_key: null, p_limit: 15 })
+  }).then(rows => {
+    const list = Array.isArray(rows) ? rows : (rows ? [rows] : []);
+    if (!list.length) {
+      host.innerHTML = "<small>No open challenges (or Stage 3 SQL not run).</small>";
+      return;
+    }
+    host.innerHTML = `<h4 style="font-size:13px">Open challenges</h4>` + list.map(c => {
+      const id = String(c.id || "").replace(/'/g, "");
+      return `<div class="coin-intent-row"><span>${String(c.game_key || "").replace(/[<>]/g, "")} · ${Number(c.stake_coins || 0)}c · fee ${Number(c.fee_coins || 0)}c</span>
+        <button type="button" class="secondary-action coin-claim-btn" onclick="joinOneVOneChallenge('${id}')">Join (lock my stake)</button></div>`;
+    }).join("");
+  }).catch(() => {
+    host.innerHTML = "<small>Open challenges unavailable — run stage3 SQL.</small>";
+  });
+};
+
+window.joinOneVOneChallenge = function(competitionId) {
+  if (!competitionId || !isRegisteredMember()) return;
+  supabaseRest("/rest/v1/rpc/paragon_competition_join", {
+    method: "POST",
+    body: JSON.stringify({
+      p_competition_id: competitionId,
+      p_idempotency_key: "join-" + competitionId + "-" + (authUser?.id || "u")
+    })
+  }).then(() => {
+    showToast("Joined — both stakes locked when two players seated. Play free UI; Team settles the money outcome.");
+    refreshCoinAccountFromServer();
+    openGamesCompeteDesk();
+  }).catch(err => showToast("Join failed: " + String(err?.message || err).slice(0, 120), "warning"));
+};
+
 
 window.openCoinShop = function() {
   try { if (hasPersonalSession()) { accountProfile.coinShopOpenCount = Number(accountProfile.coinShopOpenCount || 0) + 1; persistPersonalState(); renderAchievementsAccount(); } } catch (_) {}

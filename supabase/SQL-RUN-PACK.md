@@ -81,3 +81,8 @@ Brevo SMTP, production domain, gaming licence/KYC, provider account signup.
 
 After phase2 (+ stage1-hardening): run `coins-master-stage2-coin-system.sql`.
 See `docs/COINS-STAGE2.md`.
+
+
+## Stage 3 games
+
+After phase4: `coins-master-stage3-games.sql`. See `docs/COINS-STAGE3.md`.

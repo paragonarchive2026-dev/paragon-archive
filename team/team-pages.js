@@ -4741,6 +4741,103 @@ if (paragonTeamPage() === "settings.html") {
     });
   }
 
+
+  function bindStage3Games() {
+    var host = document.getElementById("stage3-games-list");
+    var btn = document.getElementById("stage3-games-refresh");
+    if (!host || !btn) return;
+
+    function load() {
+      host.innerHTML = "<p class='team-site-sub'>Loading competitions…</p>";
+      financeRest("/rest/v1/paragon_competitions?select=id,game_key,status,stake_coins,fee_coins,pool_coins,created_at,metadata&order=created_at.desc&limit=25")
+        .then(function (rows) {
+          if (!rows || !rows.length) {
+            host.innerHTML = "<p class='team-site-sub'>No competitions (run phase4 + stage3 SQL).</p>";
+            return;
+          }
+          host.innerHTML = rows.map(function (c) {
+            var id = c.id;
+            var settled = /SETTLED|VOIDED|CANCELLED/i.test(String(c.status || ""));
+            return "<article class='team-site-card'>" +
+              "<strong>" + (c.game_key || "1v1") + "</strong> · " + (c.status || "") +
+              "<div class='team-site-sub'>stake " + c.stake_coins + " · fee " + (c.fee_coins || 0) + " (5% pool) · pool " + (c.pool_coins || 0) +
+              "<br><code style='font-size:10px'>" + id + "</code></div>" +
+              (settled ? "" :
+                "<div class='team-site-actions' style='margin-top:8px;display:flex;flex-wrap:wrap;gap:6px'>" +
+                "<button type='button' class='team-mini-link' data-s3='win' data-id='" + id + "'>Settle WIN</button>" +
+                "<button type='button' class='team-mini-link' data-s3='draw' data-id='" + id + "'>Settle DRAW</button>" +
+                "<button type='button' class='team-mini-link danger' data-s3='void' data-id='" + id + "'>VOID / refund</button>" +
+                "</div>") +
+              "</article>";
+          }).join("");
+        })
+        .catch(function (e) {
+          host.innerHTML = "<p class='team-site-sub'>Load failed: " + e.message + "</p>";
+        });
+    }
+
+    btn.addEventListener("click", load);
+
+    host.addEventListener("click", function (ev) {
+      var b = ev.target.closest("[data-s3]");
+      if (!b) return;
+      var id = b.dataset.id;
+      var act = b.dataset.s3;
+      var outcome = act === "win" ? "settled_win" : act === "draw" ? "settled_draw" : "voided";
+      var winner = null;
+      if (act === "win") {
+        winner = window.prompt("Winner user UUID (auth.users id)", "");
+        if (!winner) return;
+      }
+      window.ParagonTeamConfirm({
+        icon: "⚔️",
+        title: "Settle competition?",
+        lines: [
+          "Outcome: " + outcome,
+          "Server ledger only — never trust a client winner claim.",
+          act === "win" ? "Winner receives pool minus 5% fee." : "Stakes return to available (draw/void)."
+        ],
+        confirmLabel: "Settle now"
+      }).then(function (c) {
+        if (!c.ok) return;
+        financeRest("/rest/v1/rpc/paragon_competition_settle", {
+          method: "POST",
+          body: JSON.stringify({
+            p_competition_id: id,
+            p_outcome: outcome,
+            p_winner_user_id: winner,
+            p_correlation_id: "team-desk-" + Date.now().toString(36)
+          })
+        }).then(function () {
+          showToast("Settled on server.");
+          load();
+        }).catch(function (e) {
+          showToast("Settle failed: " + e.message);
+        });
+      });
+    });
+
+    document.getElementById("stage3-anticheat-flag")?.addEventListener("click", function () {
+      var uid = window.prompt("User UUID to flag", "");
+      if (!uid) return;
+      var typ = window.prompt("Flag type (collusion|velocity|multi_account|client_tamper|other)", "velocity") || "manual";
+      var sev = window.prompt("Severity low|medium|high|critical", "medium") || "medium";
+      financeRest("/rest/v1/rpc/paragon_anticheat_flag", {
+        method: "POST",
+        body: JSON.stringify({
+          p_user_id: uid,
+          p_flag_type: typ,
+          p_severity: sev,
+          p_detail: { source: "team_desk" }
+        })
+      }).then(function () {
+        showToast("Anti-cheat flag recorded.");
+      }).catch(function (e) {
+        showToast("Flag failed: " + e.message + " — need stage3 SQL.");
+      });
+    });
+  }
+
   function bindFinanceDesk() {
     var out = document.getElementById("finance-desk-out");
     var btn = document.getElementById("finance-refresh");
@@ -5171,6 +5268,7 @@ if (paragonTeamPage() === "settings.html") {
     bindCoinWithdrawals();
   bindSqlHealthProbe();
   bindFinanceDesk();
+  bindStage3Games();
   bindPhase5Rails();
       if (!document.getElementById("set-flags")) return;
       var settings = readSettings();

@@ -8,7 +8,7 @@
 
 # 🤝 NEXT-AGENT HANDOFF BRIEF — READ THIS FIRST
 
-**Last updated:** 2026-09-03 (EOP v1.03.0, prompt P-109)
+**Last updated:** 2026-09-03 (EOP v1.04.0, prompt P-110)
 **You are:** the owner's dedicated build agent for **Paragon Archive**, a large multi-product front-end platform.
 
 ## 1. WHO THE OWNER IS & HOW TO WORK WITH THEM
@@ -30,7 +30,7 @@
 - **P-001 preserve-first:** never destroy owner-approved work; extend it.
 - **P-014:** every new HTML/CSS/JS/SQL file starts with the `PARAGON ARCHIVE — EXPORT IDENTITY` comment header (REAL FILE NAME / EXPECTED PROJECT PATH / ROLE / RESTORE-LOAD NOTE).
 - **P-015:** responsive at all resolutions.
-- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v86**) AND the assertion in `tests/archive-hub.test.js`.
+- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v87**) AND the assertion in `tests/archive-hub.test.js`.
 - **NO `window.alert/prompt/confirm` anywhere** — use inline panels or `ParagonTeamConfirm` (in `team/nav.js`).
 - **Canonical entry = `paragon-archive.html`. NEVER create a root index.html.**
 - Progress % must be milestone-derived (D-116) or labelled "team-set".
@@ -211,3 +211,11 @@ Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop (shopper). Meal Plann
 **Owner:** run `coins-master-stage2-coin-system.sql` (after phase2). Use Team Stage 2 reconcile desk.
 
 **Next:** owner Stage 3 brief (or production activation).
+
+## 7p. WHERE WE STOPPED — after P-110 / EOP v1.04.0
+
+**Stage 3 Games: COMPLETE in repo.** `docs/COINS-STAGE3.md`.
+
+**Owner:** run `coins-master-stage3-games.sql` after phase4.
+
+**Next:** Stage 4 brief or production activation.
