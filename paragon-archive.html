@@ -1,0 +1,533 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: paragon-archive.html
+  EXPECTED PROJECT PATH: /paragon-archive.html
+  ROLE: Application shell and canonical browser entry file.
+  RESTORE/LOAD NOTE: Keep at project root. It loads config, auth, data, metrics, then app.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+<title>Paragon Archive — The Web, Reimagined</title>
+<meta name="description" content="Paragon Archive is a curated collection of websites, updates, and a personal archive experience." />
+<meta name="theme-color" content="#2563eb" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-180.png" />
+<!-- P-069 — official brand (Concept B faceted ◈): favicons + share meta. og:image becomes an absolute URL once the production domain is decided (CTA). -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png">
+<link rel="shortcut icon" href="assets/brand/favicon.ico">
+<meta property="og:title" content="Paragon Archive">
+<meta property="og:description" content="The gateway to everything Paragon.">
+<meta property="og:image" content="assets/brand/og-default.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<!-- P-089 — PWA mobile-native adaptation: iOS standalone metas -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Paragon">
+<link rel="apple-touch-startup-image" href="assets/brand/splash.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="style.css" />
+<script>try{if((sessionStorage.getItem("paragonArchive.theme.v2")||localStorage.getItem("paragonArchive.theme.v2"))==="light")document.documentElement.classList.add("light");}catch(e){}</script>
+</head>
+<body>
+<a class="skip-link" href="#app">Skip to main content</a>
+
+<!-- ========== TOP BAR ========== -->
+<header id="top-bar" role="banner" aria-label="Primary navigation">
+  <a id="home-link" href="#websites" class="logo-group" aria-label="Go to the Website tab">
+    <div class="logo-mark logo-mark-brand" aria-hidden="true"><img src="assets/brand/logo-mark.png" alt=""></div>
+    <span class="logo-text">PARAGON <span class="accent">ARCHIVE</span></span>
+  </a>
+  <div class="actions" role="group" aria-label="Top actions">
+    <button id="search-btn" class="icon-btn" type="button" aria-label="Search websites">
+      <svg class="top-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.8-3.8"></path>
+      </svg>
+    </button>
+    <div class="notification-wrap">
+      <button id="notifications-btn" class="icon-btn" type="button" aria-label="Notifications, no unread notifications" aria-controls="notification-panel" aria-expanded="false" data-unread="false">
+        <svg class="top-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span class="dot notification-dot" aria-hidden="true" hidden></span>
+      </button>
+      <section id="notification-panel" class="notification-panel" aria-label="Notifications" aria-hidden="true" hidden>
+        <div class="notification-panel-head">
+          <div><strong>Notifications</strong><span>Welcome and new Archive activity</span></div>
+          <div class="notification-panel-actions">
+            <button id="sync-notifications" type="button" aria-label="Sync new notifications" title="Sync new notifications">↻</button>
+            <button id="mark-notifications-read" type="button">Mark all read</button>
+          </div>
+        </div>
+        <div id="notification-list" class="notification-list" aria-live="polite"></div>
+      </section>
+    </div>
+    <button id="theme-toggle-btn" class="icon-btn" type="button" aria-label="Switch to light mode">
+      <svg class="top-icon theme-moon-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5 8.5 8.5 0 1 0 20.5 14.4Z"></path></svg>
+      <svg class="top-icon theme-sun-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ========== SEARCH OVERLAY ========== -->
+<section id="search-overlay" aria-label="Search websites" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="search-inner">
+    <div class="back-row search-back-row">
+      <h3 id="search-view-title">Search</h3>
+      <button id="search-back" type="button" class="search-nav-btn search-prominent-back" onclick="handleSearchBack()" aria-label="Go back">Back</button>
+    </div>
+
+    <div id="search-entry-view">
+      <div class="search-field">
+        <svg class="search-field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-3.8-3.8"></path>
+        </svg>
+        <input
+          id="search-input"
+          type="search"
+          placeholder="Search by name, purpose, feature, or idea..."
+          aria-label="Search websites by name, purpose, feature, or idea"
+          aria-controls="search-suggestions search-results"
+          aria-autocomplete="list"
+          autocomplete="off"
+          enterkeyhint="search"
+        />
+        <div id="search-inline-hint" class="search-inline-hint" aria-hidden="true"></div>
+      </div>
+      <div id="search-suggestions" class="search-suggestions" role="listbox" aria-label="Website suggestions" hidden></div>
+
+      <section id="recent-searches" class="recent-searches" aria-labelledby="recent-searches-title" hidden>
+        <div class="recent-searches-head"><h3 id="recent-searches-title">Recent searches</h3><button id="clear-recent-searches" type="button">Clear</button></div>
+        <div id="recent-search-list" class="recent-search-list"></div>
+      </section>
+    </div>
+
+    <section id="search-results-view" class="search-results-view" hidden>
+      <div class="search-results-query"><span>Results for</span><strong id="search-results-query"></strong></div>
+      <h3 id="search-results-heading" class="search-results-heading">Search Results</h3>
+      <div class="recent-list" id="search-results" aria-labelledby="search-results-heading"></div>
+    </section>
+  </div>
+</section>
+
+<!-- ========== FULL TRENDING OVERLAY ========== -->
+<section id="trending-overlay" aria-label="Trending websites this week" aria-describedby="trending-summary" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="trending-shell">
+    <div class="trending-overlay-header">
+      <button id="trending-back" type="button" class="search-nav-btn" onclick="closeTrendingOverlay()" aria-label="Close Trending and return to the Website tab">Back</button>
+      <div class="trending-overlay-title">
+        <h2>🔥 Trending This Week</h2>
+        <p id="trending-week-label"></p>
+      </div>
+      <button type="button" class="search-nav-btn search-close-btn" onclick="closeTrendingOverlay()" aria-label="Close Trending">×</button>
+    </div>
+    <p id="trending-summary" class="trending-summary">Ranked from views, ratings, reviews, and the previous week’s daily featured websites.</p>
+    <div id="trending-full-list" class="trending-full-list" role="list" aria-label="Full weekly Trending ranking"></div>
+  </div>
+</section>
+
+<!-- ========== FULL STAFF PICKS OVERLAY ========== -->
+<section id="staff-overlay" aria-label="Staff Picks by Paragon" aria-describedby="staff-summary" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="trending-shell">
+    <div class="trending-overlay-header">
+      <button id="staff-back" type="button" class="search-nav-btn" onclick="closeStaffOverlay()" aria-label="Close Staff Picks and return to the Website tab">Back</button>
+      <div class="trending-overlay-title">
+        <h2>⭐ Staff Picks by Paragon</h2>
+        <p id="staff-day-label"></p>
+      </div>
+      <button type="button" class="search-nav-btn search-close-btn" onclick="closeStaffOverlay()" aria-label="Close Staff Picks">×</button>
+    </div>
+    <p id="staff-summary" class="trending-summary">Daily opportunity ranking for websites with the least exposure, ratings, and reviews.</p>
+    <div id="staff-full-list" class="trending-full-list" role="list" aria-label="Full daily Staff Picks ranking"></div>
+  </div>
+</section>
+
+<!-- ========== FULL RECENTLY ADDED OVERLAY ========== -->
+<section id="recent-overlay" aria-label="Recently Added websites" aria-describedby="recent-summary" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="discovery-shell">
+    <div class="trending-overlay-header">
+      <button id="recent-back" type="button" class="search-nav-btn" onclick="closeRecentOverlay()" aria-label="Close Recently Added and return to the Website tab">Back</button>
+      <div class="trending-overlay-title">
+        <h2>🆕 Recently Added</h2>
+        <p>Newest additions first</p>
+      </div>
+      <button type="button" class="search-nav-btn search-close-btn" onclick="closeRecentOverlay()" aria-label="Close Recently Added">×</button>
+    </div>
+    <p id="recent-summary" class="trending-summary">Websites added in the last 7 days, newest to oldest. Scroll down to continue.</p>
+    <div id="recent-full-list" class="recent-full-rail" role="list" aria-label="Recently Added websites, newest first"></div>
+  </div>
+</section>
+
+<!-- ========== CATEGORY DISCOVERY OVERLAY ========== -->
+<section id="category-overlay" aria-label="Browse websites by category" aria-describedby="category-summary" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="discovery-shell">
+    <div class="trending-overlay-header">
+      <button id="category-back" type="button" class="search-nav-btn" onclick="handleCategoryBack()" aria-label="Go back in category browsing">Back</button>
+      <div class="trending-overlay-title">
+        <h2 id="category-overlay-title">Browse by Category</h2>
+        <p id="category-overlay-subtitle">Explore every category</p>
+      </div>
+      <button type="button" class="search-nav-btn search-close-btn" onclick="closeCategoryOverlay()" aria-label="Close category browsing">×</button>
+    </div>
+    <p id="category-summary" class="trending-summary">Choose a category to see the websites that belong to it.</p>
+    <div id="category-overlay-content"></div>
+  </div>
+</section>
+
+<!-- ========== LOCAL REVIEW COMPOSER ========== -->
+<section id="review-overlay" aria-label="Write a review" role="dialog" aria-modal="true" aria-hidden="true">
+  <form id="review-form" class="review-dialog">
+    <div class="review-dialog-head"><div><p class="eyebrow">Local review</p><h2 id="review-dialog-title">Review website</h2></div><button id="review-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close review composer">×</button></div>
+    <input id="review-site-name" type="hidden">
+    <fieldset class="review-rating"><legend>Your rating</legend><div id="review-stars" role="radiogroup" aria-label="Choose a star rating">
+      <button type="button" data-rating="1" aria-pressed="false" aria-label="1 star">★</button><button type="button" data-rating="2" aria-pressed="false" aria-label="2 stars">★</button><button type="button" data-rating="3" aria-pressed="false" aria-label="3 stars">★</button><button type="button" data-rating="4" aria-pressed="false" aria-label="4 stars">★</button><button type="button" data-rating="5" aria-pressed="false" aria-label="5 stars">★</button>
+    </div></fieldset>
+    <label class="review-text-label" for="review-text">Your review</label>
+    <textarea id="review-text" maxlength="500" required placeholder="What was useful, beautiful, or could be improved?"></textarea>
+    <div class="review-dialog-actions"><button id="review-cancel" type="button" class="secondary-action">Cancel</button><button type="submit" class="primary-action">Save review</button></div>
+    <p class="local-data-note">Saved only on this device until account sync is connected.</p>
+  </form>
+</section>
+
+<!-- ========== EMAIL AUTHENTICATION ========== -->
+<section id="auth-overlay" aria-label="Email authentication" role="dialog" aria-modal="true" aria-hidden="true">
+  <form id="auth-form" class="auth-dialog">
+    <div class="review-dialog-head">
+      <div><p class="eyebrow">One Paragon account</p><h2 id="auth-dialog-title">Sign in with Email</h2></div>
+      <button id="auth-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close email authentication">×</button>
+    </div>
+    <img class="auth-dialog-illus" src="assets/illustrations/auth-bg.jpg" alt="" loading="lazy">
+    <div id="auth-mode-tabs" class="auth-mode-tabs" role="tablist" aria-label="Email authentication mode">
+      <button type="button" class="active" data-auth-mode="signin" role="tab" aria-selected="true">Sign in</button>
+      <button type="button" data-auth-mode="signup" role="tab" aria-selected="false">Create account</button>
+    </div>
+    <label id="auth-name-field" class="auth-field" for="auth-display-name" hidden><span>Display name</span><input id="auth-display-name" type="text" autocomplete="name" maxlength="60"></label>
+    <label id="auth-username-field" class="auth-field" for="auth-username" hidden><span>Username</span><input id="auth-username" type="text" autocomplete="username" minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="letters_numbers_only"><small id="auth-username-status"></small></label>
+    <label id="auth-email-field" class="auth-field" for="auth-email"><span>Email address</span><input id="auth-email" type="email" autocomplete="email" required></label>
+    <label class="auth-field" for="auth-password"><span>Password</span><input id="auth-password" type="password" autocomplete="current-password" minlength="6" required></label>
+    <button id="auth-forgot-password" type="button" class="auth-text-action">Forgot password?</button>
+    <button id="auth-submit" type="submit" class="primary-action auth-submit">Sign in</button>
+    <p id="auth-form-status" class="auth-form-status" aria-live="polite"></p>
+    <p class="local-data-note">Authenticated data syncs through your Supabase account across Paragon routes.</p>
+  </form>
+</section>
+
+<!-- ========== COLLECTION COMPOSER ========== -->
+<section id="collection-overlay" aria-label="Create a collection" role="dialog" aria-modal="true" aria-hidden="true">
+  <form id="collection-form" class="auth-dialog collection-dialog">
+    <div class="review-dialog-head"><div><p class="eyebrow">Organize your archive</p><h2>Create New Collection</h2></div><button id="collection-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close collection composer">×</button></div>
+    <label class="auth-field" for="collection-name"><span>Collection name</span><input id="collection-name" type="text" maxlength="60" required placeholder="e.g. Design inspiration"></label>
+    <label class="auth-field" for="collection-description"><span>Description</span><textarea id="collection-description" maxlength="180" placeholder="What belongs in this collection?"></textarea></label>
+    <label class="auth-field" for="collection-icon"><span>Icon</span><select id="collection-icon"><option>📁</option><option>📚</option><option>🎨</option><option>💼</option><option>🌙</option><option>⭐</option><option>🧰</option></select></label>
+    <div class="review-dialog-actions"><button id="collection-cancel" type="button" class="secondary-action">Cancel</button><button type="submit" class="primary-action">Create collection</button></div>
+    <p class="local-data-note">Authenticated collections sync to your account; Guest collections last only for the session.</p>
+  </form>
+</section>
+
+<!-- ========== COLLECTION VIEW / PICKER ========== -->
+<section id="collection-view-overlay" aria-label="Collection manager" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="auth-dialog collection-view-dialog">
+    <div class="review-dialog-head"><div><p class="eyebrow">Collections / Playlists</p><h2 id="collection-view-title">Choose Collection</h2></div><button id="collection-view-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close collection manager">×</button></div>
+    <div id="collection-view-content"></div>
+  </div>
+</section>
+
+<!-- ========== REQUEST A WEBSITE ========== -->
+<section id="request-overlay" aria-label="Request a Website" role="dialog" aria-modal="true" aria-hidden="true">
+  <form id="request-form" class="auth-dialog request-dialog">
+    <div class="review-dialog-head"><div><p class="eyebrow">Help grow the archive</p><h2>Request a Website</h2></div><button id="request-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close website request form">×</button></div>
+    <label class="auth-field" for="request-name"><span>Website name</span><input id="request-name" type="text" minlength="2" maxlength="120" required></label>
+    <label class="auth-field" for="request-url"><span>Website URL (optional)</span><input id="request-url" type="url" placeholder="https://"></label>
+    <label class="auth-field" for="request-category"><span>Suggested category</span><select id="request-category"></select></label>
+    <label class="auth-field" for="request-reason"><span>Why should it be added?</span><textarea id="request-reason" minlength="10" maxlength="1000" required></textarea></label>
+    <div class="review-dialog-actions"><button id="request-cancel" type="button" class="secondary-action">Cancel</button><button type="submit" class="primary-action">Submit request</button></div>
+    <p id="request-status" class="auth-form-status" aria-live="polite"></p>
+    <p class="local-data-note">Authenticated requests submit to Supabase. Guest drafts stay only for the session.</p>
+  </form>
+</section>
+
+<!-- ========== PRIVACY CONTROLS ========== -->
+<section id="privacy-controls-overlay" aria-label="Privacy & Security controls" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="auth-dialog privacy-dialog">
+    <div class="review-dialog-head"><div><p class="eyebrow">Your choices</p><h2>Privacy &amp; Security</h2></div><button id="privacy-controls-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close privacy controls">×</button></div>
+    <p class="privacy-essential-note"><strong>Essential storage is always active.</strong> It is required for authentication and core site features.</p>
+    <div class="privacy-control-list">
+      <label><span><strong>Analytics tracking</strong><small>Allow future anonymous analytics integration.</small></span><input id="privacy-analytics" class="toggle" type="checkbox"></label>
+      <label><span><strong>Tracking cookies</strong><small>Allow future usage/navigation tracking cookies.</small></span><input id="privacy-tracking" class="toggle" type="checkbox"></label>
+      <label><span><strong>Ad personalization</strong><small>Allow future category-based ad preferences.</small></span><input id="privacy-ads" class="toggle" type="checkbox"></label>
+      <p class="privacy-essential-note">ℹ️ <strong>Essential storage</strong> is the minimum local data Paragon needs to work (your session, theme, saved activity) — it cannot be switched off and is never used for ads. The three switches above stay OFF unless you allow them; Ad personalization only prepares consent for the future Google AdSense integration.</p>
+    </div>
+    <a class="privacy-policy-link" href="paragon-archive-hub.html#privacy-policy">Read the full Privacy &amp; Security Policy</a>
+    <div class="review-dialog-actions"><button id="privacy-controls-cancel" type="button" class="secondary-action">Cancel</button><button id="privacy-download-data" type="button" class="secondary-action">Download My Data</button><button id="privacy-controls-save" type="button" class="primary-action">Save Preferences</button></div>
+    <button id="privacy-delete-account" type="button" class="danger-action">Delete Account</button>
+    <p id="privacy-controls-status" class="auth-form-status" aria-live="polite"></p>
+  </div>
+</section>
+
+<!-- ========== WEBSITE QR CODE ========== -->
+<section id="qr-overlay" aria-label="Website QR code" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="auth-dialog qr-dialog">
+    <div class="review-dialog-head"><div><p class="eyebrow">Scan or share</p><h2 id="qr-title">Website QR Code</h2></div><button id="qr-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close QR code">×</button></div>
+    <div class="qr-image-wrap"><img id="qr-image" src="" alt=""></div>
+    <p id="qr-url" class="qr-url"></p>
+    <div class="review-dialog-actions"><button id="qr-copy" type="button" class="secondary-action">Copy link</button><button id="qr-share" type="button" class="primary-action">Share</button></div>
+    <p class="local-data-note">This QR is generated inside Paragon Archive and opens this exact website detail.</p>
+  </div>
+</section>
+
+<!-- ========== ABOUT ACHIEVEMENTS ========== -->
+<section id="achievements-overlay" aria-label="About Achievements" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="auth-dialog achievements-dialog">
+    <div class="review-dialog-head"><div><p class="eyebrow">Account goals</p><h2>About Achievements</h2></div><button id="achievements-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close About Achievements">×</button></div>
+    <p class="achievements-intro">Achievements unlock in stages of up to five tasks. Finish the visible stage, then select More Soon to open the next stage. The final stage may contain fewer than five tasks.</p>
+    <ol class="achievement-requirements">
+      <li><span>🥇</span><div><strong>First Visit</strong><small>Open at least one website detail.</small></div></li>
+      <li><span>⭐</span><div><strong>First Rating</strong><small>Give a website a personal star rating.</small></div></li>
+      <li><span>📝</span><div><strong>First Review</strong><small>Write your first website review.</small></div></li>
+      <li><span>🔗</span><div><strong>First Share</strong><small>Share or copy an Archive detail link.</small></div></li>
+      <li><span>👤</span><div><strong>Continue with Google or Email</strong><small>Authenticate with a real account to complete stage one.</small></div></li>
+      <li><span>◆</span><div><strong>More Soon</strong><small>Shows the live total tasks remaining. Stage two begins with Progress Starter after stage one unlocks.</small></div></li>
+    </ol>
+    <div class="review-dialog-actions"><button id="achievements-done" type="button" class="primary-action">Got it</button></div>
+  </div>
+</section>
+
+<!-- ========== PARAGON AI — WEBSITE DETAIL Q&A ========== -->
+<section id="paragon-ai-overlay" aria-label="Paragon AI website assistant" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="paragon-ai-dialog">
+    <div class="review-dialog-head"><div><p class="eyebrow">One Paragon AI · Website Detail mode</p><h2 id="paragon-ai-title">Ask Paragon AI</h2><p id="paragon-ai-scope"></p></div><button id="paragon-ai-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close Paragon AI">×</button></div>
+    <div id="paragon-ai-messages" class="paragon-ai-messages" aria-live="polite"></div>
+    <form id="paragon-ai-form" class="paragon-ai-form">
+      <label for="paragon-ai-question">Ask about this website</label>
+      <div><input id="paragon-ai-question" type="text" maxlength="600" autocomplete="off" placeholder="What does this website do?"><button type="submit" class="primary-action">Ask</button></div>
+    </form>
+    <p class="local-data-note">Current answers are local and grounded in catalogue details. No external AI provider or browser API key is connected.</p>
+  </div>
+</section>
+
+<!-- ========== WEBSITE IFRAME PREVIEW ========== -->
+<section id="site-preview-overlay" aria-label="Website preview" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="site-preview-shell">
+    <div class="site-preview-head"><div><p class="eyebrow">Website preview</p><h2 id="site-preview-title">Preview</h2></div><div><button id="site-preview-new-tab" type="button" class="secondary-action">Open in new tab</button><button id="site-preview-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close website preview">×</button></div></div>
+    <div class="site-preview-frame-wrap"><iframe id="site-preview-frame" title="Website preview" loading="eager" sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin"></iframe><div id="site-preview-message" class="site-preview-message" hidden></div></div>
+  </div>
+</section>
+
+<!-- ========== SCREENSHOT LIGHTBOX ========== -->
+<section id="screenshot-lightbox" aria-label="Website screenshot viewer" role="dialog" aria-modal="true" aria-hidden="true">
+  <button id="lightbox-close" type="button" class="lightbox-close" aria-label="Close screenshot viewer">×</button>
+  <button id="lightbox-prev" type="button" class="lightbox-control lightbox-prev" aria-label="Previous screenshot">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+  </button>
+  <figure class="lightbox-figure">
+    <img id="lightbox-image" src="" alt="">
+    <figcaption id="lightbox-caption"></figcaption>
+    <div id="lightbox-dots" class="lightbox-dots" role="group" aria-label="Screenshot position"></div>
+  </figure>
+  <button id="lightbox-next" type="button" class="lightbox-control lightbox-next" aria-label="Next screenshot">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+  </button>
+</section>
+
+<!-- ========== MAIN ========== -->
+<main id="app" role="main">
+
+  <!-- === WEBSITES TAB === -->
+  <section id="tab-websites" aria-label="Websites" role="region" aria-hidden="false">
+
+    <!-- P-087 — welcome banner replaced by the entry splash overlay (built in app.js) -->
+
+    <!-- Hero Banner -->
+    <section aria-label="Website of the Day" aria-roledescription="carousel" class="hero" id="hero-section" tabindex="0">
+      <div id="hero-inner" style="position:relative;width:100%;height:100%;"></div>
+      <button id="hero-prev" class="hero-control hero-control-prev" type="button" aria-label="Show previous featured website">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"></path></svg>
+      </button>
+      <button id="hero-next" class="hero-control hero-control-next" type="button" aria-label="Show next featured website">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"></path></svg>
+      </button>
+      <div class="hero-dots" id="hero-dots" role="group" aria-label="Featured website slides"></div>
+    </section>
+
+    <!-- Browse by Category -->
+    <section aria-label="Browse by category" style="margin-top:28px;">
+      <div class="section-header"><h2>Browse by Category</h2><a id="category-see-all" class="see-all-pill" href="#" onclick="openCategoryOverlay(); return false;">See all</a></div>
+      <div class="cat-scroll" id="cat-scroll" role="list" aria-label="Category chips"></div>
+    </section>
+
+    <!-- Trending -->
+    <section aria-label="Trending this week" style="margin-top:32px;">
+      <div class="section-header"><h2>🔥 Trending This Week</h2><a id="trending-see-all" class="see-all-pill" href="#" onclick="openTrendingOverlay(); return false;">See all</a></div>
+      <div class="card-row" id="trending-row" role="list" aria-label="Trending cards"></div>
+    </section>
+
+    <!-- Staff Picks -->
+    <section aria-label="Staff picks" style="margin-top:32px;">
+      <div class="section-header"><h2>⭐ Staff Picks by Paragon</h2><a id="staff-see-all" class="see-all-pill" href="#" onclick="openStaffOverlay(); return false;">See all</a></div>
+      <div id="staff-row" role="list" aria-label="Staff picks"></div>
+    </section>
+
+    <!-- Recently Added -->
+    <section aria-label="Recently added" style="margin-top:32px;">
+      <div class="section-header"><h2>🆕 Recently Added</h2><a id="recent-see-all" class="see-all-pill" href="#" onclick="openRecentOverlay(); return false;">See all</a></div>
+      <div class="card-row" id="recent-row" role="list" aria-label="Recently added cards"></div>
+    </section>
+
+    <!-- P-094/D-179 — reserved ad slot (dormant until Google approves; honest label meanwhile) -->
+    <div data-paragon-ad="websitesList" aria-label="Reserved advertisement space"></div>
+
+  </section>
+
+  <!-- === UPDATES TAB === -->
+  <section id="tab-updates" aria-label="Updates" role="region" aria-hidden="true" style="display:none;">
+    <div class="updates-header">
+      <div class="updates-title-row">
+        <div><p class="eyebrow">Archive activity</p><h1>Updates</h1></div>
+      </div>
+      <p class="update-filter-label">Update entry type</p>
+      <div id="update-filter-chips" class="chips update-filter-chips" role="group" aria-label="Filter updates by type">
+        <button type="button" class="chip active" data-update-type="all" aria-pressed="true">All</button>
+        <button type="button" class="chip" data-update-type="new" aria-pressed="false">New Sites</button>
+        <button type="button" class="chip" data-update-type="updated" aria-pressed="false">Updated</button>
+        <button type="button" class="chip" data-update-type="maintenance" aria-pressed="false">Maintenance</button>
+        <button type="button" class="chip" data-update-type="announcement" aria-pressed="false">Announcements</button>
+        <button type="button" class="chip" data-update-type="featured" aria-pressed="false">Featured/Promoted</button>
+      </div>
+      <div class="updates-filter-grid">
+        <label class="updates-select-filter" for="updates-category-select">
+          <span>Filter by category</span>
+          <select id="updates-category-select"><option value="all">Any category</option></select>
+        </label>
+        <label class="updates-select-filter" for="updates-date-input">
+          <span>Filter by date</span>
+          <input id="updates-date-input" type="date" aria-describedby="updates-filter-summary">
+        </label>
+      </div>
+      <p id="updates-filter-summary" class="updates-filter-summary" aria-live="polite"></p>
+    </div>
+    <div class="timeline" id="updates-timeline" role="feed" aria-label="Filtered update timeline"></div>
+    <div id="updates-pagination" class="updates-pagination" hidden>
+      <button id="updates-previous" type="button" class="secondary-action" hidden>Previous</button>
+      <span id="updates-pagination-status" aria-live="polite"></span>
+      <button id="updates-view-more" type="button" class="secondary-action" hidden>View more</button>
+    </div>
+  </section>
+
+  <!-- === ACCOUNT TAB === -->
+  <section id="tab-account" aria-label="Account" role="region" aria-hidden="true" style="display:none;">
+    <div id="account-hero" class="account-hero" aria-label="Account welcome"></div>
+
+    <div id="account-private" hidden>
+      <div id="stats-row" aria-label="Account statistics"></div>
+      <section class="account-section" aria-label="Cross-product progress">
+        <div class="account-section-head"><h2>📈 Progress Across Paragon</h2><button type="button" data-notice="Each Paragon product can save progress through the shared account progress API.">How it works</button></div>
+        <div id="progress-row"></div>
+      </section>
+      <section class="account-section" aria-label="Achievements">
+        <div class="account-section-head"><h2>🏅 Achievements</h2><button type="button" onclick="openAchievementsAbout()">About Achievements</button></div>
+        <div id="ach-row"></div>
+      </section>
+      <section class="account-section" aria-label="Saved and bookmarked">
+        <div class="account-section-head"><h2>🔖 Saved & Bookmarked</h2><button type="button" data-notice="Your local bookmarks are shown below; cloud sync requires sign-in backend support.">About saved</button></div>
+        <div class="saved-row" id="saved-row" role="list" aria-label="Saved cards"></div>
+      </section>
+      <section class="account-section" aria-label="Collections">
+        <div class="account-section-head"><h2>📂 My Collections / Playlists</h2><button type="button" data-notice="Collection management will be enabled with account persistence.">Manage</button></div>
+        <div id="collections-row"></div>
+      </section>
+      <section class="account-section" aria-label="Recently visited">
+        <div class="account-section-head"><h2>🕐 Recently Visited</h2><button id="clear-history-btn" type="button">Clear history</button></div>
+        <div id="visited-row"></div>
+      </section>
+      <section class="account-section" aria-label="My reviews">
+        <div class="account-section-head"><h2>📝 My Reviews</h2><button type="button" data-notice="Reviews saved on this device appear below.">About reviews</button></div>
+        <div id="reviews-row"></div>
+      </section>
+      <section class="account-section" aria-label="Settings">
+        <div class="account-section-head"><h2>⚙️ Settings</h2></div>
+        <div id="settings-row"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- === DETAIL VIEW (Hidden) === -->
+  <section id="detail-view" aria-label="Website detail" role="region"></section>
+  <!-- P-094/D-179 — reserved ad slot under website details (dormant until approval) -->
+  <div id="detail-ad-slot" data-paragon-ad="detailFooter" aria-label="Reserved advertisement space" hidden></div>
+
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer id="footer" role="contentinfo">
+  <h4>PARAGON ARCHIVE</h4>
+  <!-- P-094 — footer destinations route through the Archive Hub WEBSITE DETAIL first; OPEN then lands the user on the exact section they wanted. -->
+  <p>Built with care • <a class="footer-link" href="paragon-archive.html?site=Paragon%20Archive%20Hub">Archive Hub</a> • <a class="footer-link" href="paragon-archive.html?site=Paragon%20Archive%20Hub&amp;then=about">About</a> • <a class="footer-link" href="paragon-archive.html?site=Paragon%20Archive%20Hub&amp;then=privacy-policy">Privacy</a> • <a class="footer-link" href="paragon-archive.html?site=Paragon%20Archive%20Hub&amp;then=terms">Terms</a> • <a class="footer-link" href="paragon-archive.html?site=Paragon%20Archive%20Hub&amp;then=help">Help</a> • <a class="footer-link" href="paragon-archive.html?site=Paragon%20Archive%20Hub&amp;then=request-site">Request a site</a></p>
+  <p style="margin-top:6px;opacity:0.7;">Every website you need, one archive.</p>
+</footer>
+
+<!-- ========== BOTTOM NAVIGATION ========== -->
+<nav id="bottom-nav" role="tablist" aria-label="Primary sections">
+  <a href="#websites" class="nav-tab active" data-tab="websites" role="tab" aria-label="Websites" aria-controls="tab-websites" aria-selected="true" aria-current="page">
+    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"></path></svg>
+    <span class="label">Websites</span>
+  </a>
+  <a href="#updates" class="nav-tab" data-tab="updates" role="tab" aria-label="Updates" aria-controls="tab-updates" aria-selected="false">
+    <span class="nav-icon nav-refresh-icon" aria-hidden="true">↻</span>
+    <span class="label">Updates</span>
+  </a>
+  <a href="#account" class="nav-tab" data-tab="account" role="tab" aria-label="Account" aria-controls="tab-account" aria-selected="false">
+    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+    <span class="label">Account</span>
+  </a>
+</nav>
+
+<button id="back-to-top" type="button" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"></path></svg>
+</button>
+<div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+<section id="cookie-banner" class="cookie-banner" aria-label="Cookie preferences" hidden>
+  <img class="cookie-illus" src="assets/illustrations/cookie-icon.png" alt="" loading="lazy">
+  <div><strong>Your privacy choices</strong><p>Essential storage keeps Paragon working. Optional analytics, tracking, and ad preferences stay off unless you allow them.</p></div>
+  <div class="cookie-actions"><button id="cookie-essential" type="button" class="secondary-action">Essential Only</button><button id="cookie-manage" type="button" class="secondary-action">Manage</button><button id="cookie-accept-all" type="button" class="primary-action">Accept All</button></div>
+</section>
+
+<script src="config/supabase.js" defer></script>
+<script src="auth/supabase-auth.js" defer></script>
+<script src="auth/paragon-sync.js" defer></script>
+<script src="data/sites.js" defer></script>
+<script src="data/catalogue-expansion.js" defer></script>
+<script src="data/catalogue-expansion-45-100.js" defer></script>
+<script src="data/updates.js" defer></script>
+<script src="data/metrics.js" defer></script>
+<script src="ai/paragon-archive-ai.js" defer></script>
+<script src="pwa.js" defer></script>
+<script src="privacy.js" defer></script>
+<script src="vendor/qrcode.min.js" defer></script>
+<script src="app.js" defer></script>
+<script src="ads/adsense.js" defer></script>
+<script defer>
+  /* P-094 — reserved ad slots render honestly in every state; live ads appear only after approval. */
+  document.addEventListener("DOMContentLoaded", () => {
+    try { window.ParagonAds?.renderAdSlots?.(); } catch (error) { /* dormant */ }
+    const feed = document.getElementById("updates-timeline");
+    if (feed && !document.getElementById("updates-ad-slot")) {
+      const slot = document.createElement("div");
+      slot.id = "updates-ad-slot";
+      slot.dataset.paragonAd = "updatesFeed";
+      slot.setAttribute("aria-label", "Reserved advertisement space");
+      feed.after(slot);
+      try { window.ParagonAds?.renderAdSlots?.(); } catch (error) { /* dormant */ }
+    }
+  });
+</script>
+
+</body>
+</html>

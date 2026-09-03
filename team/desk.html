@@ -1,0 +1,1496 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: desk.html
+  EXPECTED PROJECT PATH: /team/desk.html
+  ROLE: THE single Paragon Team dashboard shell (P-097 consolidation): all desk pages live as
+        routed panels (?page=name) — one shell, one script set. login.html stays the auth gate.
+  RESTORE-LOAD NOTE: Keep inside /team/. Load permissions.js, nav.js, data, config, auth,
+        team-pages.js, session.js — the router shows the requested panel; every page module
+        keys off paragonTeamPage() which returns "<page>.html" from the query parameter.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overview — Paragon Team Dashboard</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#2563eb">
+<link rel="stylesheet" href="../style.css">
+<script>/* P-097 — auto day/night follows the clock unless a manual choice exists */
+try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=sessionStorage.getItem("paragonArchive.theme.v2")||localStorage.getItem("paragonArchive.theme.v2")||null;if(_m!=="manual"||!_p){var _h=new Date().getHours();if((_m==="auto"&&_h>=6&&_h<18))document.documentElement.classList.add("light");else if(_m==="auto")document.documentElement.classList.remove("light");else if(_p==="light")document.documentElement.classList.add("light");}else if(_p==="light")document.documentElement.classList.add("light");}catch(e){}</script>
+<style>
+  /* P-097 — desk routing panels */
+  .team-page-panel[hidden] { display: none !important; }
+  .team-access-note { margin: 14px 0; padding: 12px 16px; border: 1px dashed var(--border); border-radius: 13px; color: var(--text-faint); font-size: 12.5px; }
+</style>
+</head>
+<body class="hub-page-body team-dash-body">
+
+<header class="team-dash-topbar" role="banner">
+  <div class="team-dash-brand"><img class="team-brand-mark" src="../assets/brand/logo-mark.png" alt=""> PARAGON TEAM DASHBOARD</div>
+  <div class="team-dash-topbar-right">
+    <span id="team-dash-role-chip" class="team-site-localflag" title="Your active role preview"></span>
+    <a class="legal-back" href="login.html">Log out</a>
+  </div>
+</header>
+
+<div class="team-dash-preview-banner" role="note">
+  🧪 Paragon Team desk — records persist for real on this device; backend-signed team auth opens with the protected operations. Route with <code>?page=</code> (the sidebar does it for you).
+</div>
+
+<div id="team-access-guard" class="team-access-note" hidden></div>
+
+<main id="team-page-host">
+  <section class="team-page-panel" data-team-page="activity.html" data-page-title="Activity Log — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head"><h1 class="team-page-title">📋 ACTIVITY LOG</h1></div>
+
+  <div class="team-filter-bar">
+    <input type="search" id="act-search" class="team-filter-search" placeholder="🔍 Search actions..." aria-label="Search actions">
+    <select id="act-type" aria-label="Filter by action type">
+      <option value="all">Action Type</option>
+      <option value="website">🌐 Websites</option>
+      <option value="deployed">🚀 Deployed</option>
+      <option value="ticket">🎫 Tickets</option>
+      <option value="user">🚫 Users</option>
+      <option value="announcement">📢 Announcements</option>
+      <option value="team">🧑‍💼 Team</option>
+      <option value="security">🔒 Security</option>
+      <option value="community">👥 Community</option>
+      <option value="request">📬 Requests</option>
+    </select>
+    <select id="act-date" aria-label="Filter by date">
+      <option value="all">All Dates</option>
+      <option value="today">Today</option>
+      <option value="7">Last 7 days</option>
+      <option value="30">Last 30 days</option>
+    </select>
+  </div>
+
+  <p id="act-total" class="results-count team-site-count">0 actions</p>
+  <div id="act-log"></div>
+
+
+
+
+  </section>
+  <section class="team-page-panel team-dash-shell team-add-shell" data-team-page="add-website.html" data-page-title="Add Website — Paragon Team Dashboard" hidden>
+
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">➕ ADD NEW WEBSITE</h1>
+    <div class="team-page-head-actions">
+      <button type="button" id="head-save-draft" class="secondary-action">Save Draft</button>
+      <button type="button" id="head-publish" class="primary-action">Publish</button>
+    </div>
+  </div>
+
+  <form id="add-site-form" novalidate>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">BASIC INFORMATION</h2>
+      <div class="form-group-stack">
+        <label><span>Website Name *</span><input id="aw-name" maxlength="60" placeholder="Paragon Something"></label>
+        <label><span>Short Description * <small>(shown on cards)</small></span><input id="aw-short" maxlength="150" placeholder="One line that sells it"><small class="aw-counter"><span id="aw-short-count">0</span>/150 characters</small></label>
+        <label><span>Full Description * <small>(shown on detail page)</small></span><textarea id="aw-full" maxlength="1000" rows="5" placeholder="The complete story of this website"></textarea><small class="aw-counter"><span id="aw-full-count">0</span>/1000 characters</small></label>
+        <div class="aw-three-col">
+          <label><span>Category *</span><select id="aw-category"><option value="">Select</option></select></label>
+          <label><span>Sub-Category</span><select id="aw-subcategory"><option value="">Select</option><option>Core</option><option>Utility</option><option>Companion</option><option>Experimental</option></select></label>
+          <label><span>Difficulty</span><select id="aw-difficulty"><option value="">Select</option><option>Simple</option><option>Standard</option><option>Advanced</option></select></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">MEDIA</h2>
+      <div class="aw-media-grid">
+        <label class="aw-upload aw-upload-icon"><span>Website Icon * <small>(200×200px)</small></span><input type="file" id="aw-icon" accept="image/png,image/jpeg,image/webp"><span class="aw-upload-face" id="aw-icon-face">📎 Upload Icon</span><small class="aw-upload-check" id="aw-icon-check"></small></label>
+        <label class="aw-upload"><span>Card Preview Image * <small>(800×400px)</small></span><input type="file" id="aw-card" accept="image/png,image/jpeg,image/webp"><span class="aw-upload-face" id="aw-card-face">📎 Upload Card Preview Image</span><small class="aw-upload-check" id="aw-card-check"></small></label>
+        <label class="aw-upload"><span>Hero Screenshot * <small>(1200×600px)</small></span><input type="file" id="aw-hero" accept="image/png,image/jpeg,image/webp"><span class="aw-upload-face" id="aw-hero-face">📎 Upload Hero Screenshot</span><small class="aw-upload-check" id="aw-hero-check"></small></label>
+        <label class="aw-upload"><span>Detail Screenshots <small>(min 3, max 8 — 1080×720px each)</small></span><input type="file" id="aw-shots" accept="image/png,image/jpeg,image/webp" multiple><span class="aw-upload-face" id="aw-shots-face">📎 Upload Screenshots</span><small class="aw-upload-check" id="aw-shots-check"></small></label>
+      </div>
+      <p class="hub-join-note">Files are checked locally (type + dimensions) and previewed; actual asset upload to storage happens at backend integration.</p>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">TECHNICAL</h2>
+      <div class="form-group-stack">
+        <label><span>Internal Page Path or Iframe URL *</span><input id="aw-path" maxlength="200" placeholder="/paragon-notes/ or https://…"></label>
+        <label><span>Version Number *</span><input id="aw-version" maxlength="30" placeholder="1.0"></label>
+      </div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">KEY FEATURES</h2>
+      <div id="aw-features" class="form-group-stack"></div>
+      <button type="button" id="aw-add-feature" class="btn-add-line">+ Add Feature</button>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">TAGS</h2>
+      <input id="aw-tag-input" class="team-filter-search" maxlength="24" placeholder="Tag input — press Enter to add">
+      <div id="aw-tags" class="aw-tag-row" aria-live="polite"></div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">WHAT'S NEW (VERSION NOTES)</h2>
+      <textarea id="aw-whatsnew" maxlength="600" rows="4" class="aw-notes" placeholder="What changed in this version?"></textarea>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">PUBLISH SETTINGS</h2>
+      <fieldset class="aw-fieldset"><legend>Status *</legend>
+        <label><input type="radio" name="aw-status" value="draft" checked> Save as Draft</label>
+        <label><input type="radio" name="aw-status" value="publish"> Publish Immediately</label>
+        <label><input type="radio" name="aw-status" value="schedule"> Schedule for Later</label>
+        <div id="aw-schedule-row" class="aw-schedule-row" hidden>
+          <input type="date" id="aw-schedule-date" aria-label="Go-live date">
+          <input type="time" id="aw-schedule-time" aria-label="Go-live time" value="09:00">
+        </div>
+      </fieldset>
+      <fieldset class="aw-fieldset"><legend>Featured Settings</legend>
+        <label><input type="checkbox" id="aw-staffpick"> Mark as Staff Pick</label>
+        <label><input type="checkbox" id="aw-trending"> Mark as Trending</label>
+        <label><input type="checkbox" id="aw-wotd"> Set as Website of the Day</label>
+        <div id="aw-wotd-row" class="aw-schedule-row" hidden><input type="date" id="aw-wotd-date" aria-label="Website of the day date"></div>
+        <p class="hub-join-note">Featured placements engage on the public Archive when the record is integrated into the catalogue; they are stored with the draft meanwhile.</p>
+      </fieldset>
+      <div class="aw-bottom-actions">
+        <a class="secondary-action" href="desk.html?page=websites">Cancel</a>
+        <button type="button" id="foot-save-draft" class="secondary-action">Save Draft</button>
+        <button type="button" id="foot-publish" class="primary-action">Publish</button>
+      </div>
+      <p id="aw-status-line" class="hub-join-status" role="status" hidden></p>
+    </section>
+
+  </form>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="analytics-users.html" data-page-title="User Stats — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">👤 USER STATS</h1>
+    <button type="button" id="us-export" class="secondary-action">⬇️ Export CSV</button>
+  </div>
+
+  <div id="us-stats" class="team-stat-row"></div>
+
+  <section class="team-dash-section">
+    <h2 class="team-dash-sectitle">📈 New signups — last 30 days</h2>
+    <div id="us-signup-chart" class="team-bar-chart" aria-label="New signups per day"></div>
+    <p class="team-site-sub">Real zeros — the signup table does not exist yet (schema pending). This chart fills with real data after activation.</p>
+  </section>
+
+  <section class="team-dash-section">
+    <h2 class="team-dash-sectitle">📱 This-device engagement (REAL)</h2>
+    <div id="us-device-list" class="team-site-list"></div>
+  </section>
+
+  <section class="team-dash-section">
+    <h2 class="team-dash-sectitle">🌍 Countries · 💻 Devices · 🔁 Retention</h2>
+    <div class="empty-state">
+      <div class="empty-icon">🛰️</div>
+      <h3>Activates with the production backend</h3>
+      <p>Country, device and retention breakdowns require real signed-in users and server-side analytics. Nothing is simulated here — these panels stay empty until the data is real.</p>
+    </div>
+  </section>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="analytics-websites.html" data-page-title="Website Stats — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">🌐 WEBSITE STATS</h1>
+    <button type="button" id="ws-export" class="secondary-action">⬇️ Export CSV</button>
+  </div>
+
+  <p id="ws-scope-note" class="team-site-sub" hidden></p>
+
+  <div id="ws-stats" class="team-stat-row"></div>
+
+  <div class="team-filter-bar">
+    <input type="search" id="ws-search" placeholder="🔍 Search website…" aria-label="Search websites">
+    <select id="ws-category" aria-label="Filter by category"><option value="all">Category</option></select>
+    <select id="ws-sort" aria-label="Sort websites">
+      <option value="views">Most Viewed (this device)</option>
+      <option value="views24">Most Viewed (24h)</option>
+      <option value="reviews">Most Reviews</option>
+      <option value="needs">Most Needed 🙋</option>
+      <option value="progress">Build Progress</option>
+      <option value="name">Name A–Z</option>
+    </select>
+  </div>
+
+  <p id="ws-total" class="results-count team-site-count">0 websites</p>
+  <div class="team-table-wrap">
+    <table class="team-table" aria-label="Per-website statistics">
+      <thead><tr>
+        <th>Website</th><th>Category</th><th>Views 👁️</th><th>24h</th><th>Reviews</th><th>Needs 🙋</th><th>Build</th>
+      </tr></thead>
+      <tbody id="ws-rows"></tbody>
+    </table>
+  </div>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="analytics.html" data-page-title="Platform Analytics — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head"><h1 class="team-page-title">📈 PLATFORM ANALYTICS</h1></div>
+
+  <div class="team-stat-grid">
+    <article class="team-stat-card"><span class="team-stat-icon">👥</span><strong id="an-users">—</strong><span>Total Users</span><small>Accounts backend pending</small></article>
+    <article class="team-stat-card"><span class="team-stat-icon">✨</span><strong id="an-new-today">0</strong><span>New Today</span><small>Accounts backend pending</small></article>
+    <article class="team-stat-card"><span class="team-stat-icon">🎮</span><strong id="an-plays">0</strong><span>Total Plays</span><small>Real quiz plays (this device)</small></article>
+    <article class="team-stat-card"><span class="team-stat-icon">⭐</span><strong id="an-reviews">0</strong><span>Reviews</span><small>Published in the catalogue</small></article>
+  </div>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">USERS OVER TIME</h2>
+    <div class="team-chart-card"><div id="an-users-chart" class="team-bar-chart"></div><small>Each bar = one day · hover shows count · real zeros until the accounts backend</small></div></section>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">CATEGORY POPULARITY</h2>
+    <div class="team-chart-card"><div class="team-pie-wrap"><div id="an-cat-pie" class="team-pie"></div><ul id="an-cat-legend" class="team-pie-legend"></ul></div><small>Real catalogue distribution</small></div></section>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">MOST VISITED WEBSITES</h2>
+    <div class="team-chart-card"><div id="an-top-sites" class="an-hbars"></div><small>Top 10 by real recorded views on this device · global totals arrive with the analytics backend</small></div></section>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">DEVICE BREAKDOWN</h2>
+    <div class="team-chart-card"><p class="team-site-sub">📊 Device analytics (Mobile / Tablet / Desktop) are captured server-side and populate with the production backend — nothing is invented meanwhile.</p></div></section>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">USERS BY COUNTRY</h2>
+    <div class="team-chart-card"><p class="team-site-sub">🌍 Country analytics require server-side capture and consent-aware processing; the chart activates with the backend. No fabricated percentages are shown.</p></div></section>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">NEW USERS PER WEEK</h2>
+    <div class="team-chart-card"><svg id="an-users-week" class="an-line" viewBox="0 0 480 120" preserveAspectRatio="none"></svg><small>Last 12 weeks · real zeros until the accounts backend</small></div></section>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">SUPPORT TICKET CATEGORIES</h2>
+    <div class="team-chart-card"><div class="team-pie-wrap"><div id="an-ticket-pie" class="team-pie"></div><ul id="an-ticket-legend" class="team-pie-legend"></ul></div><small id="an-ticket-note">Breakdown of tickets currently in the desk</small></div></section>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">BUG REPORTS PER WEEK</h2>
+    <div class="team-chart-card"><svg id="an-bugs-week" class="an-line" viewBox="0 0 480 120" preserveAspectRatio="none"></svg><small>Last 12 weeks · from the real bug desk store</small></div></section>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">WEBSITE REQUESTS BY CATEGORY</h2>
+    <div class="team-chart-card"><div class="team-pie-wrap"><div id="an-req-pie" class="team-pie"></div><ul id="an-req-legend" class="team-pie-legend"></ul></div><small id="an-req-note">From the requests desk store</small></div></section>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">DEPLOYED VS PARAGON RATIO</h2>
+    <div class="team-chart-card"><div class="team-pie-wrap"><div id="an-ratio-pie" class="team-pie"></div><ul id="an-ratio-legend" class="team-pie-legend"></ul></div><small>Real catalogue composition</small></div></section>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="announcements.html" data-page-title="Announcements — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">📢 ANNOUNCEMENTS</h1>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <span id="ann-sync-chip" class="team-site-localflag" hidden></span>
+      <button type="button" id="ann-new-btn" class="primary-action">+ New Announcement</button>
+    </div>
+  </div>
+
+  <section class="team-dash-section" id="ann-compose-section">
+    <h2 class="team-dash-heading">COMPOSE NEW ANNOUNCEMENT</h2>
+    <div class="form-section ann-compose">
+      <fieldset class="aw-fieldset"><legend>Type *</legend>
+        <label><input type="radio" name="ann-type" value="new" checked> 🆕 New Website Added</label>
+        <label><input type="radio" name="ann-type" value="updated"> 🔄 Website Updated</label>
+        <label><input type="radio" name="ann-type" value="maintenance"> 🔧 Maintenance Notice</label>
+        <label><input type="radio" name="ann-type" value="special"> 🎉 Special Announcement</label>
+        <label><input type="radio" name="ann-type" value="featured"> ⭐ Featured / Promoted</label>
+      </fieldset>
+      <div class="team-filter-bar" id="ann-site-row">
+        <label style="display:flex;flex-direction:column;gap:6px;color:var(--text);font-size:12.5px;font-weight:700;">Website (required for site-linked types)
+          <select id="ann-site" aria-label="Choose the website this update is about"><option value="">— choose a website —</option></select>
+        </label>
+      </div>
+      <div class="form-group-stack">
+        <label><span>Title *</span><input id="ann-title" maxlength="100" placeholder="What happened?"></label>
+        <label><span>Message *</span><textarea id="ann-message" maxlength="600" rows="3" placeholder="Tell the archive users the details…"></textarea></label>
+      </div>
+      <div class="form-group-stack" id="ann-link-row" hidden>
+        <label><span>🔗 Link (special announcements — opens from a LINK pill in the public feed)</span><input id="ann-link" type="url" maxlength="300" placeholder="https://example.com/your-page"></label>
+      </div>
+      <div class="form-group-stack">
+        <div class="ticket-attach ann-image-row">
+          <label class="ticket-attach ann-image-pick"><input type="file" id="ann-image" accept="image/*"><span>🖼️ Add Image (optional — every type). Shown in place of the website icon in the public feed; users can view it full size and download it.</span></label>
+          <div id="ann-image-preview" class="ann-image-preview" hidden>
+            <img id="ann-image-thumb" alt="Chosen announcement image">
+            <div class="ann-image-preview-copy">
+              <strong id="ann-image-name">image</strong>
+              <button type="button" id="ann-image-remove" class="team-mini-link danger">Remove image</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <fieldset class="aw-fieldset"><legend>Publish Time *</legend>
+        <label><input type="radio" name="ann-when" value="now" checked> Publish Now</label>
+        <label><input type="radio" name="ann-when" value="schedule"> Schedule (goes live automatically at the chosen time)</label>
+        <div id="ann-schedule-row" class="aw-schedule-row" hidden><input type="date" id="ann-date" aria-label="Date"><input type="time" id="ann-time" value="09:00" aria-label="Time"></div>
+      </fieldset>
+      <div class="aw-bottom-actions">
+        <button type="button" id="ann-preview-btn" class="secondary-action">Preview</button>
+        <button type="button" id="ann-draft-btn" class="secondary-action">Save Draft</button>
+        <button type="button" id="ann-publish-btn" class="primary-action">Publish</button>
+      </div>
+      <p id="ann-status-line" class="hub-join-status" role="status" hidden></p>
+    </div>
+  </section>
+
+  <section class="team-dash-section">
+    <h2 class="team-dash-heading">PUBLISHED ANNOUNCEMENTS</h2>
+    <div id="ann-published" class="team-site-list"></div>
+  </section>
+
+  <section class="team-dash-section">
+    <h2 class="team-dash-heading">DRAFTS &amp; SCHEDULED</h2>
+    <div id="ann-drafts" class="team-site-list"></div>
+  </section>
+
+  <!-- P-096 — PUBLIC FEED A–Z: the whole Updates feed (catalogue additions, product updates,
+       announcements) is managed from here — edit any entry's wording or hide it entirely. -->
+  <section class="team-dash-section" id="ann-feed-section">
+    <h2 class="team-dash-heading">📰 PUBLIC FEED — EVERYTHING A TO Z</h2>
+    <p class="team-site-sub" style="margin:0 0 10px;color:var(--text-faint);">This is the exact list archive users see in Updates. Rename any entry's wording, hide any entry, restore it — it happens live. Announcements get their full editor above.</p>
+    <div class="team-filter-bar" style="margin-bottom:10px;">
+      <input id="feed-search" type="search" placeholder="Filter the public feed…" aria-label="Filter public feed" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);">
+    </div>
+    <div id="ann-feed" class="team-site-list"></div>
+  </section>
+
+
+
+<!-- PREVIEW MODAL — shows the card exactly as the public Updates feed renders it -->
+<div class="modal-overlay team-modal-overlay" id="ann-preview-modal" style="display:none;">
+  <div class="modal team-site-modal">
+    <div class="modal-header"><h2>Announcement Preview</h2><button class="modal-close" id="ann-preview-close" aria-label="Close">✕</button></div>
+    <div class="modal-body" id="ann-preview-body"></div>
+    <div class="modal-footer"><button class="secondary-action" id="ann-preview-cancel">Close</button><button class="primary-action" id="ann-preview-publish">Publish</button></div>
+  </div>
+</div>
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="applications.html" data-page-title="Dev Applications — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">💼 DEV APPLICATIONS</h1>
+    <button type="button" id="load-app-example" class="secondary-action">🧪 Load illustrative examples</button>
+  </div>
+
+  <div id="app-stats" class="team-stat-row"></div>
+
+  <div class="team-filter-bar">
+    <input type="search" id="app-search" placeholder="🔍 Search applicant, skills, pitch…" aria-label="Search applications">
+    <select id="app-status" aria-label="Filter by status">
+      <option value="all">Status</option>
+      <option value="pending">🟡 Pending</option>
+      <option value="review">🔵 Under Review</option>
+      <option value="accepted">✅ Accepted</option>
+      <option value="rejected">❌ Rejected</option>
+    </select>
+    <select id="app-experience" aria-label="Filter by experience">
+      <option value="all">Experience</option>
+      <option value="beginner">🌱 Beginner</option>
+      <option value="intermediate">🌿 Intermediate</option>
+      <option value="expert">🌳 Expert</option>
+    </select>
+    <select id="app-sort" aria-label="Sort applications">
+      <option value="newest">Newest First</option>
+      <option value="oldest">Oldest First</option>
+    </select>
+  </div>
+
+  <p id="app-total" class="results-count team-site-count">0 applications</p>
+  <div id="app-list" class="team-site-list"></div>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="archive.html" data-page-title="Archive — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <div><h1 class="team-page-title">🗂️ ARCHIVE — Deleted Data</h1>
+    <p class="team-site-sub">Data here is held for 90 days before permanent deletion</p></div>
+  </div>
+
+  <div class="team-filter-bar">
+    <input type="search" id="arc-search" class="team-filter-search" placeholder="🔍 Search..." aria-label="Search archived data">
+    <select id="arc-section" aria-label="Filter by section">
+      <option value="all">All Sections</option>
+      <option value="users">Deleted Users</option>
+      <option value="websites">Archived Websites</option>
+      <option value="tickets">Closed Tickets</option>
+    </select>
+  </div>
+
+  <section class="team-dash-section" data-arc="users"><h2 class="team-dash-heading">DELETED USER ACCOUNTS</h2><div id="arc-users" class="team-site-list"></div></section>
+  <section class="team-dash-section" data-arc="websites"><h2 class="team-dash-heading">ARCHIVED WEBSITES</h2><div id="arc-websites" class="team-site-list"></div></section>
+  <section class="team-dash-section" data-arc="tickets"><h2 class="team-dash-heading">CLOSED TICKETS</h2><div id="arc-tickets" class="team-site-list"></div></section>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="bugs.html" data-page-title="Bug Reports — Paragon Team Dashboard" hidden>
+
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">🐛 BUG REPORTS</h1>
+    <button type="button" id="load-bugs-example" class="secondary-action">🧪 Load illustrative example</button>
+  </div>
+
+  <aside class="bug-reminder">
+    <strong>⚠️ WHAT COUNTS AS A BUG</strong>
+    <p>Something is broken, crashing, or behaving differently than designed — errors, freezes, wrong data, broken layouts, failed actions. Feature wishes go to Requests, account problems go to Tickets, and content complaints go to Flagged Reports. Reproduce it before triaging when possible.</p>
+  </aside>
+
+  <div class="team-filter-bar">
+    <input type="search" id="bug-search" class="team-filter-search" placeholder="🔍 Search..." aria-label="Search bug reports">
+    <select id="bug-website-filter" aria-label="Filter by website"><option value="all">Website</option></select>
+    <select id="bug-status-filter" aria-label="Filter by status">
+      <option value="all">Status</option>
+      <option value="open">🟢 Open</option>
+      <option value="progress">🟡 In Progress</option>
+      <option value="fixed">✅ Fixed</option>
+      <option value="wontfix">⚫ Won't Fix</option>
+    </select>
+    <select id="bug-priority-filter" aria-label="Filter by priority">
+      <option value="all">Priority</option>
+      <option value="high">🔴 High</option>
+      <option value="medium">🟡 Medium</option>
+      <option value="low">🟢 Low</option>
+    </select>
+  </div>
+
+  <p id="bug-total" class="results-count team-site-count">0 bug reports</p>
+
+  <div id="bug-list" class="team-site-list"></div>
+
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="content-community.html" data-page-title="Community Posts — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">💬 COMMUNITY POSTS</h1>
+    <button type="button" id="load-post-example" class="secondary-action">🧪 Load illustrative examples</button>
+  </div>
+
+  <div id="post-stats" class="team-stat-row"></div>
+
+  <div class="team-filter-bar">
+    <input type="search" id="post-search" placeholder="🔍 Search title, author, body…" aria-label="Search posts">
+    <select id="post-board" aria-label="Filter by board"><option value="all">Board</option></select>
+    <select id="post-status" aria-label="Filter by status">
+      <option value="all">Status</option>
+      <option value="visible">🟢 Visible</option>
+      <option value="hidden">🙈 Hidden</option>
+      <option value="flagged">🚩 Flagged</option>
+    </select>
+    <select id="post-sort" aria-label="Sort posts">
+      <option value="newest">Newest First</option>
+      <option value="flagged">Most Flagged</option>
+    </select>
+  </div>
+
+  <p id="post-total" class="results-count team-site-count">0 posts</p>
+  <div id="post-list" class="team-site-list"></div>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="content-reviews.html" data-page-title="Reviews &amp; Reports — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">⭐ REVIEWS &amp; REPORTS</h1>
+    <button type="button" id="load-report-example" class="secondary-action">🧪 Load illustrative reports</button>
+  </div>
+
+  <div class="team-tab-row" role="tablist">
+    <button type="button" class="team-tab active" id="tab-reports" role="tab" aria-selected="true">🚩 Reported Reviews <span id="tab-reports-count" class="team-tab-badge">0</span></button>
+    <button type="button" class="team-tab" id="tab-all" role="tab" aria-selected="false">⭐ All Reviews <span id="tab-all-count" class="team-tab-badge">0</span></button>
+  </div>
+
+  <section id="panel-reports" role="tabpanel">
+    <p id="report-total" class="results-count team-site-count">0 open reports</p>
+    <div id="report-list" class="team-site-list"></div>
+  </section>
+
+  <section id="panel-all" role="tabpanel" hidden>
+    <div class="team-filter-bar">
+      <input type="search" id="rev-search" placeholder="🔍 Search website, author, text…" aria-label="Search reviews">
+      <select id="rev-stars" aria-label="Filter by stars">
+        <option value="all">Stars</option>
+        <option value="5">★★★★★</option><option value="4">★★★★</option>
+        <option value="3">★★★</option><option value="2">★★</option><option value="1">★</option>
+      </select>
+      <select id="rev-source" aria-label="Filter by source">
+        <option value="all">Source</option>
+        <option value="device">✍️ Written on this device</option>
+        <option value="inherited">📦 Inherited sample</option>
+      </select>
+    </div>
+    <p id="rev-total" class="results-count team-site-count">0 reviews</p>
+    <div id="rev-list" class="team-site-list"></div>
+  </section>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="content-suggestions.html" data-page-title="Suggestions — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">💡 SUGGESTIONS</h1>
+    <button type="button" id="load-sug-example" class="secondary-action">🧪 Load illustrative examples</button>
+  </div>
+
+  <div id="sug-stats" class="team-stat-row"></div>
+
+  <div class="team-filter-bar">
+    <input type="search" id="sug-search" placeholder="🔍 Search suggestions…" aria-label="Search suggestions">
+    <select id="sug-status" aria-label="Filter by status">
+      <option value="all">Status</option>
+      <option value="new">🟡 New</option>
+      <option value="review">🔵 Under Review</option>
+      <option value="planned">✅ Planned</option>
+      <option value="declined">❌ Declined</option>
+    </select>
+    <select id="sug-sort" aria-label="Sort suggestions">
+      <option value="newest">Newest First</option>
+      <option value="votes">Most Voted</option>
+    </select>
+  </div>
+
+  <p id="sug-total" class="results-count team-site-count">0 suggestions</p>
+  <div id="sug-list" class="team-site-list"></div>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="deployed.html" data-page-title="Deployed Reviews — Paragon Team Dashboard" hidden>
+
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">🚀 DEPLOYED WEBSITE REVIEWS</h1>
+    <button type="button" id="load-example-btn" class="secondary-action">🧪 Load illustrative example</button>
+  </div>
+
+  <div class="team-filter-bar deployed-tabs" role="tablist" aria-label="Filter submissions">
+    <button type="button" class="deployed-tab active" data-status="all" role="tab" aria-selected="true">All</button>
+    <button type="button" class="deployed-tab" data-status="pending" role="tab" aria-selected="false">Pending</button>
+    <button type="button" class="deployed-tab" data-status="approved" role="tab" aria-selected="false">Approved</button>
+    <button type="button" class="deployed-tab" data-status="rejected" role="tab" aria-selected="false">Rejected</button>
+    <button type="button" class="deployed-tab" data-status="hold" role="tab" aria-selected="false">On Hold</button>
+  </div>
+
+  <div id="deployed-list" class="team-site-list"></div>
+
+
+
+
+
+  </section>
+  <section class="team-page-panel team-dash-shell lab-shell" data-team-page="lab.html" data-page-title="Lab — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">🧪 LAB</h1>
+    <p class="team-site-sub" style="margin:6px 0 12px;">Lab v1 is a no-action preview workbench — the owner explains the rest of the Lab concept and it will be extended then.</p>
+    <label class="lab-action-switch" title="When OFF, a shield blocks every click and key inside the preview">
+      <span>Actions</span>
+      <input type="checkbox" id="lab-actions" role="switch" aria-label="Allow actions inside the preview">
+      <i class="lab-switch-track" aria-hidden="true"></i>
+      <b id="lab-actions-state">OFF · pure preview</b>
+    </label>
+  </div>
+
+  <div class="team-filter-bar lab-controls">
+    <select id="lab-page" aria-label="Page to preview"></select>
+    <select id="lab-device" aria-label="Device frame">
+      <option value="full">🖥️ Full width</option>
+      <option value="laptop">💻 Laptop · 1180px</option>
+      <option value="tablet">📱 Tablet · 768px</option>
+      <option value="mobile">📲 Mobile · 390px</option>
+    </select>
+    <button type="button" id="lab-reload" class="secondary-action">🔄 Reload</button>
+    <a id="lab-open" class="secondary-action" href="../paragon-archive.html" target="_blank" rel="noopener">↗️ Open in tab</a>
+  </div>
+
+  <div id="lab-stage" class="lab-stage">
+    <div id="lab-frame-wrap" class="lab-frame-wrap lab-full">
+      <iframe id="lab-frame" title="Lab preview" src="about:blank"></iframe>
+      <div id="lab-shield" class="lab-shield" aria-hidden="true">
+        <span>🔒 Actions locked — pure preview</span>
+      </div>
+    </div>
+  </div>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="member-profile.html" data-page-title="Team Member — Paragon Team Dashboard" hidden>
+
+  <div class="empty-state" id="member-not-found" style="display:none;">
+    <div class="empty-icon">🧑‍💼</div><h3>Member not found</h3><p><a href="desk.html?page=members">Back to Team Members</a></p>
+  </div>
+
+  <div id="member-body" style="display:none;">
+    <section class="team-dash-section">
+      <div class="team-user-profile-card">
+        <span class="team-user-avatar" id="member-avatar">?</span>
+        <div class="team-user-idcopy">
+          <div class="team-site-title"><strong id="member-name">—</strong><span id="member-status-badge" class="team-site-badge st-live">🟢 Active</span><span id="member-flag" class="team-site-localflag" hidden></span></div>
+          <p class="team-site-sub" id="member-email">—</p>
+          <p class="team-site-sub" id="member-role">Role: —</p>
+          <p class="team-site-sub" id="member-joined">Joined: —</p>
+          <p class="team-site-sub" id="member-lastactive">Last Active: —</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">ACTIVITY STATS</h2>
+      <div class="team-stat-grid">
+        <article class="team-stat-card"><strong id="mstat-actions">0</strong><span>Total Actions</span><small id="mstat-actions-note"></small></article>
+        <article class="team-stat-card"><strong id="mstat-websites">0</strong><span>Websites Added</span></article>
+        <article class="team-stat-card"><strong id="mstat-tickets">0</strong><span>Tickets Resolved</span></article>
+        <article class="team-stat-card"><strong id="mstat-reviews">0</strong><span>Reviews Removed</span></article>
+      </div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">RECENT ACTIVITY</h2>
+      <ol id="member-activity" class="team-activity-list"></ol>
+      <p><a class="team-mini-link" href="desk.html?page=activity">See full activity →</a></p>
+    </section>
+
+    <section class="team-dash-section" id="member-admin-actions">
+      <h2 class="team-dash-heading">ADMIN ACTIONS <small style="letter-spacing:0;font-weight:600;">(Super Admin only — backend claims enforce this at activation)</small></h2>
+      <div class="team-user-actions">
+        <button type="button" id="member-change-role" class="secondary-action">🔄 Change Role</button>
+        <button type="button" id="member-suspend" class="secondary-action">⏸️ Suspend Access</button>
+        <button type="button" id="member-remove" class="secondary-action deployed-reject">🗑️ Remove from Team</button>
+      </div>
+      <p id="member-owner-note" class="hub-join-note" hidden>The Super Admin owner account cannot be suspended or removed.</p>
+    </section>
+  </div>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="members.html" data-page-title="Team Members — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">🧑‍💼 TEAM MEMBERS</h1>
+    <div class="team-page-head-actions">
+      <button type="button" id="load-members-example" class="secondary-action">🧪 Load illustrative example</button>
+      <button type="button" id="invite-btn" class="primary-action">+ Invite Team Member</button>
+    </div>
+  </div>
+
+  <div id="member-list" class="team-site-list"></div>
+
+  <section class="team-dash-section" id="invite-section">
+    <h2 class="team-dash-heading">PENDING INVITATIONS</h2>
+    <div id="invite-list" class="team-site-list"></div>
+  </section>
+
+
+
+<!-- INVITE MODAL -->
+<div class="modal-overlay team-modal-overlay" id="invite-modal" style="display:none;">
+  <div class="modal team-site-modal">
+    <div class="modal-header"><h2>+ Invite Team Member</h2><button class="modal-close" id="invite-close" aria-label="Close">✕</button></div>
+    <div class="modal-body form-group-stack">
+      <label><span>Full Name *</span><input id="invite-name" maxlength="60" placeholder="Their full name"></label>
+      <label><span>Email Address *</span><input id="invite-email" type="email" maxlength="254" placeholder="them@example.com"></label>
+      <label><span>Role *</span><select id="invite-role"><option value="">Select Role</option><option>Admin</option><option>Developer</option><option>Moderator</option><option>Support</option><option>Analyst</option></select></label>
+      <p class="hub-join-note">The system will generate a password and email it to them with setup instructions — the email dispatches when the security backend activates. The invitation record is stored now.</p>
+    </div>
+    <div class="modal-footer"><button class="secondary-action" id="invite-cancel">Cancel</button><button class="primary-action" id="invite-send">Send Invitation</button></div>
+  </div>
+</div>
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="overview.html" data-page-title="Overview — Paragon Team Dashboard" hidden>
+
+
+  <p class="team-dash-greeting"><span id="dash-greeting">Good morning</span>, Paragon 👋 <span id="dash-greeting-sub">Here is what needs your attention today.</span></p>
+
+  <!-- QUICK STATS -->
+  <section class="team-dash-section" data-widget="stats" aria-labelledby="dash-stats-title">
+    <h2 id="dash-stats-title" class="team-dash-heading">QUICK STATS</h2>
+    <div class="team-stat-grid">
+      <article class="team-stat-card"><span class="team-stat-icon">👥</span><strong id="stat-users">—</strong><span>Total Users</span><small>Activates with accounts backend</small></article>
+      <article class="team-stat-card"><span class="team-stat-icon">🌐</span><strong id="stat-websites">0</strong><span>Websites</span><small id="stat-websites-sub">catalogued · 0 live</small></article>
+      <article class="team-stat-card"><span class="team-stat-icon">⭐</span><strong id="stat-reviews">0</strong><span>Reviews</span><small>Published in the catalogue</small></article>
+      <article class="team-stat-card"><span class="team-stat-icon">🎮</span><strong id="stat-plays">0</strong><span>Quiz Plays</span><small>Real plays on this device</small></article>
+    </div>
+  </section>
+
+  <!-- PENDING ACTIONS -->
+  <section class="team-dash-section" data-widget="pending" aria-labelledby="dash-pending-title">
+    <h2 id="dash-pending-title" class="team-dash-heading">PENDING ACTIONS</h2>
+    <div class="team-pending-grid">
+      <article class="team-pending-card" data-widget="tickets"><span>🎫</span><div><strong><b id="pending-tickets">0</b> Open Tickets</strong><small>Support inbox opens with backend</small></div><a class="team-mini-link" href="desk.html?page=tickets">View All →</a></article>
+      <article class="team-pending-card" data-widget="bugs"><span>🐛</span><div><strong><b id="pending-bugs">0</b> Bug Reports</strong><small>Report queue opens with backend</small></div><a class="team-mini-link" href="desk.html?page=bugs">View All →</a></article>
+      <article class="team-pending-card" data-widget="deployed"><span>🚀</span><div><strong><b id="pending-deployed">0</b> Deployed Sites Pending</strong><small>Submissions open with programme</small></div><a class="team-mini-link" href="desk.html?page=deployed">Review →</a></article>
+      <article class="team-pending-card" data-widget="devapps"><span>💼</span><div><strong><b id="pending-devapps">0</b> Dev Apps Waiting Review</strong><small>Applications not yet open</small></div><button type="button" class="team-mini-link" data-future="Developer applications (future spec page)">Review →</button></article>
+      <article class="team-pending-card" data-widget="flags"><span>🚩</span><div><strong><b id="pending-flags">0</b> Reports Flagged Content</strong><small>Moderation opens with backend</small></div><button type="button" class="team-mini-link" data-future="Moderation queue (future spec page)">Review →</button></article>
+      <article class="team-pending-card" data-widget="lockouts"><span>🔒</span><div><strong><b id="pending-lockouts">0</b> Portal Lockout Incidents</strong><small>Real incidents recorded on this device</small></div><button type="button" class="team-mini-link" id="view-lockouts-btn">View →</button></article>
+    </div>
+  </section>
+
+  <!-- RECENT ACTIVITY -->
+  <section class="team-dash-section" data-widget="activity" aria-labelledby="dash-activity-title">
+    <h2 id="dash-activity-title" class="team-dash-heading">RECENT ACTIVITY</h2>
+    <ol id="dash-activity-list" class="team-activity-list"></ol>
+    <p class="team-activity-note">This feed shows real local events: catalogue additions, live product launches, community joins, quiz publications, and portal security incidents. Team-member actions appear when the backend activates.</p>
+  </section>
+
+  <!-- CHARTS -->
+  <section class="team-dash-section" data-widget="charts" aria-labelledby="dash-charts-title">
+    <h2 id="dash-charts-title" class="team-dash-heading">CHARTS</h2>
+    <div class="team-chart-grid">
+      <article class="team-chart-card">
+        <h3>New Users — Last 30 Days</h3>
+        <div id="chart-users" class="team-bar-chart" role="img" aria-label="New users per day, last 30 days"></div>
+        <small>Each bar = one day · hover shows the exact count · populates with the accounts backend (real zeros today)</small>
+      </article>
+      <article class="team-chart-card">
+        <h3>Category Popularity</h3>
+        <div class="team-pie-wrap">
+          <div id="chart-pie" class="team-pie" role="img" aria-label="Catalogue share by category family"></div>
+          <ul id="chart-pie-legend" class="team-pie-legend"></ul>
+        </div>
+        <small>Real distribution of the current catalogue</small>
+      </article>
+    </div>
+  </section>
+
+  <!-- QUICK ACTIONS -->
+  <section class="team-dash-section" data-widget="actions" aria-labelledby="dash-actions-title">
+    <h2 id="dash-actions-title" class="team-dash-heading">QUICK ACTIONS</h2>
+    <div class="team-quick-actions">
+      <a class="secondary-action" href="desk.html?page=add-website">➕ Add Website</a>
+      <button type="button" class="secondary-action" data-future="Announcements (future spec page)">📢 Announcement</button>
+      <a class="secondary-action" href="../paragon-archive-hub.html#request-site">📬 Requests</a>
+      <a class="secondary-action" href="desk.html?page=users">👥 Users</a>
+    </div>
+  </section>
+
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="permissions.html" data-page-title="Permissions — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">🔑 PERMISSIONS</h1>
+    <label class="team-role-switch">Highlight role:
+      <select id="perm-highlight">
+        <option value="">None</option>
+        <option value="sa">Super Admin</option>
+        <option value="ad">Admin</option>
+        <option value="dev">Developer</option>
+        <option value="mod">Moderator</option>
+        <option value="sup">Support</option>
+        <option value="an">Analyst</option>
+      </select>
+    </label>
+  </div>
+
+  <section class="team-dash-section">
+    <h2 class="team-dash-heading">FINAL ROLE HIERARCHY</h2>
+    <div id="perm-hierarchy" class="team-site-list"></div>
+  </section>
+
+  <section class="team-dash-section">
+    <h2 class="team-dash-heading">COMPLETE PERMISSIONS TABLE</h2>
+    <div class="perm-legend">
+      <span>✅ allowed</span><span>❌ denied</span><span class="perm-qualifier">own only</span><span class="perm-qualifier">limited</span><span class="perm-qualifier">own websites</span><span class="perm-qualifier">own level &amp; below</span>
+    </div>
+    <div class="perm-table-wrap">
+      <table id="perm-table" class="perm-table"></table>
+    </div>
+    <p class="hub-join-note">Role changes are managed through Team Members; this matrix is the read-only law. Server-side claims enforce every row at backend activation — front-end previews (like the Overview role switcher) already follow it.</p>
+  </section>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="profile.html" data-page-title="My Profile — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">👤 MY PROFILE</h1>
+    <button type="button" id="prof-edit-jump" class="secondary-action">Edit Profile</button>
+  </div>
+
+  <section class="team-dash-section">
+    <div class="team-user-profile-card">
+      <div class="prof-photo-col">
+        <span class="team-user-avatar prof-avatar" id="prof-avatar">P</span>
+        <label class="team-mini-link prof-photo-btn"><input type="file" id="prof-photo" accept="image/*">Change Photo</label>
+      </div>
+      <div class="team-user-idcopy">
+        <div class="team-site-title"><strong id="prof-name">Paragon</strong><span class="team-role-badge">Super Admin</span><span class="team-site-localflag" style="border-color:rgba(34,197,94,0.5);color:#22c55e;">real · owner</span></div>
+        <p class="team-site-sub" id="prof-email">paragon.archive.2026@gmail.com</p>
+        <p class="team-site-sub">Role: Super Admin</p>
+        <p class="team-site-sub">Joined: August 1, 2026</p>
+        <p class="team-site-sub" id="prof-lastactive">Last Active: —</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="team-dash-section">
+    <h2 class="team-dash-heading">MY STATS</h2>
+    <div class="team-stat-grid">
+      <article class="team-stat-card"><strong id="pstat-total">0</strong><span>Total Actions</span><small>Counted live from this device</small></article>
+      <article class="team-stat-card"><strong id="pstat-added">0</strong><span>Websites Added</span><small>Team drafts created</small></article>
+      <article class="team-stat-card"><strong id="pstat-managed">0</strong><span>Websites Managed</span><small>Catalogue + status changes</small></article>
+      <article class="team-stat-card"><strong id="pstat-days">0</strong><span>Days on Team</span><small>Since August 1, 2026</small></article>
+    </div>
+  </section>
+
+  <section class="team-dash-section" id="prof-edit-section">
+    <h2 class="team-dash-heading">EDIT PROFILE</h2>
+    <div class="form-section form-group-stack">
+      <label><span>Display Name</span><input id="edit-name" maxlength="40" value="Paragon"></label>
+      <label><span>Email Address</span><input id="edit-email" type="email" maxlength="254" value="paragon.archive.2026@gmail.com"></label>
+      <h3 class="team-dash-heading" style="margin-top:8px;">CHANGE PASSWORD</h3>
+      <label><span>Current Password</span><input id="edit-pw-current" type="password" autocomplete="current-password"></label>
+      <label><span>New Password</span><input id="edit-pw-new" type="password" autocomplete="new-password" placeholder="12+ chars, uppercase, number, symbol"></label>
+      <label><span>Confirm New</span><input id="edit-pw-confirm" type="password" autocomplete="new-password"></label>
+      <div class="aw-bottom-actions"><button type="button" id="prof-save" class="primary-action">Save Changes</button></div>
+      <p id="prof-status" class="hub-join-status" role="status" hidden></p>
+    </div>
+  </section>
+
+  <section class="team-dash-section">
+    <h2 class="team-dash-heading">ACTIVE SESSIONS</h2>
+    <div id="prof-sessions" class="team-site-list"></div>
+    <div class="aw-bottom-actions" style="justify-content:flex-start;margin-top:12px;">
+      <button type="button" id="prof-logout-others" class="secondary-action">Log out all other sessions</button>
+    </div>
+    <p class="hub-join-note">Cross-device session tracking is server-side; the full session list and remote logout activate with the security backend. Only this device's real session is shown — nothing is invented.</p>
+  </section>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="promotions.html" data-page-title="Sponsored &amp; Promotional Notices — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">📣 SPONSORED &amp; PROMOTIONAL NOTICES</h1>
+  </div>
+
+  <section class="team-dash-section team-settings-card">
+    <h2 class="team-dash-sectitle">✍️ Compose a notice</h2>
+    <div class="team-settings-grid">
+      <label>Type
+        <select id="promo-type">
+          <option value="promotion">📣 Paragon promotion</option>
+          <option value="sponsored">🤝 Sponsored notice (requires sponsor)</option>
+        </select>
+      </label>
+      <label>Sponsor name (sponsored only)
+        <input type="text" id="promo-sponsor" maxlength="60" placeholder="Who paid for / sponsors this notice">
+      </label>
+      <label>Audience
+        <select id="promo-audience">
+          <option value="all">Everyone (accounts + guests)</option>
+          <option value="guests">Guests only</option>
+          <option value="accounts">Signed-in accounts only</option>
+        </select>
+      </label>
+    </div>
+    <label class="team-settings-grid" style="display:block;">Title
+      <input type="text" id="promo-title" maxlength="80" placeholder="Notice title" style="width:100%;">
+    </label>
+    <label class="team-settings-grid" style="display:block;">Message
+      <textarea id="promo-body" rows="3" maxlength="280" placeholder="Notice message (280 characters max)" style="width:100%;"></textarea>
+    </label>
+    <p class="team-site-sub">⏳ Every published notice runs for a maximum of <strong>72 hours</strong> (platform rule) and sponsored notices always display the "Sponsored" disclosure to users.</p>
+    <p id="promo-error" class="portal-lockout" style="display:none;"></p>
+    <div class="team-site-actions" style="padding-left:0;">
+      <button type="button" id="promo-save-draft" class="secondary-action">💾 Save draft</button>
+      <button type="button" id="promo-publish" class="primary-action">📣 Publish notice</button>
+    </div>
+  </section>
+
+  <div id="promo-stats" class="team-stat-row"></div>
+
+  <p id="promo-total" class="results-count team-site-count">0 notices</p>
+  <div id="promo-list" class="team-site-list"></div>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="requests.html" data-page-title="Website Requests — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">📬 WEBSITE REQUESTS</h1>
+    <button type="button" id="load-requests-example" class="secondary-action">🧪 Load illustrative examples</button>
+  </div>
+
+  <div class="team-filter-bar">
+    <select id="req-sort" aria-label="Sort requests">
+      <option value="most">Sort by Most Requested</option>
+      <option value="newest">Newest First</option>
+    </select>
+    <select id="req-category" aria-label="Filter by category"><option value="all">Category</option></select>
+    <select id="req-status" aria-label="Filter by status">
+      <option value="all">Status</option>
+      <option value="consideration">🟡 Under Consideration</option>
+      <option value="progress">🔵 In Progress</option>
+      <option value="rejected">❌ Rejected</option>
+      <option value="complete">✅ Complete</option>
+    </select>
+  </div>
+
+  <p id="req-total" class="results-count team-site-count">0 requests</p>
+  <div id="req-list" class="team-site-list"></div>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="roadmap.html" data-page-title="Roadmap Management — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">🗺️ ROADMAP MANAGEMENT</h1>
+    <button type="button" id="rm-add-btn" class="primary-action">+ Add Roadmap Item</button>
+  </div>
+
+  <section class="team-dash-section"><h2 class="team-dash-heading">COMPLETED</h2><div id="rm-completed" class="team-site-list"></div></section>
+  <section class="team-dash-section"><h2 class="team-dash-heading">IN PROGRESS</h2><div id="rm-progress" class="team-site-list"></div></section>
+  <section class="team-dash-section"><h2 class="team-dash-heading">PLANNED</h2><div id="rm-planned" class="team-site-list"></div></section>
+  <section class="team-dash-section"><h2 class="team-dash-heading">COMING SOON — FUTURE PRODUCTS</h2><div id="rm-coming" class="team-site-list"></div></section>
+
+  <!-- P-096 — MILESTONE CHECKLISTS: the exact lists + percentages the public Hub roadmap
+       renders (paragonTeamRoadmapMilestones.v1). The Hub falls back to its HTML defaults
+       until the Team publishes here — so the public roadmap is genuinely made from this desk. -->
+  <section class="team-dash-section" id="rm-milestones-section">
+    <h2 class="team-dash-heading">📋 PUBLIC MILESTONE CHECKLISTS — the Hub roadmap lists</h2>
+    <p class="team-site-sub" style="margin:0 0 12px;color:var(--text-faint);">Edit each milestone's wording and tick it done. The public roadmap percentages recompute from THESE lists (D-116) the moment you save.</p>
+    <div id="rm-milestones"></div>
+    <p id="rm-milestone-status" class="hub-join-status" role="status" hidden></p>
+  </section>
+
+
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay team-modal-overlay" id="rm-modal" style="display:none;">
+  <div class="modal team-site-modal">
+    <div class="modal-header"><h2 id="rm-modal-title">Add Roadmap Item</h2><button class="modal-close" id="rm-modal-close" aria-label="Close">✕</button></div>
+    <div class="modal-body form-group-stack">
+      <label><span>Title *</span><input id="rm-title" maxlength="80" placeholder="Milestone name"></label>
+      <label><span>Detail / date label</span><input id="rm-detail" maxlength="140" placeholder="e.g. Target: August 2027 — the archive goes live"></label>
+      <label><span>Group *</span><select id="rm-group"><option value="completed">✅ Completed</option><option value="progress">🔄 In Progress</option><option value="planned" selected>📅 Planned</option><option value="coming">🔮 Coming Soon</option></select></label>
+      <label><span>Progress % (In Progress only)</span><input id="rm-percent" type="number" min="0" max="100" value="0"></label>
+      <label class="community-guidelines-check"><input id="rm-public" type="checkbox" checked> 🌐 Public (uncheck for Private — team only)</label>
+    </div>
+    <div class="modal-footer"><button class="secondary-action" id="rm-modal-cancel">Cancel</button><button class="primary-action" id="rm-modal-save">Save</button></div>
+  </div>
+</div>
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="settings.html" data-page-title="Settings — Paragon Team Dashboard" hidden>
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">⚙️ SETTINGS <span class="team-role-chip">🔒 Super Admin only</span></h1>
+
+  <!-- P-098 — super-admin coin purchase approvals -->
+  <section class="team-dash-section" id="coin-requests-section">
+    <h2 class="team-dash-heading">🪙 COIN PURCHASE REQUESTS (super-admin)</h2>
+    <div id="coin-requests-list" class="team-site-list"></div>
+  </section>
+  </div>
+
+  <section class="team-dash-section team-settings-card">
+    <h2 class="team-dash-sectitle">🛡️ Session security — REAL, applies on next page load</h2>
+    <div class="team-settings-grid">
+      <label>Idle warning after (minutes)
+        <input type="number" id="set-idle" min="5" max="120" step="1">
+        <small>Default 29. The warning modal appears after this much inactivity.</small>
+      </label>
+      <label>Logout countdown (seconds)
+        <input type="number" id="set-warn" min="30" max="120" step="5">
+        <small>Default 60. Countdown length once the warning shows.</small>
+      </label>
+    </div>
+    <button type="button" id="set-save-session" class="primary-action">💾 Save session settings</button>
+    <p id="set-session-msg" class="team-site-sub" role="status"></p>
+  </section>
+
+  <section class="team-dash-section team-settings-card">
+    <h2 class="team-dash-sectitle">🚧 Platform flags — stored now, enforced by the backend at activation</h2>
+    <div id="set-flags" class="team-settings-flags"></div>
+    <p class="team-site-sub">Honesty note: these switches persist your intent locally today; they take real public effect only when the production backend reads them. Nothing pretends otherwise.</p>
+  </section>
+
+  <section class="team-dash-section team-settings-card">
+    <h2 class="team-dash-sectitle">🧹 Local desk data</h2>
+    <p class="team-site-sub">Every dashboard desk stores its working data on this device. Real record counts below; clearing is permanent for this device.</p>
+    <div id="set-stores" class="team-site-list"></div>
+  </section>
+
+  <section class="team-dash-section team-settings-card">
+    <h2 class="team-dash-sectitle">ℹ️ System info (real)</h2>
+    <div id="set-info" class="team-stat-row"></div>
+  </section>
+
+
+
+
+  </section>
+  <section class="team-page-panel hub-team-secure team-portal" data-team-page="setup.html" data-page-title="Paragon Team — Set Your Password" hidden>
+
+  <div class="hub-team-secure-inner">
+    <p class="hub-team-brand" aria-hidden="true">◈ PARAGON TEAM</p>
+    <h1 id="setup-title">Welcome. Set Your Password.</h1>
+    <p class="hub-team-sub" id="setup-expiry-note">This link expires in 24 hours.</p>
+
+    <div id="setup-expired" class="portal-lockout" role="alert" hidden>⏰ This setup link has expired (links are valid for 24 hours). Request a new invitation from the platform owner.</div>
+
+    <form id="setup-form" class="hub-team-secure-card" novalidate aria-describedby="setup-status">
+      <p id="setup-role-message" class="setup-role-message" hidden>Your initial password was sent to your email. You must create a new password before continuing.</p>
+
+      <label><span>Your Team Email (pre-filled)</span><input id="setup-email" type="email" name="email" autocomplete="username" readonly></label>
+
+      <label id="setup-initial-wrap" hidden><span>Initial Password (from your email)</span><input id="setup-initial" type="password" name="initialPassword" autocomplete="current-password" placeholder="System-generated password"></label>
+
+      <label><span>Create Password</span>
+        <span class="portal-password-wrap">
+          <input id="setup-password" type="password" name="newPassword" autocomplete="new-password" required placeholder="At least 12 characters">
+          <button type="button" id="setup-show-toggle" class="portal-show-btn" aria-pressed="false" aria-label="Show password">Show</button>
+        </span>
+      </label>
+      <div class="strength-meter" role="img" aria-label="Password strength">
+        <div class="strength-track"><span id="strength-fill"></span></div>
+        <span id="strength-label" class="strength-label">Password strength</span>
+      </div>
+      <ul id="strength-rules" class="strength-rules">
+        <li data-rule="length">At least 12 characters</li>
+        <li data-rule="upper">Contains an uppercase letter</li>
+        <li data-rule="number">Contains a number</li>
+        <li data-rule="symbol">Contains a symbol</li>
+      </ul>
+
+      <label><span>Confirm Password</span><input id="setup-confirm" type="password" name="confirmPassword" autocomplete="new-password" required placeholder="Repeat the password"></label>
+
+      <button type="submit" class="primary-action hub-team-secure-submit">✅ SET PASSWORD &amp; ENTER</button>
+      <p id="setup-status" class="hub-join-status" role="status" hidden></p>
+    </form>
+
+    <p class="hub-team-warning">Password must be at least 12 characters and contain uppercase, numbers and symbols.</p>
+
+    <a class="hub-team-back" href="login.html">← Back to Team Login</a>
+
+    <details class="hub-team-honesty hub-team-honesty-compact">
+      <summary>Current state — honest and clear</summary>
+      <p>The strength meter, all password rules, confirmation matching, and the 24-hour link-expiry check run for real on this page. Because the security backend is not activated, no password is stored or transmitted and dashboard entry does not occur yet — a valid submission confirms your password passes policy and explains what activates later. Real invitations, initial passwords, and account provisioning arrive with the protected backend.</p>
+    </details>
+  </div>
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="ticket.html" data-page-title="Ticket — Paragon Team Dashboard" hidden>
+
+  <div class="empty-state" id="ticket-not-found" style="display:none;">
+    <div class="empty-icon">🎫</div><h3>Ticket not found</h3><p><a href="desk.html?page=tickets">Back to Support Tickets</a></p>
+  </div>
+
+  <div id="ticket-body" style="display:none;">
+
+    <section class="team-dash-section">
+      <div class="ticket-head">
+        <h1 class="team-page-title" id="ticket-subject">—</h1>
+        <div class="ticket-head-badges"><span id="ticket-priority-badge" class="team-site-badge"></span><span id="ticket-status-badge" class="team-site-badge"></span><span id="ticket-illustrative" class="team-site-localflag" hidden>illustrative example</span></div>
+      </div>
+      <p class="team-site-sub">From: <strong id="ticket-from">—</strong> · <a id="ticket-user-link" href="desk.html?page=users">View User Profile</a></p>
+      <p class="team-site-sub" id="ticket-received">Received: —</p>
+      <p class="team-site-sub ticket-assign-row">Assigned to:
+        <select id="ticket-assignee">
+          <option value="">Unassigned</option>
+          <option>Support Mary (example roster)</option>
+          <option>Admin John (example roster)</option>
+          <option>Moderator Dave (example roster)</option>
+        </select>
+        <button type="button" id="ticket-reassign" class="team-mini-link">Reassign</button>
+        <small>Real team roster replaces the examples at backend activation.</small>
+      </p>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">CONVERSATION</h2>
+      <div id="ticket-thread" class="ticket-thread"></div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">REPLY</h2>
+      <textarea id="ticket-reply" class="aw-notes" rows="4" maxlength="2000" placeholder="Write your reply to the user…"></textarea>
+      <label class="ticket-attach"><input type="file" id="ticket-attach"><span>📎 Attach file <small>(sends with the reply at backend activation)</small></span></label>
+      <div class="deployed-actions">
+        <button type="button" id="ticket-close-btn" class="secondary-action deployed-reject">Close Ticket</button>
+        <button type="button" id="ticket-send-resolve" class="secondary-action">Send &amp; Mark Resolved</button>
+        <button type="button" id="ticket-send" class="primary-action">Send Reply</button>
+      </div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">INTERNAL NOTES (TEAM ONLY)</h2>
+      <textarea id="ticket-internal" class="aw-notes" rows="2" maxlength="600" placeholder="Add internal note — user cannot see this"></textarea>
+      <div class="ticket-controls">
+        <label>Priority:
+          <select id="ticket-priority">
+            <option value="urgent">🔴 Urgent</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </label>
+        <label>Status:
+          <select id="ticket-status">
+            <option value="open">🟢 Open</option>
+            <option value="progress">🔵 In Progress</option>
+            <option value="resolved">✅ Resolved</option>
+            <option value="closed">⚫ Closed</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+  </div>
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="tickets.html" data-page-title="Support Tickets — Paragon Team Dashboard" hidden>
+
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">🎫 SUPPORT TICKETS</h1>
+    <button type="button" id="load-tickets-example" class="secondary-action">🧪 Load illustrative examples</button>
+  </div>
+
+  <div class="team-filter-bar">
+    <input type="search" id="ticket-search" class="team-filter-search" placeholder="🔍 Search tickets..." aria-label="Search tickets">
+    <select id="ticket-status-filter" aria-label="Filter by status">
+      <option value="all">All Status</option>
+      <option value="open">🟢 Open</option>
+      <option value="progress">🔵 In Progress</option>
+      <option value="resolved">✅ Resolved</option>
+      <option value="closed">⚫ Closed</option>
+    </select>
+    <select id="ticket-priority-filter" aria-label="Filter by priority">
+      <option value="all">Priority</option>
+      <option value="urgent">🔴 Urgent</option>
+      <option value="medium">🟡 Medium</option>
+      <option value="low">🟢 Low</option>
+    </select>
+    <select id="ticket-assignee-filter" aria-label="Filter by assignee">
+      <option value="all">Assigned To</option>
+      <option value="unassigned">Unassigned</option>
+    </select>
+  </div>
+
+  <p id="ticket-total" class="results-count team-site-count">0 tickets</p>
+
+  <div id="ticket-list" class="team-site-list"></div>
+
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="user-profile.html" data-page-title="User Profile — Paragon Team Dashboard" hidden>
+
+  <div class="empty-state" id="profile-not-found" style="display:none;">
+    <div class="empty-icon">👤</div><h3>User not found</h3><p><a href="desk.html?page=users">Back to All Users</a></p>
+  </div>
+
+  <div id="profile-body" style="display:none;">
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">USER PROFILE</h2>
+      <div class="team-user-profile-card">
+        <span class="team-user-avatar" id="profile-avatar">?</span>
+        <div class="team-user-idcopy">
+          <div class="team-site-title"><strong id="profile-username">—</strong><span id="profile-status-badge" class="team-site-badge">—</span><span id="profile-illustrative-flag" class="team-site-localflag" hidden>illustrative example</span></div>
+          <p id="profile-email" class="team-site-sub">—</p>
+          <p class="team-site-sub" id="profile-joined">Joined: —</p>
+          <p class="team-site-sub" id="profile-lastactive">Last Active: —</p>
+          <p class="team-site-sub">IP Address: <span id="profile-ip">— captured server-side when the backend activates</span></p>
+          <p class="team-site-sub">Device: <span id="profile-device">— captured server-side when the backend activates</span></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">ACTIVITY STATS</h2>
+      <div class="team-stat-grid team-stat-grid-5">
+        <article class="team-stat-card"><strong id="pstat-visits">—</strong><span>Websites Visited</span></article>
+        <article class="team-stat-card"><strong id="pstat-reviews">—</strong><span>Reviews Written</span></article>
+        <article class="team-stat-card"><strong id="pstat-saved">—</strong><span>Saved</span></article>
+        <article class="team-stat-card"><strong id="pstat-collections">—</strong><span>Collections</span></article>
+        <article class="team-stat-card"><strong id="pstat-reports">0</strong><span>Reports Against</span></article>
+      </div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">MODERATION HISTORY</h2>
+      <div id="profile-modhistory" class="team-site-list"></div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">IP HISTORY</h2>
+      <p class="team-site-sub">IP history is captured server-side and appears here when the security backend activates. Browsers cannot see their own IP, so nothing is invented.</p>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">THEIR REVIEWS</h2>
+      <div id="profile-reviews" class="team-site-list"></div>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">THEIR COMMUNITY POSTS</h2>
+      <p class="team-site-sub">Community boards open with the Community backend — no posts exist yet, so none are shown.</p>
+    </section>
+
+    <section class="team-dash-section">
+      <h2 class="team-dash-heading">ACTIONS</h2>
+      <div class="team-user-actions">
+        <a id="action-email" class="secondary-action" href="#">📧 Email User</a>
+        <button type="button" id="action-suspend" class="secondary-action">⏸️ Suspend Account</button>
+        <button type="button" id="action-lift" class="secondary-action" hidden>▶️ Lift Suspension</button>
+        <button type="button" id="action-ban" class="secondary-action deployed-reject">🚫 Ban Permanently</button>
+        <button type="button" id="action-delete" class="secondary-action deployed-reject">🗑️ Delete Account <small>(Super Admin only)</small></button>
+      </div>
+    </section>
+  </div>
+
+
+
+<!-- SUSPEND MODAL -->
+<div class="modal-overlay team-modal-overlay" id="suspend-modal" style="display:none;">
+  <div class="modal team-site-modal">
+    <div class="modal-header"><h2>⏸️ Suspend Account</h2><button class="modal-close" id="suspend-close" aria-label="Close">✕</button></div>
+    <div class="modal-body form-group-stack">
+      <label><span>Duration</span><select id="suspend-duration"><option value="1">1 day</option><option value="3" selected>3 days</option><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></label>
+      <label><span>Reason *</span><textarea id="suspend-reason" rows="3" maxlength="300" placeholder="Why is this account being suspended?"></textarea></label>
+    </div>
+    <div class="modal-footer"><button class="secondary-action" id="suspend-cancel">Cancel</button><button class="primary-action" id="suspend-confirm">Suspend</button></div>
+  </div>
+</div>
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="users.html" data-page-title="All Users — Paragon Team Dashboard" hidden>
+
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">👥 ALL USERS</h1>
+    <button type="button" id="load-users-example" class="secondary-action">🧪 Load illustrative examples</button>
+  </div>
+
+  <div class="team-filter-bar">
+    <input type="search" id="user-search" class="team-filter-search" placeholder="🔍 Search by username or email..." aria-label="Search users">
+    <select id="user-status-filter" aria-label="Filter by status">
+      <option value="all">All Status</option>
+      <option value="active">🟢 Active</option>
+      <option value="suspended">🔴 Suspended</option>
+      <option value="banned">🚫 Banned</option>
+    </select>
+    <select id="user-sort" aria-label="Sort users">
+      <option value="newest">Newest First</option>
+      <option value="oldest">Oldest First</option>
+      <option value="name">Name A–Z</option>
+    </select>
+  </div>
+
+  <p id="user-total" class="results-count team-site-count">Total: 0 users</p>
+
+  <div id="user-list" class="team-site-list"></div>
+
+
+
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="websites.html" data-page-title="All Websites — Paragon Team Dashboard" hidden>
+
+
+  <div class="team-page-head">
+    <h1 class="team-page-title">🌐 ALL WEBSITES</h1>
+    <a id="add-website-btn" class="primary-action" href="desk.html?page=add-website">+ Add Website</a>
+  </div>
+
+  <div class="team-filter-bar">
+    <input type="search" id="site-search" class="team-filter-search" placeholder="🔍 Search websites..." aria-label="Search websites">
+    <select id="site-category" aria-label="Filter by category"><option value="all">All Categories</option></select>
+    <select id="site-status" aria-label="Filter by status">
+      <option value="all">All Statuses</option>
+      <option value="live">🟢 Live</option>
+      <option value="preview">🧭 Concept Preview</option>
+      <option value="draft">📝 Draft</option>
+      <option value="scheduled">📅 Scheduled</option>
+      <option value="review">🟡 Under Review</option>
+      <option value="archived">🔴 Archived</option>
+    </select>
+    <select id="site-sort" aria-label="Sort websites">
+      <option value="name">Name A–Z</option>
+      <option value="views">Most Viewed</option>
+      <option value="rating">Highest Rated</option>
+      <option value="newest">Newest First</option>
+    </select>
+  </div>
+
+  <p id="site-count" class="results-count team-site-count">Showing 0 websites</p>
+
+  <div id="site-list" class="team-site-list"></div>
+
+
+  <!-- P-097 — the Construction Desk now lives on its own page: desk.html?page=construction -->
+
+
+  <div class="hub-policy-card team-status-legend-card">
+    <h3>Status badges</h3>
+    <ul class="team-status-legend">
+      <li>🟢 <strong>Live</strong> — real product, visible to all users</li>
+      <li>🧭 <strong>Concept Preview</strong> — visible to users with an honest under-construction preview while the real product is built</li>
+      <li>📝 <strong>Draft</strong> — only team can see (team-created records live only in this manager)</li>
+      <li>📅 <strong>Scheduled</strong> — will go live on the set date</li>
+      <li>🟡 <strong>Under Review</strong> — being checked by team</li>
+      <li>🔴 <strong>Archived</strong> — removed from team listing, purged after the 90-day archive window</li>
+    </ul>
+  </div>
+
+
+
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay team-modal-overlay" id="site-modal" style="display:none;">
+  <div class="modal team-site-modal">
+    <div class="modal-header"><h2 id="site-modal-title">Add Website</h2><button class="modal-close" id="site-modal-close" aria-label="Close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group-stack">
+        <label><span>Website Name *</span><input id="modal-site-name" maxlength="60" placeholder="Paragon Something"></label>
+        <label><span>Icon (emoji)</span><input id="modal-site-icon" maxlength="4" placeholder="🌐"></label>
+        <label><span>Category *</span><select id="modal-site-category"></select></label>
+        <label><span>Description *</span><textarea id="modal-site-desc" maxlength="200" rows="3" placeholder="What does it do?"></textarea></label>
+        <label><span>Version</span><input id="modal-site-version" maxlength="40" placeholder="v0.1 — Draft"></label>
+      </div>
+      <p id="site-modal-note" class="hub-join-note"></p>
+    </div>
+    <div class="modal-footer"><button class="btn-plain secondary-action" id="site-modal-cancel">Cancel</button><button class="primary-action" id="site-modal-save">Save</button></div>
+  </div>
+</div>
+
+
+  </section>
+  <section class="team-page-panel" data-team-page="construction.html" data-page-title="Construction Desk — Paragon Team Dashboard" hidden>
+    <main class="team-dash-shell">
+  <div class="team-page-head">
+    <h1 class="team-page-title">🏗️ CONSTRUCTION DESK</h1>
+  </div>
+  <!-- P-096 — CONSTRUCTION DESK: the Team owns every website's real build percentage,
+       construction note, and can retire the under-construction surface entirely. -->
+  <section class="team-dash-section" id="construction-desk-section">
+    <h2 class="team-dash-heading">🏗️ CONSTRUCTION DESK — build percentages &amp; construction surface</h2>
+    <p class="team-site-sub" style="margin:0 0 12px;color:var(--text-faint);">These values are LIVE on every website's under-construction page (paragon-product-preview.html reads this desk's records instantly). Set the honest percentage as each website is actually built — never inflate.</p>
+    <div class="form-section" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:14px;border:1px solid var(--border);border-radius:14px;">
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);flex:1 1 220px;">Website
+        <select id="con-site" aria-label="Choose website"></select>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);width:130px;">Build % (0–100)
+        <input id="con-progress" type="number" min="0" max="100" step="1" value="0">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);flex:1 1 260px;">Team note (shows on the construction page)
+        <input id="con-note" type="text" maxlength="140" placeholder="e.g. Login flow done, building the editor next">
+      </label>
+      <button type="button" id="con-save" class="primary-action">Save log</button>
+      <button type="button" id="con-retire" class="secondary-action">Retire construction</button>
+    </div>
+    <p id="con-status" class="hub-join-status" role="status" hidden></p>
+    <div id="con-logs" class="team-site-list" style="margin-top:12px;"></div>
+  </section>
+    </main>
+  </section>
+</main>
+
+<div id="dash-toast" class="team-dash-toast" role="status" hidden></div>
+
+<script src="permissions.js"></script>
+<script src="nav.js"></script>
+<script src="../data/sites.js"></script>
+<script src="../data/catalogue-expansion.js"></script>
+<script src="../data/catalogue-expansion-45-100.js"></script>
+<script src="../config/supabase.js"></script>
+<script src="../auth/supabase-auth.js"></script>
+<script src="team-pages.js"></script>
+<script src="session.js"></script>
+<script>
+/* P-097 — DESK ROUTER: shows the ?page= panel, syncs title + sidebar + role filtering. */
+(function () {
+  "use strict";
+  var TITLES = {"activity.html": "Activity Log \u2014 Paragon Team Dashboard", "add-website.html": "Add Website \u2014 Paragon Team Dashboard", "analytics-users.html": "User Stats \u2014 Paragon Team Dashboard", "analytics-websites.html": "Website Stats \u2014 Paragon Team Dashboard", "analytics.html": "Platform Analytics \u2014 Paragon Team Dashboard", "announcements.html": "Announcements \u2014 Paragon Team Dashboard", "applications.html": "Dev Applications \u2014 Paragon Team Dashboard", "archive.html": "Archive \u2014 Paragon Team Dashboard", "bugs.html": "Bug Reports \u2014 Paragon Team Dashboard", "content-community.html": "Community Posts \u2014 Paragon Team Dashboard", "content-reviews.html": "Reviews &amp; Reports \u2014 Paragon Team Dashboard", "content-suggestions.html": "Suggestions \u2014 Paragon Team Dashboard", "deployed.html": "Deployed Reviews \u2014 Paragon Team Dashboard", "lab.html": "Lab \u2014 Paragon Team Dashboard", "member-profile.html": "Team Member \u2014 Paragon Team Dashboard", "members.html": "Team Members \u2014 Paragon Team Dashboard", "overview.html": "Overview \u2014 Paragon Team Dashboard", "permissions.html": "Permissions \u2014 Paragon Team Dashboard", "profile.html": "My Profile \u2014 Paragon Team Dashboard", "promotions.html": "Sponsored &amp; Promotional Notices \u2014 Paragon Team Dashboard", "requests.html": "Website Requests \u2014 Paragon Team Dashboard", "roadmap.html": "Roadmap Management \u2014 Paragon Team Dashboard", "settings.html": "Settings \u2014 Paragon Team Dashboard", "setup.html": "Paragon Team \u2014 Set Your Password", "ticket.html": "Ticket \u2014 Paragon Team Dashboard", "tickets.html": "Support Tickets \u2014 Paragon Team Dashboard", "user-profile.html": "User Profile \u2014 Paragon Team Dashboard", "users.html": "All Users \u2014 Paragon Team Dashboard", "websites.html": "All Websites \u2014 Paragon Team Dashboard", "construction.html": "Construction Desk \u2014 Paragon Team Dashboard"};
+  function currentPage() {
+    var page = new URLSearchParams(window.location.search).get("page") || "overview";
+    page = page.replace(/\.html$/, "") + ".html";
+    return page;
+  }
+  function show() {
+    var page = currentPage();
+    var panel = document.querySelector('[data-team-page="' + page + '"]');
+    document.querySelectorAll(".team-page-panel").forEach(function (section) { section.hidden = section !== panel; });
+    var guard = document.getElementById("team-access-guard");
+    if (!panel) {
+      guard.hidden = false;
+      guard.innerHTML = "Unknown desk page — pick a destination from the sidebar.";
+      document.title = "Paragon Team Dashboard";
+      return;
+    }
+    guard.hidden = true;
+    document.title = TITLES[page] || "Paragon Team Dashboard";
+    try {
+      var perms = window.ParagonTeamPermissions;
+      var role = perms && perms.getRole ? perms.getRole() : null;
+      var allowed = role && perms ? perms.pageAllowed(page, role) : true;
+      if (!allowed) {
+        panel.hidden = true;
+        guard.hidden = false;
+        guard.innerHTML = "🔒 The <strong>" + role + "</strong> role does not have access to this desk — the sidebar hides what it cannot use; switch the role preview there or ask the founder.";
+      }
+    } catch (error) { /* permissions module absent — show anyway */ }
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+  window.addEventListener("DOMContentLoaded", show);
+  window.addEventListener("popstate", show);
+  window.addEventListener("paragon:role-change", show); /* P-097 — role switches re-check the routed panel instantly */
+  window.ParagonDesk = { currentPage: currentPage, refresh: show };
+})();
+</script>
+
+</body>
+</html>

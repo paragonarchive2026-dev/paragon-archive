@@ -1,0 +1,69 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: app.html
+  EXPECTED PROJECT PATH: /sites/file-converter/app.html
+  ROLE: Paragon Files — in-browser image convert/resize + text helpers.
+  RESTORE-LOAD NOTE: No server upload. Honest limits for unsupported formats.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Files — Convert</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Files">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-files.png" alt="">
+        <span class="brand-name">Paragon Files</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link active">Convert</a>
+      <a href="guide.html" class="nav-link">Guide</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page">
+    <h1 class="page-title">Convert</h1>
+    <p class="page-sub">Images stay in your browser. PDF merge/complex codecs are guided honestly — not faked.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="split">
+      <div class="panel">
+        <h2 class="panel-title">Image convert / resize</h2>
+        <div class="field"><label for="imgFile">Image file</label><input id="imgFile" type="file" accept="image/*"></div>
+        <div class="field-row">
+          <div class="field"><label for="outType">Output</label>
+            <select id="outType"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select>
+          </div>
+          <div class="field"><label for="quality">Quality (JPEG/WebP)</label><input id="quality" type="number" min="0.1" max="1" step="0.05" value="0.85"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="maxW">Max width px (0 = original)</label><input id="maxW" type="number" min="0" value="1280"></div>
+          <div class="field"><label for="maxH">Max height px</label><input id="maxH" type="number" min="0" value="0"></div>
+        </div>
+        <canvas id="workCanvas" hidden></canvas>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="convertImg">Convert & download</button>
+        </div>
+        <div id="imgPreview" class="muted" style="margin-top:12px"></div>
+      </div>
+      <div class="panel">
+        <h2 class="panel-title">Text file helpers</h2>
+        <div class="field"><label for="textIn">Text</label><textarea id="textIn" rows="8" placeholder="Paste text to download as a file"></textarea></div>
+        <div class="field"><label for="textName">Filename</label><input id="textName" value="note.txt"></div>
+        <button type="button" class="btn btn-secondary" id="dlText">Download text file</button>
+        <div class="field" style="margin-top:16px"><label for="textFile">Or load a .txt/.md/.csv</label><input id="textFile" type="file" accept=".txt,.md,.csv,.json,text/*"></div>
+      </div>
+    </div>
+  </main>
+  <footer class="footer"><p><a href="../../paragon-archive.html?site=Paragon%20Files">Archive detail</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

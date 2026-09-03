@@ -1,0 +1,49 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: pack.html
+  EXPECTED PROJECT PATH: /sites/travel-assistant/pack.html
+  ROLE: Packing list for Paragon Travel.
+  RESTORE-LOAD NOTE: In-project product site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Travel — Packing</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Travel">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-travel.png" alt="">
+        <span class="brand-name">Paragon Travel</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link">Trips</a>
+      <a href="pack.html" class="nav-link active">Packing</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page" style="max-width:640px">
+    <h1 class="page-title">Packing list</h1>
+    <p class="page-sub">Shared list across trips on this device. Check items as you pack.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="panel">
+      <div class="field-row">
+        <div class="field"><label for="packItem">Item</label><input id="packItem" placeholder="Charger"></div>
+        <div class="field" style="display:flex;align-items:flex-end"><button type="button" class="btn btn-primary btn-block" id="addPack">Add</button></div>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="seedPack">Add common starter items</button>
+    </div>
+    <div id="packList" class="empty"><strong>List empty</strong>Add what you need to pack.</div>
+  </main>
+  <footer class="footer"><p><a href="app.html">Trips</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

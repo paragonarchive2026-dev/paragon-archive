@@ -1,0 +1,32 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: paragon-product-preview.html
+  EXPECTED PROJECT PATH: /paragon-product-preview.html
+  ROLE: Shared data-driven concept preview rendered inside the Archive iframe for catalogue products without production URLs.
+  RESTORE/LOAD NOTE: Keep at project root. Loads shared style, all catalogue data, then product-preview.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paragon Product Preview</title>
+<!-- P-069 — official brand favicons -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="shortcut icon" href="assets/brand/favicon.ico">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-180.png">
+<meta name="description" content="A data-driven concept preview for a Paragon Archive website.">
+<meta name="theme-color" content="#2563eb">
+<link rel="stylesheet" href="style.css">
+<script>try{if((sessionStorage.getItem("paragonArchive.theme.v2")||localStorage.getItem("paragonArchive.theme.v2"))==="light")document.documentElement.classList.add("light");}catch(e){}</script>
+</head>
+<body class="product-preview-body">
+<main id="product-preview" class="product-preview-shell" aria-live="polite">
+  <section class="product-preview-loading"><span></span><strong>Preparing product preview…</strong></section>
+</main>
+<script src="data/sites.js" defer></script>
+<script src="data/catalogue-expansion.js" defer></script>
+<script src="data/catalogue-expansion-45-100.js" defer></script>
+<script src="product-preview.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: app.html
+  EXPECTED PROJECT PATH: /sites/photo-editor/app.html
+  ROLE: Paragon Photo on-device canvas editor.
+  RESTORE-LOAD NOTE: In-project product site. No uploads.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Photo — Editor</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+  <style>
+    #photoCanvas { max-width:100%; border-radius:12px; border:1px solid var(--border); background:#000; display:block; margin:0 auto; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Photo">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-photo.png" alt="">
+        <span class="brand-name">Paragon Photo</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link active">Editor</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page">
+    <h1 class="page-title">Editor</h1>
+    <p class="page-sub">Load a photo, adjust, filter, download. Processing stays on this device.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="split">
+      <div class="panel">
+        <div class="field"><label for="photoFile">Photo</label><input id="photoFile" type="file" accept="image/*"></div>
+        <div class="field"><label for="bright">Brightness (<span id="brightV">0</span>)</label><input id="bright" type="range" min="-100" max="100" value="0"></div>
+        <div class="field"><label for="contrast">Contrast (<span id="contrastV">0</span>)</label><input id="contrast" type="range" min="-100" max="100" value="0"></div>
+        <div class="field"><label for="filter">Filter</label>
+          <select id="filter">
+            <option value="none">None</option>
+            <option value="mono">Mono</option>
+            <option value="warm">Warm</option>
+            <option value="cool">Cool</option>
+            <option value="fade">Fade</option>
+          </select>
+        </div>
+        <div class="field"><label for="maxSide">Max export side (px)</label><input id="maxSide" type="number" min="0" value="1600"></div>
+        <div class="actions">
+          <button type="button" class="btn btn-secondary" id="resetPhoto">Reset adjustments</button>
+          <button type="button" class="btn btn-primary" id="exportPhoto">Download JPG</button>
+        </div>
+      </div>
+      <div class="panel" style="text-align:center">
+        <canvas id="photoCanvas" width="640" height="400"></canvas>
+        <p class="muted" style="margin-top:10px">Preview updates as you adjust</p>
+      </div>
+    </div>
+  </main>
+  <footer class="footer"><p><a href="../../paragon-archive.html?site=Paragon%20Photo">Archive detail</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

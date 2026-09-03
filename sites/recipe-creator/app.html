@@ -1,0 +1,82 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: app.html
+  EXPECTED PROJECT PATH: /sites/recipe-creator/app.html
+  ROLE: Paragon Recipe cookbook manager.
+  RESTORE-LOAD NOTE: In-project product site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Recipe — Cookbook</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Recipe">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-recipe.png" alt="">
+        <span class="brand-name">Paragon Recipe</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link active">Cookbook</a>
+      <a href="ideas.html" class="nav-link">Ideas</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page">
+    <h1 class="page-title">Cookbook</h1>
+    <p class="page-sub">Create recipes, scale servings, cook mode timer. Local only.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="split">
+      <div class="panel">
+        <h2 class="panel-title">Recipe editor</h2>
+        <input type="hidden" id="recId">
+        <div class="field"><label for="recTitle">Title</label><input id="recTitle"></div>
+        <div class="field"><label for="recDesc">Description</label><textarea id="recDesc"></textarea></div>
+        <div class="field-row">
+          <div class="field"><label for="recPrep">Prep min</label><input id="recPrep" type="number" min="0" value="10"></div>
+          <div class="field"><label for="recCook">Cook min</label><input id="recCook" type="number" min="0" value="20"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="recServings">Base servings</label><input id="recServings" type="number" min="1" value="4"></div>
+          <div class="field"><label for="recDiff">Difficulty</label>
+            <select id="recDiff"><option>Easy</option><option>Medium</option><option>Hard</option></select>
+          </div>
+        </div>
+        <div class="field"><label for="recIngredients">Ingredients (one per line: qty unit name)</label><textarea id="recIngredients" rows="6" placeholder="2 cups rice&#10;400 g chicken"></textarea></div>
+        <div class="field"><label for="recSteps">Steps (one per line)</label><textarea id="recSteps" rows="6"></textarea></div>
+        <div class="field"><label for="recTags">Tags</label><input id="recTags" placeholder="dinner, gluten-free"></div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="saveRec">Save recipe</button>
+          <button type="button" class="btn btn-secondary" id="newRec">Clear</button>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <h2 class="panel-title">Scale & cook</h2>
+          <div class="field"><label for="scaleTo">Scale to servings</label><input id="scaleTo" type="number" min="1" value="4"></div>
+          <button type="button" class="btn btn-outline btn-sm" id="applyScale">Apply scale to preview</button>
+          <div id="scalePreview" class="muted" style="margin-top:12px">Select or save a recipe first.</div>
+          <div class="actions" style="margin-top:14px">
+            <button type="button" class="btn btn-secondary" id="startTimer">Start cook timer (cook mins)</button>
+            <span id="timerDisplay" class="chip">--:--</span>
+          </div>
+        </div>
+        <div class="panel">
+          <h2 class="panel-title">Your recipes</h2>
+          <div id="recList" class="empty"><strong>No recipes yet</strong>Add your first recipe.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer class="footer"><p><a href="../../paragon-archive.html?site=Paragon%20Recipe">Archive detail</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

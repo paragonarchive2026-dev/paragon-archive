@@ -1,0 +1,61 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: app.html
+  EXPECTED PROJECT PATH: /sites/personal-shopper/app.html
+  ROLE: Paragon Shopper shortlists (no checkout).
+  RESTORE-LOAD NOTE: In-project product site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Shopper — Lists</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Shop">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-shop.png" alt="">
+        <span class="brand-name">Paragon Shopper</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link active">Lists</a>
+      <a href="budget.html" class="nav-link">Budget</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page">
+    <h1 class="page-title">Shortlists</h1>
+    <p class="page-sub">Track products and options. No checkout — this is your research desk.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="split">
+      <div class="panel">
+        <h2 class="panel-title">Add item</h2>
+        <div class="field"><label for="itemName">Name</label><input id="itemName"></div>
+        <div class="field-row">
+          <div class="field"><label for="itemPrice">Price</label><input id="itemPrice" type="number" min="0" step="0.01" value="0"></div>
+          <div class="field"><label for="itemList">List</label><input id="itemList" placeholder="Electronics" value="General"></div>
+        </div>
+        <div class="field"><label for="itemNotes">Notes / store / link text</label><textarea id="itemNotes" rows="3"></textarea></div>
+        <div class="field"><label for="itemStatus">Status</label>
+          <select id="itemStatus"><option value="wish">Wish</option><option value="comparing">Comparing</option><option value="bought">Bought</option><option value="dropped">Dropped</option></select>
+        </div>
+        <button type="button" class="btn btn-primary" id="saveItem">Save item</button>
+      </div>
+      <div class="panel">
+        <h2 class="panel-title">Items</h2>
+        <div class="chip-row" id="listFilters"></div>
+        <div id="itemList" class="empty"><strong>No items yet</strong>Add something you are considering.</div>
+      </div>
+    </div>
+  </main>
+  <footer class="footer"><p><a href="../../paragon-archive.html?site=Paragon%20Shop">Archive detail</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

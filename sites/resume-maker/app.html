@@ -1,0 +1,73 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: app.html
+  EXPECTED PROJECT PATH: /sites/resume-maker/app.html
+  ROLE: Paragon Resume builder form (local-first).
+  RESTORE-LOAD NOTE: In-project product site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Resume — Builder</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Resume">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-resume.png" alt="">
+        <span class="brand-name">Paragon Resume</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link active">Builder</a>
+      <a href="preview.html" class="nav-link">Preview</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page">
+    <h1 class="page-title">Resume builder</h1>
+    <p class="page-sub">Fill sections, save locally, then open Preview to print/PDF.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="panel">
+      <h2 class="panel-title">Basics</h2>
+      <div class="field-row">
+        <div class="field"><label for="fullName">Full name</label><input id="fullName"></div>
+        <div class="field"><label for="headline">Headline</label><input id="headline" placeholder="Product Designer"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="email">Email</label><input id="email" type="email"></div>
+        <div class="field"><label for="phone">Phone</label><input id="phone"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="location">Location</label><input id="location"></div>
+        <div class="field"><label for="links">Links</label><input id="links" placeholder="portfolio, LinkedIn"></div>
+      </div>
+      <div class="field"><label for="summary">Summary</label><textarea id="summary"></textarea></div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">Experience (one block per role, blank line between)</h2>
+      <div class="field"><label for="experience">Experience</label><textarea id="experience" rows="8" placeholder="Role · Company · Dates&#10;Bullet one&#10;Bullet two"></textarea></div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">Education</h2>
+      <div class="field"><label for="education">Education</label><textarea id="education" rows="4"></textarea></div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">Skills</h2>
+      <div class="field"><label for="skills">Skills (comma-separated)</label><input id="skills"></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn btn-primary" id="saveResume">Save resume</button>
+      <a class="btn btn-secondary" href="preview.html">Open preview</a>
+    </div>
+  </main>
+  <footer class="footer"><p><a href="../../paragon-archive.html?site=Paragon%20Resume">Archive detail</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: preview.html
+  EXPECTED PROJECT PATH: /sites/resume-maker/preview.html
+  ROLE: Paragon Resume print-ready preview.
+  RESTORE-LOAD NOTE: In-project product site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Resume — Preview</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+  <style>
+    .resume-sheet { max-width: 800px; margin: 0 auto; background: #fff; color: #111; padding: 36px 40px; border-radius: 8px; }
+    html.light .resume-sheet { border: 1px solid #ddd; }
+    .resume-sheet h1 { font-size: 28px; margin-bottom: 4px; color: #111; }
+    .resume-sheet .sub { color: #444; margin-bottom: 14px; }
+    .resume-sheet h2 { font-size: 13px; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #ccc; margin: 18px 0 8px; color: #333; }
+    .resume-sheet p, .resume-sheet li { font-size: 13.5px; line-height: 1.45; color: #222; }
+    .resume-sheet ul { margin-left: 18px; }
+  </style>
+</head>
+<body>
+  <header class="header no-print">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Resume">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-resume.png" alt="">
+        <span class="brand-name">Paragon Resume</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link">Builder</a>
+      <a href="preview.html" class="nav-link active">Preview</a>
+    </nav>
+    <div class="header-actions">
+      <button type="button" class="btn btn-primary btn-sm" id="printResume">Print / PDF</button>
+      <button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button>
+    </div>
+  </header>
+  <main class="page">
+    <div id="resumeEmpty" class="empty no-print"><strong>No resume saved yet</strong>Go to Builder and save your first draft.</div>
+    <div id="resumeSheet" class="resume-sheet" hidden></div>
+  </main>
+  <footer class="footer no-print"><p><a href="app.html">Back to builder</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

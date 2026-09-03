@@ -1,0 +1,59 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: login.html
+  EXPECTED PROJECT PATH: /team/login.html
+  ROLE: Paragon Team secure login portal — escalating failed-attempt warnings and 30-minute lockout.
+  RESTORE/LOAD NOTE: Keep inside /team/. Entry is the hidden lock link in the Archive Hub footer. Loads ../style.css then login.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paragon Team — Secure Access Portal</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#2563eb">
+<link rel="stylesheet" href="../style.css">
+<script>/* P-097 — auto day/night follows the clock unless a manual choice exists */
+try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=sessionStorage.getItem("paragonArchive.theme.v2")||localStorage.getItem("paragonArchive.theme.v2")||null;if(_m!=="manual"||!_p){var _h=new Date().getHours();if((_m==="auto"&&_h>=6&&_h<18))document.documentElement.classList.add("light");else if(_m==="auto")document.documentElement.classList.remove("light");else if(_p==="light")document.documentElement.classList.add("light");}else if(_p==="light")document.documentElement.classList.add("light");}catch(e){}</script>
+</head>
+<body class="hub-page-body team-portal-body">
+
+<main class="hub-team-secure team-portal" aria-labelledby="team-portal-title">
+  <div class="hub-team-secure-inner">
+    <p class="hub-team-brand" aria-hidden="true">◈ PARAGON TEAM</p>
+    <h1 id="team-portal-title">SECURE TEAM ACCESS PORTAL</h1>
+    <p class="hub-team-sub">Authorized personnel only</p>
+
+    <p id="portal-timeout-note" class="portal-lockout portal-timeout-note" role="status" hidden>⏰ You were logged out after 30 minutes of inactivity. Sign in again to continue.</p>
+
+    <form id="team-portal-form" class="hub-team-secure-card" novalidate aria-describedby="team-portal-status">
+      <label><span>Team Email Address</span><input id="portal-email" type="email" name="email" autocomplete="username" required placeholder="you@paragon.team"></label>
+      <label><span>Password</span>
+        <span class="portal-password-wrap">
+          <input id="portal-password" type="password" name="password" autocomplete="current-password" required placeholder="●●●●●●●●●●●●●●●●">
+          <button type="button" id="portal-show-toggle" class="portal-show-btn" aria-pressed="false" aria-label="Show password">Show</button>
+        </span>
+      </label>
+      <button type="submit" id="portal-submit" class="primary-action hub-team-secure-submit">🔐 SECURE LOGIN</button>
+      <p id="team-portal-status" class="hub-join-status" role="status" hidden></p>
+      <p id="portal-lockout" class="portal-lockout" role="alert" hidden></p>
+      <a class="portal-forgot" href="mailto:paragon.archive.2026@gmail.com?subject=Team%20Password">Forgot your password?</a>
+    </form>
+
+    <p class="hub-team-warning">⚠️ This portal is for Paragon team members only. Unauthorized access attempts are logged and recorded on this device, and are reported to the platform owner with IP address and timestamp once the security backend is active.</p>
+
+    <a class="hub-team-back" href="../paragon-archive-hub.html">← Back to Archive Hub</a>
+
+    <details class="hub-team-honesty hub-team-honesty-compact">
+      <summary>Current state — honest and clear</summary>
+      <p>Preview PAGE 1: <a href="desk.html?page=overview">Overview Dashboard</a> · PAGE 2: <a href="desk.html?page=websites">All Websites</a> · PAGE 3: <a href="desk.html?page=add-website">Add Website</a> · PAGE 4: <a href="desk.html?page=deployed">Deployed Reviews</a> · PAGES 5–6: <a href="desk.html?page=users">Users</a> · PAGE 7: <a href="desk.html?page=tickets">Tickets</a> · PAGE 8: <a href="desk.html?page=bugs">Bugs</a> · PAGE 9: <a href="desk.html?page=requests">Requests</a> · PAGE 10: <a href="desk.html?page=announcements">Announcements</a> · PAGE 11: <a href="desk.html?page=roadmap">Roadmap</a> · PAGE 12: <a href="desk.html?page=analytics">Analytics</a> · PAGES 13–14: <a href="desk.html?page=members">Team Members</a> · PAGE 15: <a href="desk.html?page=activity">Activity Log</a> · PAGE 16: <a href="desk.html?page=archive">Archive Vault</a> · PAGE 17: <a href="desk.html?page=profile">My Profile</a> · <a href="desk.html?page=permissions">Permissions</a>.</p>
+      <p>Preview the first-login screens: <a href="setup.html?mode=admin&email=paragon%40example.com">Super Admin invite</a> · <a href="setup.html?mode=role&email=member%40paragon.team">Role first login</a>.</p>
+      <p>Server-side Team authorization is not activated yet, so no credential can succeed here and no credentials are transmitted anywhere. The attempt counter, escalating warnings, and 30-minute lockout below are fully real on this device; lockout incidents are recorded locally with timestamps and queue for owner notification (the server adds the IP address) when the protected security backend activates.</p>
+    </details>
+  </div>
+</main>
+
+<script src="team-pages.js"></script>
+</body>
+</html>

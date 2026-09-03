@@ -1,0 +1,174 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: index.html
+  EXPECTED PROJECT PATH: /paragon-quiz/index.html
+  ROLE: Paragon Quiz landing page — hero, how it works, popular quizzes, categories, create CTA.
+  RESTORE/LOAD NOTE: Keep inside /paragon-quiz/. Loads css/style.css then js/app.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paragon Quiz — Create, Play & Challenge</title>
+    <!-- P-069 — official Paragon brand favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/brand/favicon-32.png">
+    <link rel="shortcut icon" href="../assets/brand/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/brand/apple-touch-180.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <a class="quiz-brand-link" href="../paragon-archive.html?site=Paragon%20Quiz" title="View Paragon Quiz in the Paragon Archive"><span class="logo"><img class="quiz-logo-img" src="../assets/site-icons/paragon-quiz.png" alt="Paragon Quiz icon"></span>
+            <span class="brand">Paragon Quiz</span></a>
+        </div>
+        <nav class="header-nav">
+            <a href="index.html" class="nav-link active">Home</a>
+            <a href="explore.html" class="nav-link">Explore</a>
+            <a href="create.html" class="nav-link">Create</a>
+        </nav>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">🧠 Free Forever</div>
+            <h1 class="hero-title">
+                Create. Play.<br>
+                <span class="hero-highlight">Challenge Your Mind.</span>
+            </h1>
+            <p class="hero-subtitle">
+                Build your own quizzes, take quizzes from others, 
+                track your scores and challenge yourself — all completely free.
+            </p>
+            <div class="hero-buttons">
+                <a href="explore.html" class="btn btn-primary">
+                    🎮 Start Playing
+                </a>
+                <a href="create.html" class="btn btn-secondary">
+                    ✏️ Create a Quiz
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number" id="totalQuizzes">0</span>
+                    <span class="stat-label">Quizzes</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number" id="totalPlays">0</span>
+                    <span class="stat-label">Times Played</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number" id="totalQuestions">0</span>
+                    <span class="stat-label">Questions</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="floating-card card-1">
+                <div class="mini-question">What is the largest planet?</div>
+                <div class="mini-options">
+                    <span class="mini-opt correct">Jupiter ✓</span>
+                    <span class="mini-opt">Saturn</span>
+                </div>
+            </div>
+            <div class="floating-card card-2">
+                <div class="mini-score">Score: 9/10</div>
+                <div class="mini-bar"><div class="mini-fill"></div></div>
+            </div>
+            <div class="floating-card card-3">
+                <div class="mini-badge">🏆 Top Scorer!</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section how-it-works">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle">Three simple steps to quiz greatness</p>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-icon">✏️</div>
+                <h3 class="step-title">Create</h3>
+                <p class="step-desc">Build your own quiz with multiple choice questions. Add as many questions as you want. Set time limits.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-icon">🎮</div>
+                <h3 class="step-title">Play</h3>
+                <p class="step-desc">Take quizzes from the explore page. Answer questions, beat the clock and test your knowledge.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-icon">🏆</div>
+                <h3 class="step-title">Score</h3>
+                <p class="step-desc">See your results instantly. Track your best scores. Challenge yourself to do better.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURED QUIZZES -->
+    <section class="section featured">
+        <h2 class="section-title">🔥 Popular Quizzes</h2>
+        <p class="section-subtitle">Jump right in with these community favorites</p>
+        <div class="quiz-grid" id="featuredGrid">
+            <!-- Populated by JavaScript -->
+        </div>
+        <div class="section-cta">
+            <a href="explore.html" class="btn btn-outline">See All Quizzes →</a>
+        </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section class="section categories">
+        <h2 class="section-title">📂 Browse by Category</h2>
+        <p class="section-subtitle">Find quizzes in topics you love</p>
+        <div class="category-grid" id="categoryGrid">
+            <!-- Populated by JavaScript -->
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="section cta-section">
+        <div class="cta-card">
+            <h2 class="cta-title">Got Knowledge? Share It.</h2>
+            <p class="cta-desc">Create your own quiz in minutes and let others challenge themselves with your questions.</p>
+            <a href="create.html" class="btn btn-primary btn-large">✏️ Create Your First Quiz</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="logo"><img class="quiz-logo-img" src="../assets/site-icons/paragon-quiz.png" alt="Paragon Quiz icon"></span>
+                <span class="brand">Paragon Quiz</span>
+                <p class="footer-tagline">Part of Paragon Archive — Free for everyone.</p>
+            </div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="explore.html">Explore</a>
+                <a href="create.html">Create</a>
+            </div>
+            <div class="footer-copy">
+                © 2026 Paragon. Built free. For everyone.
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/quiz.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHomeStats();
+            loadFeaturedQuizzes();
+            loadCategories();
+        });
+    </script>
+</body>
+</html>

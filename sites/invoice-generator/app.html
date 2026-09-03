@@ -1,0 +1,84 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: app.html
+  EXPECTED PROJECT PATH: /sites/invoice-generator/app.html
+  ROLE: Paragon Invoice — create/list/print invoices (local-first).
+  RESTORE-LOAD NOTE: In-project product site. Loads ../_shared + app.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Invoice — Invoices</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Invoice" title="View Paragon Invoice in the Paragon Archive">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-invoice.png" alt="">
+        <span class="brand-name">Paragon Invoice</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link active">Invoices</a>
+      <a href="settings.html" class="nav-link">Business</a>
+    </nav>
+    <div class="header-actions">
+      <button type="button" class="icon-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    </div>
+  </header>
+  <main class="page">
+    <h1 class="page-title">Invoices</h1>
+    <p class="page-sub">Create, edit, mark paid, and print. All data stays on this device.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="split">
+      <div class="panel">
+        <h2 class="panel-title">New / edit invoice</h2>
+        <input type="hidden" id="invId">
+        <div class="field-row">
+          <div class="field"><label for="invNumber">Invoice #</label><input id="invNumber" placeholder="INV-1001"></div>
+          <div class="field"><label for="invDate">Date</label><input id="invDate" type="date"></div>
+        </div>
+        <div class="field"><label for="invClient">Client name</label><input id="invClient" placeholder="Client or company"></div>
+        <div class="field"><label for="invEmail">Client email</label><input id="invEmail" type="email" placeholder="optional"></div>
+        <div class="field"><label for="invNotes">Notes</label><textarea id="invNotes" placeholder="Payment terms, thanks note…"></textarea></div>
+        <h3 class="panel-title" style="font-size:14px">Line items</h3>
+        <div id="lineItems"></div>
+        <button type="button" class="btn btn-outline btn-sm" id="addLine" style="margin:8px 0 14px">+ Add line</button>
+        <div class="field-row">
+          <div class="field"><label for="invTax">Tax %</label><input id="invTax" type="number" min="0" step="0.01" value="0"></div>
+          <div class="field"><label for="invCurrency">Currency</label><input id="invCurrency" value="USD" maxlength="3"></div>
+        </div>
+        <div class="field"><label for="invStatus">Status</label>
+          <select id="invStatus"><option value="draft">Draft</option><option value="sent">Sent</option><option value="paid">Paid</option><option value="void">Void</option></select>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="saveInv">Save invoice</button>
+          <button type="button" class="btn btn-secondary" id="newInv">Clear form</button>
+          <button type="button" class="btn btn-outline" id="printInv">Print / PDF</button>
+        </div>
+      </div>
+      <div>
+        <div class="panel" id="previewPanel">
+          <h2 class="panel-title">Preview</h2>
+          <div id="invoicePreview" class="muted">Save or select an invoice to preview.</div>
+        </div>
+        <div class="panel">
+          <h2 class="panel-title">Your invoices</h2>
+          <div id="invoiceList" class="empty"><strong>No invoices yet</strong>Create your first invoice — counters start at real zero.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer class="footer">
+    <p><strong>Paragon Invoice</strong> · free Paragon product · data stays on this device</p>
+    <p><a href="../../paragon-archive.html?site=Paragon%20Invoice">Open in Paragon Archive</a></p>
+  </footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

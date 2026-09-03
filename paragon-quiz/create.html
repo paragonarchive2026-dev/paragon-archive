@@ -1,0 +1,175 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: create.html
+  EXPECTED PROJECT PATH: /paragon-quiz/create.html
+  ROLE: Paragon Quiz creation page — quiz details, dynamic question builder, preview and publish modals.
+  RESTORE/LOAD NOTE: Keep inside /paragon-quiz/. Loads css/style.css, js/app.js, then js/create.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a Quiz — Paragon Quiz</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <a class="quiz-brand-link" href="../paragon-archive.html?site=Paragon%20Quiz" title="View Paragon Quiz in the Paragon Archive"><span class="logo"><img class="quiz-logo-img" src="../assets/site-icons/paragon-quiz.png" alt="Paragon Quiz icon"></span>
+            <span class="brand">Paragon Quiz</span></a>
+        </div>
+        <nav class="header-nav">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="explore.html" class="nav-link">Explore</a>
+            <a href="create.html" class="nav-link active">Create</a>
+        </nav>
+    </header>
+
+    <section class="page-header">
+        <h1 class="page-title">✏️ Create a Quiz</h1>
+        <p class="page-subtitle">Build something brilliant. Share it with the world.</p>
+    </section>
+
+    <section class="section">
+        <div class="create-form">
+
+            <!-- QUIZ INFO -->
+            <div class="form-section">
+                <h2 class="form-section-title">Quiz Details</h2>
+
+                <div class="form-group">
+                    <label class="form-label" for="quizTitle">Quiz Title *</label>
+                    <input type="text" id="quizTitle" class="form-input" 
+                           placeholder="e.g. World Capitals Challenge" maxlength="100">
+                    <span class="form-hint"><span id="titleCount">0</span>/100</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="quizDescription">Description *</label>
+                    <textarea id="quizDescription" class="form-textarea" 
+                              placeholder="What is this quiz about? What will people learn?" 
+                              maxlength="500" rows="3"></textarea>
+                    <span class="form-hint"><span id="descCount">0</span>/500</span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="quizCategory">Category *</label>
+                        <select id="quizCategory" class="form-select">
+                            <option value="">Select category</option>
+                            <option value="science">🔬 Science</option>
+                            <option value="history">📜 History</option>
+                            <option value="geography">🌍 Geography</option>
+                            <option value="math">🔢 Mathematics</option>
+                            <option value="language">📝 Language</option>
+                            <option value="technology">💻 Technology</option>
+                            <option value="sports">⚽ Sports</option>
+                            <option value="entertainment">🎬 Entertainment</option>
+                            <option value="general">🧠 General Knowledge</option>
+                            <option value="other">📦 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="quizDifficulty">Difficulty *</label>
+                        <select id="quizDifficulty" class="form-select">
+                            <option value="">Select difficulty</option>
+                            <option value="easy">🟢 Easy</option>
+                            <option value="medium">🟡 Medium</option>
+                            <option value="hard">🔴 Hard</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="quizTimer">Time per Question (seconds)</label>
+                    <select id="quizTimer" class="form-select">
+                        <option value="0">No time limit</option>
+                        <option value="10">10 seconds</option>
+                        <option value="15">15 seconds</option>
+                        <option value="20">20 seconds</option>
+                        <option value="30" selected>30 seconds</option>
+                        <option value="45">45 seconds</option>
+                        <option value="60">60 seconds</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- QUESTIONS -->
+            <div class="form-section">
+                <div class="form-section-header">
+                    <h2 class="form-section-title">Questions</h2>
+                    <span class="question-counter" id="questionCounter">0 questions added</span>
+                </div>
+
+                <div id="questionsContainer">
+                    <!-- Questions added by JavaScript -->
+                </div>
+
+                <button type="button" id="addQuestionBtn" class="btn btn-add">
+                    + Add Question
+                </button>
+            </div>
+
+            <!-- SUBMIT -->
+            <div class="form-section">
+                <div class="form-actions">
+                    <button type="button" id="previewBtn" class="btn btn-secondary">
+                        👁️ Preview Quiz
+                    </button>
+                    <button type="button" id="publishBtn" class="btn btn-primary btn-large">
+                        🚀 Publish Quiz
+                    </button>
+                </div>
+                <p class="form-note">
+                    You need at least 3 questions to publish a quiz.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- PREVIEW MODAL -->
+    <div class="modal-overlay" id="previewModal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Quiz Preview</h2>
+                <button class="modal-close" id="closePreview" aria-label="Close preview">✕</button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <!-- Preview content -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closePreviewBtn">Close Preview</button>
+                <button class="btn btn-primary" id="publishFromPreview">🚀 Publish Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUCCESS MODAL -->
+    <div class="modal-overlay" id="successModal" style="display:none;">
+        <div class="modal modal-success">
+            <div class="success-icon">🎉</div>
+            <h2>Quiz Published!</h2>
+            <p>Your quiz is now live and ready to be played.</p>
+            <div class="success-actions">
+                <a href="explore.html" class="btn btn-secondary">See All Quizzes</a>
+                <button class="btn btn-primary" id="playNewQuiz">🎮 Play My Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="logo"><img class="quiz-logo-img" src="../assets/site-icons/paragon-quiz.png" alt="Paragon Quiz icon"></span>
+                <span class="brand">Paragon Quiz</span>
+            </div>
+            <div class="footer-copy">© 2026 Paragon. Built free. For everyone.</div>
+        </div>
+    </footer>
+
+    <script src="js/quiz.js"></script>
+</body>
+</html>
