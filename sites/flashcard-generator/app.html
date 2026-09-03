@@ -38,9 +38,17 @@
         <h2 class="panel-title">New deck / generate</h2>
         <div class="field"><label for="deckName">Deck name</label><input id="deckName" placeholder="Biology midterm"></div>
         <div class="field"><label for="notesIn">Paste notes (lines or Term: definition)</label><textarea id="notesIn" rows="8" placeholder="Mitochondria: powerhouse of the cell&#10;Photosynthesis — plants make food from light"></textarea></div>
+        <div class="field"><label for="genMode">Generate mode</label>
+          <select id="genMode">
+            <option value="basic">Basic Q→A (Term: def / line split)</option>
+            <option value="cloze">Cloze (wrap key terms with {{c1::term}})</option>
+            <option value="reverse">Basic + reversed pairs</option>
+          </select>
+        </div>
         <div class="actions">
           <button type="button" class="btn btn-primary" id="genDeck">Generate cards from notes</button>
           <button type="button" class="btn btn-secondary" id="saveEmpty">Create empty deck</button>
+          <button type="button" class="btn btn-outline" id="genClozeHelp">Cloze tip</button>
         </div>
         <hr style="border:none;border-top:1px solid var(--border);margin:18px 0">
         <h2 class="panel-title">Add card to selected deck</h2>
@@ -48,8 +56,9 @@
         <div class="field"><label for="cardBack">Back</label><textarea id="cardBack" rows="3"></textarea></div>
         <button type="button" class="btn btn-outline" id="addCard">Add card</button>
         <div class="actions" style="margin-top:12px">
-          <button type="button" class="btn btn-secondary btn-sm" id="exportAnki">Export deck (Anki TSV)</button>
-          <button type="button" class="btn btn-outline btn-sm" id="exportGuide">Study guide (text)</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="exportAnki">Export Anki TSV</button>
+          <button type="button" class="btn btn-outline btn-sm" id="exportJson">Export JSON</button>
+          <button type="button" class="btn btn-outline btn-sm" id="exportGuide">Study guide</button>
         </div>
       </div>
       <div class="panel">

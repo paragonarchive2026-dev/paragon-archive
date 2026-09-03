@@ -2,7 +2,7 @@
   PARAGON ARCHIVE — EXPORT IDENTITY
   REAL FILE NAME: app.html
   EXPECTED PROJECT PATH: /sites/resume-maker/app.html
-  ROLE: Paragon Resume builder form (local-first).
+  ROLE: Paragon Resume builder — sections, LinkedIn paste import, templates, DOCX + print.
   RESTORE-LOAD NOTE: In-project product site.
 -->
 <!DOCTYPE html>
@@ -30,54 +30,72 @@
     <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
   </header>
   <main class="page">
-    <h1 class="page-title">Resume builder</h1>
-    <p class="page-sub">Fill sections, save locally, then open Preview to print/PDF.</p>
+    <h1 class="page-title">Builder</h1>
+    <p class="page-sub">Local CV builder. Import LinkedIn text, tailor to a job post, export Print/PDF or DOCX. PDF-from-LinkedIn binary parse is not claimed — paste text instead.</p>
     <div id="msg" class="notice" hidden></div>
-    <div class="panel">
-      <h2 class="panel-title">Basics</h2>
-      <div class="field-row">
-        <div class="field"><label for="fullName">Full name</label><input id="fullName"></div>
-        <div class="field"><label for="headline">Headline</label><input id="headline" placeholder="Product Designer"></div>
+
+    <div class="panel" style="margin-bottom:16px">
+      <h2 class="panel-title">Import · LinkedIn paste / free text</h2>
+      <div class="field"><label for="importPaste">Paste LinkedIn profile text or any CV dump</label>
+        <textarea id="importPaste" rows="5" placeholder="Paste profile text here (Experience, Education, Skills…)"></textarea>
       </div>
-      <div class="field-row">
-        <div class="field"><label for="email">Email</label><input id="email" type="email"></div>
-        <div class="field"><label for="phone">Phone</label><input id="phone"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="location">Location</label><input id="location"></div>
-        <div class="field"><label for="links">Links</label><input id="links" placeholder="portfolio, LinkedIn"></div>
-      </div>
-      <div class="field"><label for="summary">Summary</label><textarea id="summary"></textarea></div>
-    </div>
-    <div class="panel">
-      <h2 class="panel-title">Experience (one block per role, blank line between)</h2>
-      <div class="field"><label for="experience">Experience</label><textarea id="experience" rows="8" placeholder="Role · Company · Dates&#10;Bullet one&#10;Bullet two"></textarea></div>
-    </div>
-    <div class="panel">
-      <h2 class="panel-title">Education</h2>
-      <div class="field"><label for="education">Education</label><textarea id="education" rows="4"></textarea></div>
-    </div>
-    <div class="panel">
-      <h2 class="panel-title">Skills</h2>
-      <div class="field"><label for="skills">Skills (comma-separated)</label><input id="skills"></div>
-    </div>
-    <div class="panel">
-      <h2 class="panel-title">Cover letter (optional)</h2>
-      <div class="field"><label for="coverLetter">Letter body</label><textarea id="coverLetter" rows="6" placeholder="Dear Hiring Manager,…"></textarea></div>
-      <div class="field"><label for="templateStyle">Template style</label>
-        <select id="templateStyle">
-          <option value="classic">Classic</option>
-          <option value="modern">Modern</option>
-          <option value="compact">Compact</option>
-        </select>
+      <div class="actions">
+        <button type="button" class="btn btn-secondary" id="parseImport">Parse into form</button>
+        <button type="button" class="btn btn-outline" id="clearImport">Clear paste</button>
       </div>
     </div>
-    <div class="actions">
-      <button type="button" class="btn btn-primary" id="saveResume">Save resume</button>
-      <a class="btn btn-secondary" href="preview.html">Open preview</a>
+
+    <div class="split">
+      <div class="panel">
+        <h2 class="panel-title">Your details</h2>
+        <div class="field-row">
+          <div class="field"><label for="fullName">Full name</label><input id="fullName"></div>
+          <div class="field"><label for="headline">Headline / target role</label><input id="headline" placeholder="e.g. Frontend Engineer"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="email">Email</label><input id="email" type="email"></div>
+          <div class="field"><label for="phone">Phone</label><input id="phone"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="location">Location</label><input id="location"></div>
+          <div class="field"><label for="links">Links (LinkedIn, portfolio)</label><input id="links"></div>
+        </div>
+        <div class="field"><label for="summary">Summary</label><textarea id="summary" rows="3"></textarea></div>
+        <div class="field"><label for="experience">Experience (one role per blank line; bullets with - )</label>
+          <textarea id="experience" rows="8" placeholder="Software Engineer — Acme (2022–Present)&#10;- Shipped X that improved Y by 30%&#10;&#10;Intern — Beta Co (2021)"></textarea>
+        </div>
+        <div class="field"><label for="education">Education</label><textarea id="education" rows="3"></textarea></div>
+        <div class="field"><label for="skills">Skills (comma-separated)</label><textarea id="skills" rows="2"></textarea></div>
+        <div class="field"><label for="extras">Projects / awards / certs (optional)</label><textarea id="extras" rows="3"></textarea></div>
+        <div class="field"><label for="coverLetter">Cover letter (optional)</label><textarea id="coverLetter" rows="4"></textarea></div>
+        <div class="field"><label for="templateStyle">Template</label>
+          <select id="templateStyle">
+            <option value="classic">Classic (ATS-friendly)</option>
+            <option value="modern">Modern two-tone</option>
+            <option value="compact">Compact one-page</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="saveResume">Save draft</button>
+          <button type="button" class="btn btn-secondary" id="gotoPreview">Open preview</button>
+          <button type="button" class="btn btn-outline" id="exportDocx">Download DOCX</button>
+          <button type="button" class="btn btn-outline" id="exportJson">Export JSON</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2 class="panel-title">Tailor to a job post</h2>
+        <div class="field"><label for="jobPost">Paste job description</label>
+          <textarea id="jobPost" rows="10" placeholder="Paste the job posting…"></textarea>
+        </div>
+        <button type="button" class="btn btn-primary" id="tailorJob">Highlight keyword matches</button>
+        <div id="tailorOut" class="muted" style="margin-top:12px;font-size:13px"></div>
+        <hr style="margin:16px 0;border:0;border-top:1px solid var(--border)">
+        <h2 class="panel-title">Live snapshot</h2>
+        <div id="liveSnap" class="muted">Save to refresh snapshot.</div>
+      </div>
     </div>
   </main>
-  <footer class="footer"><p><a href="../../paragon-archive.html?site=Paragon%20Resume">Archive detail</a></p></footer>
+  <footer class="footer"><p><a href="preview.html">Preview & print</a> · <a href="../../paragon-archive.html?site=Paragon%20Resume">Archive</a></p></footer>
   <script src="../_shared/site-kit.js"></script>
   <script src="app.js"></script>
 </body>

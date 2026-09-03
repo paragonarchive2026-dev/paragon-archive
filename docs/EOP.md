@@ -5466,3 +5466,23 @@ Owner has a clear SQL VERIFY + run order. Financial engine foundation matches th
 - Paste OWNER-SQL-CHECKLIST VERIFY results.
 - Run any SQL still false (announcements → coins-schema → coins-master-phase1).
 - Brevo, domain, payment provider, badges 21–30.
+
+## v0.96.0 — 2026-09-03 — Complete skill partials + coins master Phase 2 (P-102)
+
+**Request reference:** SOP §11, Prompt P-102  
+**Status:** `[x]` completed
+
+### Executed actions
+1. Completed browser-local skill depth for all 9 product sites (Files/Resume/Photo/Flash/Invoice/Shop/Meal/Recipe/Travel) via real engines — no fake codecs or checkout.
+2. Authored `coins-master-phase2.sql` authority RPCs (ledger post, payment intents, withdrawal lock/settle, admin adjust) per master build spec; FE guest gates + RPC wiring with honest offline fallback.
+3. Catalogue feature lists + buildProgress updated honestly (high 80s–low 90s, not 100).
+4. Cache v79; suites green including P-102 fixture.
+
+### Honesty boundary
+- Coins real-money remains **OFF** until owner flips flag after provider + compliance + SQL live.
+- Browser balance is display/cache; server ledger is authority when Phase 2 SQL is run.
+- File skill items needing pandoc/ffmpeg/HEIC stay guide-only.
+
+### Remaining owner actions
+- Run VERIFY + SQL order 1→4 in OWNER-SQL-CHECKLIST / SQL-RUN-PACK.
+- Choose payment provider before enabling real_money.

@@ -229,6 +229,64 @@
   }
 
 
+  const NUT = {
+      rice: { cal: 130, p: 2.7, c: 28, f: 0.3, per: "100g cooked" },
+      chicken: { cal: 165, p: 31, c: 0, f: 3.6, per: "100g cooked" },
+      egg: { cal: 72, p: 6.3, c: 0.4, f: 4.8, per: "1 large" },
+      milk: { cal: 42, p: 3.4, c: 5, f: 1, per: "100ml" },
+      bread: { cal: 265, p: 9, c: 49, f: 3.2, per: "100g" },
+      pasta: { cal: 131, p: 5, c: 25, f: 1.1, per: "100g cooked" },
+      bean: { cal: 127, p: 8.7, c: 22.8, f: 0.5, per: "100g cooked" },
+      oil: { cal: 884, p: 0, c: 0, f: 100, per: "100g" },
+      tomato: { cal: 18, p: 0.9, c: 3.9, f: 0.2, per: "100g" },
+      potato: { cal: 77, p: 2, c: 17, f: 0.1, per: "100g" },
+      banana: { cal: 89, p: 1.1, c: 23, f: 0.3, per: "100g" },
+      beef: { cal: 250, p: 26, c: 0, f: 15, per: "100g" },
+      fish: { cal: 120, p: 22, c: 0, f: 3, per: "100g" },
+      yogurt: { cal: 59, p: 10, c: 3.6, f: 0.4, per: "100g" },
+      cheese: { cal: 402, p: 25, c: 1.3, f: 33, per: "100g" },
+      flour: { cal: 364, p: 10, c: 76, f: 1, per: "100g" },
+      sugar: { cal: 387, p: 0, c: 100, f: 0, per: "100g" },
+      butter: { cal: 717, p: 0.9, c: 0.1, f: 81, per: "100g" },
+      onion: { cal: 40, p: 1.1, c: 9.3, f: 0.1, per: "100g" }
+    };
+    function nutritionEstimate(lines) {
+      let cal = 0, p = 0, c = 0, f = 0, hits = [];
+      (lines || []).forEach(function (line) {
+        const low = String(line).toLowerCase();
+        const key = Object.keys(NUT).find(function (k) { return low.indexOf(k) >= 0; });
+        if (!key) return;
+        const n = NUT[key];
+        const m = low.match(/(\d+(?:\.\d+)?)/);
+        const qty = m ? Number(m[1]) : 1;
+        // crude: if grams assume /100, if no unit treat as 1 serving of table
+        let mult = 1;
+        if (/\bg\b|gram/.test(low) && qty) mult = qty / 100;
+        else if (/kg/.test(low) && qty) mult = (qty * 1000) / 100;
+        else if (/cup/.test(low) && qty) mult = qty * 1.5; // rough
+        else if (qty && qty > 5) mult = qty / 100;
+        else mult = qty || 1;
+        cal += n.cal * mult; p += n.p * mult; c += n.c * mult; f += n.f * mult;
+        hits.push(key + " ×" + mult.toFixed(2));
+      });
+      return { cal: Math.round(cal), p: Math.round(p), c: Math.round(c), f: Math.round(f), hits: hits };
+    }
+    document.getElementById("estNutrition")?.addEventListener("click", function () {
+      const lines = (document.getElementById("recIngredients")?.value || "").split(/\n/).filter(Boolean);
+      const box = document.getElementById("nutritionOut");
+      if (!lines.length) {
+        kit.showPanel(document.getElementById("msg"), "Add ingredients first.", "bad");
+        return;
+      }
+      const n = nutritionEstimate(lines);
+      if (box) {
+        box.innerHTML = n.hits.length
+          ? ("<strong>Local estimate (not lab analysis)</strong><br>≈ " + n.cal + " kcal · P " + n.p + "g · C " + n.c + "g · F " + n.f + "g<br><small>Matched: " +
+            kit.escapeHTML(n.hits.join(", ")) + "</small>")
+          : "No ingredients matched the local table yet (rice, chicken, egg, milk, pasta, beans…).";
+      }
+    });
+
   if (document.getElementById("runSub")) {
     document.getElementById("runSub").addEventListener("click", function () {
       const q = document.getElementById("subQuery").value.trim().toLowerCase().replace(/\s+/g, "_");

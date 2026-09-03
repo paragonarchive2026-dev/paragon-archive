@@ -1857,9 +1857,8 @@ function buildUpdateEvents() {
 window.ParagonCoinPublicConfig = window.ParagonCoinPublicConfig || null;
 function fetchPublicCoinConfig() {
   try {
-    const cfg = window.PARAGON_SUPABASE || window.SupabaseConfig || {};
-    const base = (cfg.url || cfg.supabaseUrl || "").replace(/\/$/, "");
-    const key = cfg.anonKey || cfg.anon || cfg.key || "";
+    const base = (window.ParagonConfig?.supabaseUrl || "").replace(/\/$/, "");
+    const key = window.ParagonConfig?.supabaseAnonKey || "";
     if (!base || !key || typeof window.fetch !== "function") return;
     window.fetch(`${base}/rest/v1/rpc/paragon_public_coin_config`, {
       method: "POST",
@@ -2958,25 +2957,72 @@ window.openEmailAuth = function(mode = "signin") {
 
 
 /* =====================================================================
-   P-098 — PARAGON COINS (platform core): free balance starts at REAL ZERO.
-   • Balance lives in the personal state (account-synced; guest = session)
-   • Buy-coin requests go to the Team desk (super-admin approves -> coins credit)
-   • Betting/leaderboards/withdrawals consume this balance (games + quiz spec:
-     docs/COIN-SYSTEM.md). No real-money handling anywhere in the front-end.
+   P-098/P-101/P-102 — PARAGON COINS
+   Master rules:
+   • Browser balance is DISPLAY/CACHE only — server ledger is authority when SQL is live.
+   • Guest = free-play only (no buy / withdraw / stake).
+   • real_money_enabled comes from paragon_public_coin_config (default false).
+   • No fake bank confirmations. Purchase = team/RPC confirm after real transfer.
    ===================================================================== */
-function coinBalance() { return Math.max(0, Math.round(Number(accountProfile.coinBalance || 0))); }
-/* P-098 — approved coin credits from the Team desk land here (same-device loop). */
+function coinConfigFlags() {
+  const cfg = window.ParagonCoinPublicConfig || {};
+  const flags = cfg.flags || cfg.economy && cfg.flags || {};
+  const economy = cfg.economy || {};
+  return {
+    realMoney: !!(flags.real_money_enabled),
+    purchases: flags.purchases_enabled !== false, /* manual path allowed while real money off */
+    withdrawals: flags.withdrawals_enabled !== false,
+    compete: !!flags.compete_enabled,
+    pause: !!flags.financial_pause,
+    nairaPerCoinBuy: Number(economy.naira_per_coin_purchase) || 1,
+    nairaPerCoinOut: Number(economy.naira_per_coin_redeemable) || 1,
+    minPurchase: Number(economy.min_purchase_naira) || 500,
+    minWithdraw: Number(economy.min_withdraw_coins) || 500,
+    feeAt: Number(economy.withdraw_fee_coins_at_or_above) || 10000,
+    feeCoins: Number(economy.withdraw_fee_coins) || 50,
+    packs: Array.isArray(economy.packs) ? economy.packs : [
+      { naira: 500, coins: 500, label: "Starter" },
+      { naira: 1000, coins: 1000, label: "Standard" },
+      { naira: 5000, coins: 5000, label: "Pro" }
+    ]
+  };
+}
+
+function isRegisteredMember() {
+  return !!(authUser && authUser.email && !String(authUser.email).includes("Guest"));
+}
+
+function coinBalance() {
+  /* Prefer server account cache when present */
+  if (accountProfile.coinAccount && accountProfile.coinAccount.available_coins != null) {
+    return Math.max(0, Math.round(Number(accountProfile.coinAccount.available_coins) || 0));
+  }
+  return Math.max(0, Math.round(Number(accountProfile.coinBalance || 0)));
+}
+
+function coinBalanceBuckets() {
+  const a = accountProfile.coinAccount || {};
+  return {
+    available: Math.max(0, Math.round(Number(a.available_coins != null ? a.available_coins : accountProfile.coinBalance) || 0)),
+    locked: Math.max(0, Math.round(Number(a.locked_coins) || 0)),
+    pending: Math.max(0, Math.round(Number(a.pending_coins) || 0)),
+    restricted: Math.max(0, Math.round(Number(a.restricted_coins) || 0))
+  };
+}
+
+/* Same-device team desk mirrors (offline prototype). Never treat as bank proof. */
 function syncApprovedCoinCredits() {
   try {
-    const who = authUser?.email || "Guest (this device)";
+    if (!isRegisteredMember()) return;
+    const who = authUser?.email || "";
     const credits = JSON.parse(window.localStorage.getItem("paragonArchive.coinCredits.v1") || "[]");
     const mine = credits.filter(credit => credit.for === who && !credit.claimed);
     if (mine.length) {
       let total = 0;
       mine.forEach(credit => { total += Number(credit.coins) || 0; credit.claimed = true; });
       window.localStorage.setItem("paragonArchive.coinCredits.v1", JSON.stringify(credits));
-      addCoins(total, "Purchase approved by the Paragon Team");
-      showToast(`🪙 ${total.toLocaleString()} coins added — purchase approved!`);
+      addCoinsLocal(total, "Purchase approved by the Paragon Team (device mirror)");
+      showToast(`🪙 ${total.toLocaleString()} coins added — team approved (display cache).`);
     }
     const debits = JSON.parse(window.localStorage.getItem("paragonArchive.coinDebits.v1") || "[]");
     const myDebits = debits.filter(d => d.for === who && !d.claimed);
@@ -2984,115 +3030,256 @@ function syncApprovedCoinCredits() {
       let total = 0;
       myDebits.forEach(d => {
         const n = Number(d.coins) || 0;
-        if (n > 0 && spendCoins(n, d.reason || "Withdrawal payout")) total += n;
+        if (n > 0 && spendCoinsLocal(n, d.reason || "Withdrawal payout")) total += n;
         d.claimed = true;
       });
       window.localStorage.setItem("paragonArchive.coinDebits.v1", JSON.stringify(debits));
-      if (total) showToast(`🏦 ${total.toLocaleString()} coins withdrawn after team payout.`);
+      if (total) showToast(`🏦 ${total.toLocaleString()} coins withdrawn after team payout (display cache).`);
     }
   } catch (error) { /* blocked */ }
 }
-function addCoins(amount, reason) {
+
+function addCoinsLocal(amount, reason) {
   if (!hasPersonalSession()) return false;
   const value = Math.round(Number(amount) || 0);
   if (!value) return false;
   accountProfile.coinBalance = coinBalance() + value;
-  accountProfile.coinHistory = [{ at: new Date().toISOString(), amount: value, reason: String(reason || "adjustment") }, ...(accountProfile.coinHistory || [])].slice(0, 50);
+  if (accountProfile.coinAccount) {
+    accountProfile.coinAccount.available_coins = (Number(accountProfile.coinAccount.available_coins) || 0) + value;
+  }
+  accountProfile.coinHistory = [{ at: new Date().toISOString(), amount: value, reason: String(reason || "adjustment"), source: "local" }, ...(accountProfile.coinHistory || [])].slice(0, 50);
   persistPersonalState();
   return true;
 }
-function spendCoins(amount, reason) {
+function spendCoinsLocal(amount, reason) {
   const value = Math.round(Number(amount) || 0);
   if (value <= 0 || coinBalance() < value) return false;
   accountProfile.coinBalance = coinBalance() - value;
-  accountProfile.coinHistory = [{ at: new Date().toISOString(), amount: -value, reason: String(reason || "spend") }, ...(accountProfile.coinHistory || [])].slice(0, 50);
+  if (accountProfile.coinAccount) {
+    accountProfile.coinAccount.available_coins = Math.max(0, (Number(accountProfile.coinAccount.available_coins) || 0) - value);
+  }
+  accountProfile.coinHistory = [{ at: new Date().toISOString(), amount: -value, reason: String(reason || "spend"), source: "local" }, ...(accountProfile.coinHistory || [])].slice(0, 50);
   persistPersonalState();
   return true;
 }
-window.requestCoinPurchase = function(nairaAmount) {
-  const naira = Math.round(Number(nairaAmount) || 0);
-  if (!hasPersonalSession()) { requirePersonalSession("buy Paragon coins"); return; }
-  if (naira < 500) { showToast("The smallest coin pack is ₦500.", "warning"); return; }
-  const coins = Math.round(naira * 1); /* master-spec target: ₦1 = 1 redeemable coin (server config overrides later) */
+/* Public aliases used by games — local cache only until server stake RPCs */
+function addCoins(amount, reason) { return addCoinsLocal(amount, reason); }
+function spendCoins(amount, reason) { return spendCoinsLocal(amount, reason); }
+
+function supabaseRest(path, options) {
+  const base = (window.ParagonConfig?.supabaseUrl || "").replace(/\/$/, "");
+  const key = window.ParagonConfig?.supabaseAnonKey || "";
+  if (!base || !key || typeof window.fetch !== "function") return Promise.reject(new Error("no-supabase"));
+  const headers = Object.assign({
+    apikey: key,
+    "Content-Type": "application/json"
+  }, options?.headers || {});
   try {
-    const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");
-    list.push({ id: "coin-" + Date.now().toString(36), user: authUser?.email || "Guest (this device)", displayName: accountProfile.displayName || "Guest", naira, coins, status: "pending", createdAt: new Date().toISOString() });
-    window.localStorage.setItem("paragonTeamCoinRequests.v1", JSON.stringify(list));
-    showToast(`Request sent — ${coins.toLocaleString()} coins await super-admin approval. pendingBackendSync`);
-  } catch (error) { showToast("The request could not be saved on this device.", "warning"); }
+    const session = window.authClient?.getSession?.() || window.ParagonAuth?.session;
+    const token = session?.access_token || key;
+    headers.Authorization = "Bearer " + token;
+  } catch (_) {
+    headers.Authorization = "Bearer " + key;
+  }
+  return window.fetch(base + path, Object.assign({}, options, { headers })).then(async r => {
+    const text = await r.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) { data = text; }
+    if (!r.ok) throw new Error((data && data.message) || (data && data.error_description) || ("http " + r.status));
+    return data;
+  });
+}
+
+function refreshCoinAccountFromServer() {
+  if (!isRegisteredMember()) return Promise.resolve(null);
+  return supabaseRest("/rest/v1/rpc/paragon_coin_my_account", { method: "POST", body: "{}" })
+    .then(account => {
+      if (!account) return null;
+      accountProfile.coinAccount = account;
+      accountProfile.coinBalance = Math.max(0, Math.round(Number(account.available_coins) || 0));
+      persistPersonalState();
+      return account;
+    })
+    .catch(() => null);
+}
+
+window.requestCoinPurchase = function(nairaAmount) {
+  const cfg = coinConfigFlags();
+  if (cfg.pause) { showToast("Financial operations are paused by the team.", "warning"); return; }
+  if (!hasPersonalSession()) { requirePersonalSession("buy Paragon coins"); return; }
+  if (!isRegisteredMember()) {
+    showToast("Guests are free-play only. Sign in to request coin purchases.", "warning");
+    return;
+  }
+  const naira = Math.round(Number(nairaAmount) || 0);
+  if (naira < cfg.minPurchase) { showToast(`The smallest coin pack is ₦${cfg.minPurchase.toLocaleString()}.`, "warning"); return; }
+  const coins = Math.round(naira * cfg.nairaPerCoinBuy);
+  const idem = "buy-" + (authUser?.id || "u") + "-" + naira + "-" + Date.now().toString(36);
+
+  /* Try server payment intent first; fall back to team desk local queue */
+  supabaseRest("/rest/v1/rpc/paragon_coin_create_payment_intent", {
+    method: "POST",
+    body: JSON.stringify({ p_naira: naira, p_idempotency_key: idem, p_pack_label: "pack-" + naira })
+  }).then(intent => {
+    try {
+      const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");
+      list.push({
+        id: intent?.id || idem,
+        user: authUser.email,
+        displayName: accountProfile.displayName || authUser.email,
+        naira, coins,
+        status: "pending",
+        backend: true,
+        createdAt: new Date().toISOString()
+      });
+      window.localStorage.setItem("paragonTeamCoinRequests.v1", JSON.stringify(list));
+    } catch (_) {}
+    showToast(`Request recorded — ${coins.toLocaleString()} coins after team confirms your ₦${naira.toLocaleString()} transfer. Not credited yet.`);
+  }).catch(() => {
+    try {
+      const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");
+      list.push({
+        id: idem,
+        user: authUser.email,
+        displayName: accountProfile.displayName || authUser.email,
+        naira, coins,
+        status: "pending",
+        backend: false,
+        createdAt: new Date().toISOString()
+      });
+      window.localStorage.setItem("paragonTeamCoinRequests.v1", JSON.stringify(list));
+      showToast(`Request saved on this device — ${coins.toLocaleString()} coins await team approval after real payment. (Server RPC not live yet.)`);
+    } catch (error) {
+      showToast("The request could not be saved on this device.", "warning");
+    }
+  });
 };
+
 window.requestCoinWithdrawal = function() {
+  const cfg = coinConfigFlags();
+  if (cfg.pause) { showToast("Financial operations are paused by the team.", "warning"); return; }
   if (!hasPersonalSession()) { requirePersonalSession("request a coin withdrawal"); return; }
+  if (!isRegisteredMember()) {
+    showToast("Guests cannot withdraw. Sign in with a registered account.", "warning");
+    return;
+  }
   const bal = coinBalance();
-  if (bal < 500) { showToast("Minimum withdrawal is 500 coins (placeholder — owner sets the real minimum).", "warning"); return; }
+  if (bal < cfg.minWithdraw) {
+    showToast(`Minimum withdrawal is ${cfg.minWithdraw.toLocaleString()} coins.`, "warning");
+    return;
+  }
   const coinsEl = document.getElementById("coin-withdraw-amount");
   const bankEl = document.getElementById("coin-withdraw-bank");
   const coins = Math.round(Number(coinsEl?.value) || 0);
   const bank = String(bankEl?.value || "").trim();
-  if (coins < 1000) { showToast("Enter at least 500 coins.", "warning"); return; }
-  if (coins > bal) { showToast("You do not have that many coins.", "warning"); return; }
+  if (coins < cfg.minWithdraw) { showToast(`Enter at least ${cfg.minWithdraw.toLocaleString()} coins.`, "warning"); return; }
+  if (coins > bal) { showToast("You do not have that many available coins.", "warning"); return; }
   if (bank.length < 8) { showToast("Add bank/account details for the team payout (min 8 characters).", "warning"); return; }
-  /* Placeholder sell rate: ₦0.40 per coin (spread vs buy). Owner replaces via config. */
-  /* Master §22.1: redeemable ₦1/coin; fee 50 coins if withdrawal ≥ 10000 coins */
-  const fee = coins >= 10000 ? 50 : 0;
-  const naira = Math.max(0, coins - fee);
-  try {
-    const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinWithdrawals.v1") || "[]");
-    list.push({
-      id: "wd-" + Date.now().toString(36),
-      user: authUser?.email || "Guest (this device)",
-      displayName: accountProfile.displayName || "Guest",
-      coins, naira, bank, status: "pending", createdAt: new Date().toISOString()
-    });
-    window.localStorage.setItem("paragonTeamCoinWithdrawals.v1", JSON.stringify(list));
-    showToast(`Withdrawal request filed — ${coins.toLocaleString()} coins / ~₦${naira.toLocaleString()} after fee (team pays manually; real-money OFF until enabled). pendingBackendSync`);
+  const fee = coins >= cfg.feeAt ? cfg.feeCoins : 0;
+  const naira = Math.max(0, Math.round((coins - fee) * cfg.nairaPerCoinOut));
+  const idem = "wd-" + (authUser?.id || "u") + "-" + coins + "-" + Date.now().toString(36);
+
+  supabaseRest("/rest/v1/rpc/paragon_coin_request_withdrawal", {
+    method: "POST",
+    body: JSON.stringify({
+      p_coins: coins,
+      p_bank_snapshot: bank,
+      p_payout_account_id: null,
+      p_idempotency_key: idem
+    })
+  }).then(row => {
+    spendCoinsLocal(coins, "Withdrawal lock (awaiting team payout)");
+    try {
+      const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinWithdrawals.v1") || "[]");
+      list.push({
+        id: row?.id || idem,
+        user: authUser.email,
+        displayName: accountProfile.displayName || authUser.email,
+        coins, fee, naira, bank, status: "pending", backend: true,
+        createdAt: new Date().toISOString()
+      });
+      window.localStorage.setItem("paragonTeamCoinWithdrawals.v1", JSON.stringify(list));
+    } catch (_) {}
+    refreshCoinAccountFromServer();
+    showToast(`Withdrawal queued — ${coins.toLocaleString()} coins locked. ~₦${naira.toLocaleString()} after fee when team pays.`);
     document.getElementById("coin-shop-overlay")?.remove();
     document.body.classList.remove("popup-lock");
-  } catch (error) { showToast("Could not save the withdrawal request on this device.", "warning"); }
+  }).catch(() => {
+    /* Offline / SQL not run: queue for team desk only — do NOT deduct until paid (honest) */
+    try {
+      const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinWithdrawals.v1") || "[]");
+      list.push({
+        id: idem,
+        user: authUser.email,
+        displayName: accountProfile.displayName || authUser.email,
+        coins, fee, naira, bank, status: "pending", backend: false,
+        createdAt: new Date().toISOString()
+      });
+      window.localStorage.setItem("paragonTeamCoinWithdrawals.v1", JSON.stringify(list));
+      showToast(`Withdrawal request saved for the team desk. Coins stay available until the team marks paid (server lock not live yet). ~₦${naira.toLocaleString()} after fee.`);
+      document.getElementById("coin-shop-overlay")?.remove();
+      document.body.classList.remove("popup-lock");
+    } catch (error) {
+      showToast("Could not save withdrawal request.", "warning");
+    }
+  });
 };
+
 window.openCoinShop = function() {
   if (typeof document.createElement !== "function") return;
   syncApprovedCoinCredits();
-  document.getElementById("coin-shop-overlay")?.remove();
-  const history = (accountProfile.coinHistory || []).slice(0, 8).map(entry => {
-    const sign = Number(entry.amount) >= 0 ? "+" : "";
-    const when = entry.at ? new Date(entry.at).toLocaleString() : "";
-    return `<li><b>${sign}${Number(entry.amount).toLocaleString()}</b> · ${String(entry.reason || "").replace(/[<>]/g, "")} <small>${when}</small></li>`;
-  }).join("") || "<li><small>No movements yet — balance starts at real zero.</small></li>";
-  const overlay = document.createElement("div");
-  overlay.id = "coin-shop-overlay";
-  overlay.className = "utility-overlay active install-overlay";
-  overlay.innerHTML = `
+  refreshCoinAccountFromServer().finally(() => {
+    document.getElementById("coin-shop-overlay")?.remove();
+    const cfg = coinConfigFlags();
+    const buckets = coinBalanceBuckets();
+    const history = (accountProfile.coinHistory || []).slice(0, 8).map(entry => {
+      const sign = Number(entry.amount) >= 0 ? "+" : "";
+      const when = entry.at ? new Date(entry.at).toLocaleString() : "";
+      return `<li><b>${sign}${Number(entry.amount).toLocaleString()}</b> · ${String(entry.reason || "").replace(/[<>]/g, "")} <small>${when}</small></li>`;
+    }).join("") || "<li><small>No movements yet — balance starts at real zero.</small></li>";
+    const packs = cfg.packs.map(p => {
+      const naira = Number(p.naira) || 0;
+      const coins = Number(p.coins) || Math.round(naira * cfg.nairaPerCoinBuy);
+      return [naira, coins, p.label || ""];
+    });
+    const overlay = document.createElement("div");
+    overlay.id = "coin-shop-overlay";
+    overlay.className = "utility-overlay active install-overlay";
+    overlay.innerHTML = `
     <div class="install-popup-card" style="width:min(560px,96vw);max-height:90vh;overflow:auto;" role="dialog" aria-modal="true">
-      <header><h2>🪙 Paragon Coins</h2><p>Free-to-play always works. <b>Real-money mode is OFF</b> until the team enables it after payment provider + compliance. Competitive coins need a registered account. Balance: <b>${coinBalance().toLocaleString()} coins</b></p></header>
+      <header><h2>🪙 Paragon Coins</h2>
+        <p>Free-to-play always works. <b>Real-money mode is ${cfg.realMoney ? "ON" : "OFF"}</b>${cfg.pause ? " · FINANCIAL PAUSE" : ""}.
+        Guests cannot buy or withdraw. Available: <b>${buckets.available.toLocaleString()}</b>
+        ${buckets.locked ? ` · locked ${buckets.locked.toLocaleString()}` : ""}
+        ${buckets.pending ? ` · pending ${buckets.pending.toLocaleString()}` : ""}
+        </p>
+      </header>
       <div class="install-perm-list">
-        ${[[500, 500], [1000, 1000], [5000, 5000]].map(([naira, coins]) => `
-          <label class="install-perm-row" style="cursor:pointer" onclick="requestCoinPurchase(${naira}); document.getElementById('coin-shop-overlay').remove(); document.body.classList.remove('popup-lock');">
-            <div><b>₦${naira.toLocaleString()}</b><small>≈ ${coins.toLocaleString()} coins — Team desk approves after you pay using the team&apos;s payment details.</small></div>
+        ${packs.map(([naira, coins, label]) => `
+          <label class="install-perm-row" style="cursor:pointer" onclick="requestCoinPurchase(${naira});">
+            <div><b>₦${naira.toLocaleString()}${label ? " · " + String(label).replace(/[<>]/g,"") : ""}</b>
+              <small>to ${coins.toLocaleString()} coins after team confirms your transfer. Nothing is credited from this click alone.</small></div>
             <span class="primary-action" style="pointer-events:none;">Request</span>
           </label>`).join("")}
       </div>
       <div style="margin:14px 0 8px;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
-        <b style="display:block;margin-bottom:8px;">Sell coins back (manual payout)</b>
-        <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Coins to sell (min 500)</label>
-        <input id="coin-withdraw-amount" type="number" min="500" step="100" value="500" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.25);color:inherit;">
-        <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Bank / wallet details for payout</label>
-        <textarea id="coin-withdraw-bank" rows="2" placeholder="Bank name · account name · account number" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.25);color:inherit;"></textarea>
+        <b style="display:block;margin-bottom:8px;">Withdraw (manual team payout)</b>
+        <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Coins (min ${cfg.minWithdraw})</label>
+        <input id="coin-withdraw-amount" type="number" min="${cfg.minWithdraw}" step="100" value="${cfg.minWithdraw}" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit">
+        <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Bank details</label>
+        <textarea id="coin-withdraw-bank" rows="2" placeholder="Bank · Account name · Account number" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit"></textarea>
         <button type="button" class="secondary-action" onclick="requestCoinWithdrawal()">Request withdrawal</button>
-        <small class="install-popup-note" style="display:block;margin-top:8px;">Redeemable target ₦1/coin; fee 50 coins if ≥ ₦10,000 (master §22.1). Real-money mode OFF until feature flag. Owner sets final rates after economics pass. Team verifies then pays naira offline.</small>
+        <small class="install-popup-note" style="display:block;margin-top:8px;">Redeemable target ₦${cfg.nairaPerCoinOut}/coin; fee ${cfg.feeCoins} coins if ≥ ${cfg.feeAt.toLocaleString()} coins. Server ledger is authority when SQL Phase 2 is live.</small>
       </div>
-      <div style="margin:8px 0 12px;">
-        <b style="display:block;margin-bottom:6px;">Recent history</b>
-        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.55;opacity:.92;">${history}</ul>
-      </div>
+      <div style="margin-top:8px"><b>Recent (this device)</b><ul style="margin:8px 0 0 18px;padding:0;font-size:13px">${history}</ul></div>
       <div class="install-popup-actions">
-        <button type="button" class="secondary-action" onclick="document.getElementById('coin-shop-overlay').remove(); document.body.classList.remove('popup-lock')">Close</button>
+        <button type="button" class="secondary-action" onclick="document.getElementById('coin-shop-overlay')?.remove();document.body.classList.remove('popup-lock')">Close</button>
       </div>
-      <small class="install-popup-note">SQL backend: supabase/coins-schema.sql · design: docs/COIN-SYSTEM.md · run pack: supabase/SQL-RUN-PACK.md</small>
     </div>`;
-  document.body.appendChild(overlay);
-  document.body.classList.add("popup-lock");
-  overlay.addEventListener("click", event => { if (event.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); } });
+    document.body.appendChild(overlay);
+    document.body.classList.add("popup-lock");
+    overlay.addEventListener("click", e => { if (e.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); } });
+  });
 };
 
 /* =====================================================================

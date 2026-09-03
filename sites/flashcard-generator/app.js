@@ -22,28 +22,76 @@
     set("statReviews", s.reviews || 0);
   }
 
-  function parseNotes(text) {
+  function parseNotes(text, mode) {
+    mode = mode || "basic";
     const cards = [];
-    String(text || "").split("\n").map(function (l) { return l.trim(); }).filter(Boolean).forEach(function (line) {
-      let front, back;
+    function baseCard(front, back, type) {
+      return { id: kit.uid("c"), front: front, back: back || "", type: type || "basic", known: 0, again: 0, easeFactor: 2.5, interval: 0, repetitions: 0, nextReview: null };
+    }
+    String(text || "").split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean).forEach(function (line) {
+      /* explicit cloze already in line */
+      if (/\{\{c\d+::/.test(line) || mode === "cloze") {
+        var src = line;
+        if (mode === "cloze" && !/\{\{c\d+::/.test(src)) {
+          /* auto: blank the longest word > 4 chars (skip first) */
+          var words = src.split(/(\s+)/);
+          var bestI = -1, bestL = 0;
+          words.forEach(function (w, i) {
+            var clean = w.replace(/[^a-zA-Z0-9]/g, "");
+            if (clean.length > bestL && clean.length > 4 && i > 0) { bestL = clean.length; bestI = i; }
+          });
+          if (bestI >= 0) {
+            var w = words[bestI];
+            var clean = w.replace(/[^a-zA-Z0-9'-]/g, "");
+            words[bestI] = w.replace(clean, "{{c1::" + clean + "}}");
+            src = words.join("");
+          } else {
+            src = "{{c1::" + src + "}}";
+          }
+        }
+        var re = /\{\{c(\d+)::([^}]+)\}\}/g;
+        var matches = [];
+        var mm;
+        while ((mm = re.exec(src))) matches.push({ n: mm[1], term: mm[2], raw: mm[0] });
+        if (!matches.length) {
+          cards.push(baseCard(src, "(cloze)", "cloze"));
+        } else {
+          matches.forEach(function (m) {
+            var front = src;
+            matches.forEach(function (o) {
+              if (o.raw === m.raw) front = front.split(o.raw).join("[…]");
+              else front = front.split(o.raw).join(o.term);
+            });
+            cards.push(baseCard(front, m.term, "cloze"));
+          });
+        }
+        return;
+      }
+      var front = "", back = "";
       if (line.indexOf(":") >= 0) {
-        const i = line.indexOf(":");
-        front = line.slice(0, i).trim(); back = line.slice(i + 1).trim();
-      } else if (line.indexOf("—") >= 0 || line.indexOf(" - ") >= 0) {
-        const parts = line.split(/\s+—\s+|\s+-\s+/);
-        front = (parts[0] || "").trim(); back = (parts.slice(1).join(" - ") || "").trim();
+        var i = line.indexOf(":");
+        front = line.slice(0, i).trim();
+        back = line.slice(i + 1).trim();
+      } else if (line.indexOf(" — ") >= 0 || line.indexOf(" - ") >= 0) {
+        var parts = line.split(/\s+[—\-]\s+/);
+        front = (parts[0] || "").trim();
+        back = (parts.slice(1).join(" - ") || "").trim();
       } else {
-        // sentence split heuristic
-        const parts = line.split(/[.?!]/);
-        if (parts.length >= 2 && parts[0].trim().length > 2) {
-          front = parts[0].trim() + "?";
-          back = parts.slice(1).join(". ").trim() || line;
+        var sp = line.split(/[.?!]/);
+        if (sp.length >= 2 && sp[0].trim().length > 2) {
+          front = sp[0].trim() + "?";
+          back = sp.slice(1).join(". ").trim() || line;
         } else {
           front = line;
           back = "(add definition)";
         }
       }
-      if (front) cards.push({ id: kit.uid("c"), front: front, back: back || "", known: 0, again: 0, easeFactor: 2.5, interval: 0, repetitions: 0, nextReview: null });
+      if (front) {
+        cards.push(baseCard(front, back, "basic"));
+        if (mode === "reverse" && back && back !== "(add definition)") {
+          cards.push(baseCard(back, front, "reversed"));
+        }
+      }
     });
     return cards;
   }
@@ -109,7 +157,8 @@
   if (document.getElementById("genDeck")) {
     document.getElementById("genDeck").addEventListener("click", function () {
       const name = document.getElementById("deckName").value.trim() || "Untitled deck";
-      const cards = parseNotes(document.getElementById("notesIn").value);
+      const mode = (document.getElementById("genMode") && document.getElementById("genMode").value) || "basic";
+      const cards = parseNotes(document.getElementById("notesIn").value, mode);
       if (!cards.length) {
         kit.showPanel(document.getElementById("msg"), "Paste some notes first.", "bad");
         return;
@@ -154,6 +203,16 @@
       kit.downloadText((deck.name || "deck").replace(/\s+/g,"_") + ".tsv", tsv, "text/tab-separated-values;charset=utf-8");
       kit.showPanel(document.getElementById("msg"), "Anki-friendly TSV downloaded (Import → Tab).", "good");
     });
+    document.getElementById("exportJson")?.addEventListener("click", function () {
+      const s = load();
+      const deck = s.decks.find(function (d) { return d.id === s.selectedId; }) || s.decks[s.decks.length - 1];
+      if (!deck) { kit.showPanel(document.getElementById("msg"), "Select a deck first.", "bad"); return; }
+      kit.downloadText((deck.name || "deck").replace(/\s+/g, "_") + ".json", JSON.stringify(deck, null, 2), "application/json;charset=utf-8");
+      kit.showPanel(document.getElementById("msg"), "JSON deck exported.", "good");
+    });
+    document.getElementById("genClozeHelp")?.addEventListener("click", function () {
+      kit.showPanel(document.getElementById("msg"), "Cloze tip: write “TCP {{c1::guarantees}} ordered delivery” or use Generate mode Cloze to auto-blank a key term per line.", "good");
+    });
     document.getElementById("exportGuide")?.addEventListener("click", function () {
       const s = load();
       const deck = s.decks.find(function (d) { return d.id === s.selectedId; }) || s.decks[s.decks.length - 1];
@@ -178,7 +237,16 @@
         empty.hidden = false; area.hidden = true; return;
       }
       empty.hidden = true; area.hidden = false;
-      study.cards = deck.cards.slice().sort(function () { return Math.random() - 0.5; });
+      const now = Date.now();
+      study.cards = deck.cards.slice().sort(function (a, b) {
+        const da = a.nextReview ? Date.parse(a.nextReview) : 0;
+        const db = b.nextReview ? Date.parse(b.nextReview) : 0;
+        const dueA = !a.nextReview || da <= now;
+        const dueB = !b.nextReview || db <= now;
+        if (dueA && !dueB) return -1;
+        if (!dueA && dueB) return 1;
+        return da - db;
+      });
       study.i = 0; study.showBack = false;
       showFace();
     }

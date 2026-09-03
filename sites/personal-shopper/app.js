@@ -47,7 +47,10 @@
     box.innerHTML = rows.slice().reverse().map(function (i) {
       return '<div class="list-item" data-id="' + kit.escapeHTML(i.id) + '"><div><div class="card-title">' + kit.escapeHTML(i.name) +
         '</div><div class="meta">' + kit.escapeHTML(i.list || "General") + " · " + kit.escapeHTML(i.status) + " · " +
-        kit.money(i.price || 0, s.currency || "NGN") + (i.notes ? " · " + kit.escapeHTML(i.notes.slice(0, 40)) : "") +
+        kit.money(i.price || 0, s.currency || "NGN") +
+        (i.store ? " @ " + kit.escapeHTML(i.store) : "") +
+        (i.priceB ? " · alt " + kit.money(i.priceB, s.currency || "NGN") + (i.storeB ? " @ " + kit.escapeHTML(i.storeB) : "") : "") +
+        (i.notes ? " · " + kit.escapeHTML(i.notes.slice(0, 40)) : "") +
         '</div></div><div class="actions"><button type="button" class="btn btn-sm btn-danger it-del">Delete</button></div></div>';
     }).join("");
     box.querySelectorAll(".it-del").forEach(function (btn) {
@@ -65,6 +68,9 @@
         id: kit.uid("it"),
         name: document.getElementById("itemName").value.trim(),
         price: Number(document.getElementById("itemPrice").value) || 0,
+        priceB: Number(document.getElementById("itemPriceB")?.value) || 0,
+        store: document.getElementById("itemStore")?.value.trim() || "",
+        storeB: document.getElementById("itemStoreB")?.value.trim() || "",
         list: document.getElementById("itemList").value.trim() || "General",
         notes: document.getElementById("itemNotes").value.trim(),
         status: document.getElementById("itemStatus").value
@@ -116,10 +122,28 @@
     });
     renderBudget();
   }
-  document.getElementById("runCompare")?.addEventListener("click", function () {
+  document.getElementById("exportShop")?.addEventListener("click", function () {
+      const s = load();
+      const rows = [["name","list","status","price","store","priceB","storeB","notes"]].concat(
+        s.items.map(function (i) {
+          return [i.name, i.list, i.status, i.price, i.store || "", i.priceB || "", i.storeB || "", i.notes || ""];
+        })
+      );
+      kit.downloadText("shopper-list.csv", kit.toCSV(rows), "text/csv;charset=utf-8");
+      kit.showPanel(document.getElementById("msg"), "CSV exported.", "good");
+    });
+    document.getElementById("runCompare")?.addEventListener("click", function () {
       const s = load();
       const rows = s.items.filter(function (i) { return i.status === "wish" || i.status === "comparing"; })
-        .slice().sort(function (a, b) { return (Number(a.price)||0) - (Number(b.price)||0); });
+        .slice().sort(function (a, b) {
+          function best(i) {
+            const p = Number(i.price) || 0;
+            const q = Number(i.priceB) || 0;
+            if (p && q) return Math.min(p, q);
+            return p || q;
+          }
+          return best(a) - best(b);
+        });
       const box = document.getElementById("compareBox");
       if (!box) return;
       if (!rows.length) { box.hidden = false; box.textContent = "No wish/comparing items to compare."; return; }

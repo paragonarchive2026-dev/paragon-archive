@@ -53,6 +53,11 @@
 > fairness disclaimers for a skill-based (not luck-based) coin system in Nigeria. Keep
 > everything free-to-play friendly: no user ever needs to pay to enjoy the platform.
 
+## Phase 2 authority (P-102)
+- SQL: `supabase/coins-master-phase2.sql` — `paragon_coin_post_entry`, payment intents, withdrawal lock/settle, admin adjust.
+- FE: registered users only for buy/withdraw; attempts RPCs then falls back to team desk queue.
+- Browser balance = display/cache. No credit on “Request” click alone.
+
 ## Real-money gate (P-101)
 - Server flag `paragon_feature_flags.real_money_enabled` defaults **false**.
 - Purchases/withdrawals/compete stay disabled until the owner flips flags after provider + compliance.

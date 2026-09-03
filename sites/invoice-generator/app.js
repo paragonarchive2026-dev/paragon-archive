@@ -19,8 +19,10 @@
     const sub = (inv.lines || []).reduce(function (sum, line) {
       return sum + (Number(line.qty) || 0) * (Number(line.price) || 0);
     }, 0);
-    const tax = sub * ((Number(inv.taxPct) || 0) / 100);
-    return { sub: sub, tax: tax, total: sub + tax };
+    const discount = sub * ((Number(inv.discountPct) || 0) / 100);
+    const after = Math.max(0, sub - discount);
+    const tax = after * ((Number(inv.taxPct) || 0) / 100);
+    return { sub: sub, discount: discount, tax: tax, total: after + tax };
   }
 
   function renderHomeStats() {
@@ -64,7 +66,10 @@
     document.getElementById("invEmail").value = inv.email || "";
     document.getElementById("invNotes").value = inv.notes || "";
     document.getElementById("invTax").value = inv.taxPct ?? 0;
-    document.getElementById("invCurrency").value = inv.currency || "USD";
+    document.getElementById("invCurrency").value = inv.currency || "NGN";
+    if (document.getElementById("invDue")) document.getElementById("invDue").value = inv.due || "";
+    if (document.getElementById("invDiscount")) document.getElementById("invDiscount").value = inv.discountPct ?? 0;
+    if (document.getElementById("invTerms")) document.getElementById("invTerms").value = inv.terms || "Due on receipt";
     document.getElementById("invStatus").value = inv.status || "draft";
     const box = document.getElementById("lineItems");
     box.innerHTML = "";
@@ -92,7 +97,9 @@
       '</tbody></table></div>' +
       '<div style="margin-top:12px;text-align:right">' +
       '<div>Subtotal ' + kit.money(t.sub, cur) + '</div>' +
+      (t.discount ? '<div>Discount −' + kit.money(t.discount, cur) + '</div>' : '') +
       '<div>Tax ' + kit.money(t.tax, cur) + '</div>' +
+      (inv.due ? '<div class="muted">Due ' + kit.escapeHTML(inv.due) + (inv.terms ? ' · ' + kit.escapeHTML(inv.terms) : '') + '</div>' : '') +
       '<div style="font-size:18px;font-weight:800;margin-top:4px">Total ' + kit.money(t.total, cur) + '</div></div>' +
       (inv.notes ? '<div class="muted" style="margin-top:12px">' + kit.escapeHTML(inv.notes) + '</div>' : "");
   }
@@ -179,6 +186,32 @@
       renderList();
       renderHomeStats();
       kit.showPanel(document.getElementById("msg"), "Invoice saved on this device.", "good");
+    });
+    document.getElementById("exportInvJson")?.addEventListener("click", function () {
+      const inv = currentFromForm();
+      kit.downloadText((inv.number || "invoice") + ".json", JSON.stringify(inv, null, 2), "application/json;charset=utf-8");
+      kit.showPanel(document.getElementById("msg"), "Invoice JSON exported.", "good");
+    });
+    document.getElementById("exportInvDocx")?.addEventListener("click", function () {
+      const inv = currentFromForm();
+      const s = load();
+      const t = totals(inv);
+      const lines = [
+        (s.business.name || "Invoice"),
+        "Invoice " + (inv.number || "") + " · " + (inv.date || ""),
+        "Bill to: " + (inv.client || ""),
+        "Due: " + (inv.due || "") + " · " + (inv.terms || ""),
+        ""
+      ];
+      (inv.lines || []).forEach(function (l) {
+        lines.push(l.desc + " · qty " + l.qty + " · " + l.price);
+      });
+      lines.push("");
+      lines.push("Subtotal " + t.sub);
+      lines.push("Total " + t.total + " " + (inv.currency || ""));
+      if (inv.notes) lines.push(inv.notes);
+      kit.downloadDocx((inv.number || "invoice") + ".docx", lines);
+      kit.showPanel(document.getElementById("msg"), "DOCX exported.", "good");
     });
     document.getElementById("printInv").addEventListener("click", function () {
       const inv = currentFromForm();

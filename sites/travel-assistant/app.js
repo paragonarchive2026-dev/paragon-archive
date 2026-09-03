@@ -35,6 +35,13 @@
     document.getElementById("tripStart").value = t.start || "";
     document.getElementById("tripEnd").value = t.end || "";
     document.getElementById("tripBudget").value = t.budget || 0;
+    if (document.getElementById("tripStyle")) document.getElementById("tripStyle").value = t.style || "mid";
+    if (document.getElementById("tripPace")) document.getElementById("tripPace").value = t.pace || "balanced";
+    const bp = t.budgetParts || {};
+    if (document.getElementById("budLodging")) document.getElementById("budLodging").value = bp.lodging || 0;
+    if (document.getElementById("budFood")) document.getElementById("budFood").value = bp.food || 0;
+    if (document.getElementById("budTransit")) document.getElementById("budTransit").value = bp.transit || 0;
+    if (document.getElementById("budActs")) document.getElementById("budActs").value = bp.acts || 0;
     document.getElementById("tripCur").value = t.currency || "NGN";
     document.getElementById("tripDays").value = (t.days || []).join("\n");
     document.getElementById("tripNotes").value = t.notes || "";
@@ -77,6 +84,14 @@
         start: document.getElementById("tripStart").value,
         end: document.getElementById("tripEnd").value,
         budget: Number(document.getElementById("tripBudget").value) || 0,
+        style: document.getElementById("tripStyle")?.value || "mid",
+        pace: document.getElementById("tripPace")?.value || "balanced",
+        budgetParts: {
+          lodging: Number(document.getElementById("budLodging")?.value) || 0,
+          food: Number(document.getElementById("budFood")?.value) || 0,
+          transit: Number(document.getElementById("budTransit")?.value) || 0,
+          acts: Number(document.getElementById("budActs")?.value) || 0
+        },
         currency: (document.getElementById("tripCur").value || "NGN").toUpperCase().slice(0, 3),
         days: document.getElementById("tripDays").value.split("\n").map(function (l) { return l.trim(); }).filter(Boolean),
         notes: document.getElementById("tripNotes").value.trim()
@@ -159,5 +174,81 @@
     });
     renderPack();
   }
+
+  document.getElementById("genDays")?.addEventListener("click", function () {
+    const start = document.getElementById("tripStart").value;
+    const end = document.getElementById("tripEnd").value;
+    const pace = document.getElementById("tripPace")?.value || "balanced";
+    if (!start || !end) {
+      kit.showPanel(document.getElementById("msg"), "Set start and end dates first.", "bad");
+      return;
+    }
+    const a = new Date(start + "T12:00:00");
+    const b = new Date(end + "T12:00:00");
+    if (b < a) {
+      kit.showPanel(document.getElementById("msg"), "End date is before start.", "bad");
+      return;
+    }
+    const days = [];
+    const ms = 86400000;
+    let d = a;
+    let n = 1;
+    while (d <= b && n <= 31) {
+      let plan;
+      if (n === 1) plan = "Day 1: Arrive · light walk · early dinner (long-haul recovery — no timed tickets)";
+      else if (pace === "relaxed") plan = "Day " + n + ": 1 anchor activity (morning or afternoon) · free time · neighborhood meal";
+      else if (pace === "packed") plan = "Day " + n + ": Morning anchor · afternoon anchor (max 2) · buffer for transit · evening free";
+      else plan = "Day " + n + ": Morning anchor · afternoon optional · food + transit buffers";
+      days.push(plan);
+      d = new Date(d.getTime() + ms);
+      n++;
+    }
+    document.getElementById("tripDays").value = days.join("\n");
+    const parts = Number(document.getElementById("budLodging").value)||0;
+    const food = Number(document.getElementById("budFood").value)||0;
+    const transit = Number(document.getElementById("budTransit").value)||0;
+    const acts = Number(document.getElementById("budActs").value)||0;
+    const sum = parts + food + transit + acts;
+    if (sum > 0) document.getElementById("tripBudget").value = sum;
+    kit.showPanel(document.getElementById("msg"), "Drafted " + days.length + " day(s) with pacing rules. Edit freely.", "good");
+  });
+  document.getElementById("exportTrip")?.addEventListener("click", function () {
+    const s = load();
+    const id = document.getElementById("tripId").value;
+    let t = s.trips.find(function (x) { return x.id === id; });
+    if (!t) {
+      // export form
+      t = {
+        title: document.getElementById("tripTitle").value,
+        dest: document.getElementById("tripDest").value,
+        start: document.getElementById("tripStart").value,
+        end: document.getElementById("tripEnd").value,
+        budget: document.getElementById("tripBudget").value,
+        days: document.getElementById("tripDays").value.split("\n"),
+        notes: document.getElementById("tripNotes").value
+      };
+    }
+    kit.downloadText((t.title || "trip").replace(/\s+/g, "_") + ".json", JSON.stringify(t, null, 2), "application/json;charset=utf-8");
+    kit.showPanel(document.getElementById("msg"), "Trip JSON exported.", "good");
+  });
+  document.getElementById("printTrip")?.addEventListener("click", function () {
+    const title = document.getElementById("tripTitle").value || "Trip";
+    const days = document.getElementById("tripDays").value;
+    const notes = document.getElementById("tripNotes").value;
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write("<html><head><title>" + title + "</title></head><body style='font-family:system-ui;padding:24px'>");
+    w.document.write("<h1>" + title + "</h1>");
+    w.document.write("<p>" + (document.getElementById("tripDest").value || "") + " · " +
+      (document.getElementById("tripStart").value || "") + " → " + (document.getElementById("tripEnd").value || "") + "</p>");
+    w.document.write("<h2>Itinerary</h2><pre style='white-space:pre-wrap'>" + days.replace(/</g,"&lt;") + "</pre>");
+    w.document.write("<h2>Notes / entry</h2><pre style='white-space:pre-wrap'>" + notes.replace(/</g,"&lt;") + "</pre>");
+    w.document.write("<p style='color:#666'>Paragon Travel — planning only, not bookings. Confirm visas on official sites.</p>");
+    w.document.write("</body></html>");
+    w.document.close();
+    w.focus();
+    w.print();
+  });
+
   stats();
 })();

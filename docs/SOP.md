@@ -503,6 +503,9 @@ Use the applicable subset for each change:
 | D-213 | 2026-09-03 | When Arena attachments fail, owner pushes skills to GitHub `uploads/`; agent pulls from main. | Owner workflow. | Confirmed |
 | D-214 | 2026-09-03 | Production coin target ₦1=1 redeemable coin; packs 500/1000/5000; real_money_enabled default false. | Coins master build spec. | Confirmed |
 | D-215 | 2026-09-03 | SQL verification is owner-run VERIFY queries; sandbox has no DNS to Supabase. | Platform network limit. | Confirmed |
+| D-216 | 2026-09-03 | Skill complete = all browser-capable engines; native/server rows stay honest not-faked. | Free build law. | Confirmed |
+| D-217 | 2026-09-03 | Coins Phase 2 = ledger RPCs + FE gates; provider webhooks deferred to owner Phase 3. | Master spec. | Confirmed |
+| D-218 | 2026-09-03 | buildProgress 80–92 after depth; 100 only after owner demo. | Site Build Kit. | Confirmed |
 | D-205 | 2026-08-26 | PARAGON COINS CORE: balance in personal state, Account coin stat + styled shop popup (₦500/₦1,000/₦5,000 packs at placeholder ₦1=2), buy requests -> Team settings panel (super-admin approve/reject) -> paragonArchive.coinCredits.v1 mirror -> user's device credits with a toast; addCoins/spendCoins helpers + history. Full economics + games/quiz integration rules + the owner's ChatGPT heads-up prompt recorded in docs/COIN-SYSTEM.md (creator-quiz no-win rule, bet-only leaderboards, weekly top-10 rewards, withdrawal flow). | Owner's P-098 coin order. | Confirmed |
 | D-204 | 2026-08-26 | SITE SPECS FROM OWNER SKILLS: all 9 uploaded skill files (recipe-creator, meal-planner, file-converter, invoice-generator, flashcard-generator, personal-shopper, photo-editor, resume-maker, travel-assistant) merged into docs/site-specs/<slug>.md — verbatim use/never-use rules + the FREE adaptation law (vanilla HTML/CSS/JS + localStorage engines replacing the skills' full-stack/API/React architecture; adapters ready for free APIs). Websites build in-project under /sites/<slug>/ in the quiz layout family. | Owner's P-098 skill uploads. | Confirmed |
 | D-203 | 2026-08-26 | RxLife Network + Pharmapaedia added to the catalogue as honest Deployed-family Paragon products (0% build, preview route, no fake progress; AI Brain rows added). | Owner's P-098 order. | Confirmed |
@@ -2618,3 +2621,14 @@ Use the applicable subset for each change:
 - D-215: Owner verifies SQL via OWNER-SQL-CHECKLIST (agent cannot reach Supabase DNS from this sandbox).
 
 **Delivered:** coins-master-phase1.sql, OWNER-SQL-CHECKLIST, rate honesty, product-wave announcement, skill depth, cache v78, EOP v0.95.0.
+
+### P-102 — 2026-09-03 — Complete all skill partials + coins master Phase 2
+
+**Owner intent:** Finish everything previously marked partial on the 9 uploads skills and the coins master “No”.
+
+**Decisions**
+- D-216: Skill “complete” for free Paragon products means full browser-local engines for every capability that can run without paid servers/native binaries; remaining skill rows stay documented as not-faked.
+- D-217: Coins master Phase 2 ships authority SQL RPCs + FE gates; provider webhooks are Phase 3 (owner).
+- D-218: buildProgress may rise into the 80–92 band after depth passes; 100 only after owner demo per Site Build Kit.
+
+**Delivered:** product depth P-102, coins-master-phase2.sql, FE coin authority path, cache v79, EOP v0.96.0.

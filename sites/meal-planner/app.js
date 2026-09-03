@@ -18,7 +18,7 @@
     });
     return w;
   }
-  function def() { return { week: emptyWeek(), shop: [], weeksSaved: 0 }; }
+  function def() { return { week: emptyWeek(), shop: [], weeksSaved: 0, macros: { cal: 2000, p: 120, c: 200, f: 65 } }; }
   function load() { return Object.assign(def(), kit.storageGet(K, def())); }
   function save(s) { kit.storageSet(K, s); }
   function mealCount(week) {
@@ -61,6 +61,31 @@
   }
   if (document.getElementById("mealGrid")) {
     renderGrid();
+    (function fillMacros() {
+      const m = load().macros || {};
+      const set = function (id, v) { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+      set("macroCal", m.cal); set("macroP", m.p); set("macroC", m.c); set("macroF", m.f);
+      const hint = document.getElementById("macroHint");
+      if (hint) hint.textContent = "Targets are reminders only. Slot meals still use free text — pair with Paragon Recipe for ingredients.";
+    })();
+    document.getElementById("saveMacros")?.addEventListener("click", function () {
+      const s = load();
+      s.macros = {
+        cal: Number(document.getElementById("macroCal").value) || 0,
+        p: Number(document.getElementById("macroP").value) || 0,
+        c: Number(document.getElementById("macroC").value) || 0,
+        f: Number(document.getElementById("macroF").value) || 0
+      };
+      save(s);
+      kit.showPanel(document.getElementById("msg"), "Macro targets saved on this device.", "good");
+    });
+    document.getElementById("exportWeek")?.addEventListener("click", function () {
+      const s = load();
+      s.week = readWeek();
+      save(s);
+      kit.downloadText("meal-week.json", JSON.stringify({ week: s.week, macros: s.macros, shop: s.shop }, null, 2), "application/json;charset=utf-8");
+      kit.showPanel(document.getElementById("msg"), "Week exported.", "good");
+    });
     document.getElementById("saveWeek").addEventListener("click", function () {
       const s = load();
       s.week = readWeek();
@@ -142,19 +167,30 @@
   document.getElementById("importRecipes")?.addEventListener("click", function () {
       try {
         const raw = JSON.parse(localStorage.getItem("paragonRecipeCreator.v1") || "{}");
-        const titles = (raw.recipes || []).map(function (r) { return r.title; }).filter(Boolean);
+        const recipes = raw.recipes || [];
+        const titles = recipes.map(function (r) { return r.title; }).filter(Boolean);
         if (!titles.length) {
           kit.showPanel(document.getElementById("msg"), "No recipes saved in Paragon Recipe on this device yet.", "warn");
           return;
         }
-        // Fill empty dinner slots first
         const week = readWeek();
         let i = 0;
         DAYS.forEach(function (d) {
           if (!week[d].dinner && titles[i]) { week[d].dinner = titles[i] + " (recipe)"; i++; }
         });
-        const s = load(); s.week = week; save(s); renderGrid(); stats();
-        kit.showPanel(document.getElementById("msg"), "Filled empty dinners from your cookbook (" + i + ").", "good");
+        const s = load();
+        s.week = week;
+        recipes.forEach(function (r) {
+          (r.ingredients || []).forEach(function (line) {
+            const name = String(line).replace(/^\s*[\d./]+\s*(cups?|tbsp|tsp|g|kg|ml|l|oz|lb)?\s*/i, "").trim() || String(line).trim();
+            if (!name) return;
+            if (!s.shop.some(function (x) { return x.name.toLowerCase() === name.toLowerCase(); })) {
+              s.shop.push({ id: kit.uid("sh"), name: name, done: false, from: r.title || "recipe" });
+            }
+          });
+        });
+        save(s); renderGrid(); stats();
+        kit.showPanel(document.getElementById("msg"), "Filled " + i + " dinners and merged recipe ingredients into shopping.", "good");
       } catch (e) {
         kit.showPanel(document.getElementById("msg"), "Could not read Paragon Recipe data.", "bad");
       }

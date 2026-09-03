@@ -40,11 +40,23 @@
     <h1 class="page-title">Weekly planner</h1>
     <p class="page-sub">What to eat and when. Use <a href="../recipe-creator/index.html" style="color:var(--accent-2);font-weight:700">Paragon Recipe</a> for full recipes. Not a calorie/macro coach.</p>
     <div id="msg" class="notice" hidden></div>
+    <div class="panel" style="margin-bottom:14px">
+      <h2 class="panel-title">Daily macro targets (local estimate — not medical advice)</h2>
+      <div class="field-row">
+        <div class="field"><label for="macroCal">Calories</label><input id="macroCal" type="number" min="0" value="2000"></div>
+        <div class="field"><label for="macroP">Protein g</label><input id="macroP" type="number" min="0" value="120"></div>
+        <div class="field"><label for="macroC">Carbs g</label><input id="macroC" type="number" min="0" value="200"></div>
+        <div class="field"><label for="macroF">Fat g</label><input id="macroF" type="number" min="0" value="65"></div>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="saveMacros">Save targets</button>
+      <div id="macroHint" class="muted" style="margin-top:8px;font-size:13px"></div>
+    </div>
     <div class="actions" style="margin-bottom:14px">
       <button type="button" class="btn btn-primary" id="saveWeek">Save week</button>
       <button type="button" class="btn btn-secondary" id="clearWeek">Clear week</button>
       <button type="button" class="btn btn-outline" id="toShop">Build shopping list from meals</button>
-      <button type="button" class="btn btn-outline" id="importRecipes">Pull titles from Paragon Recipe</button>
+      <button type="button" class="btn btn-outline" id="importRecipes">Pull titles + ingredients from Recipe</button>
+      <button type="button" class="btn btn-outline" id="exportWeek">Export week JSON</button>
     </div>
     <div class="meal-grid" id="mealGrid"></div>
   </main>

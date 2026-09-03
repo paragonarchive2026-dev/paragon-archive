@@ -39,6 +39,10 @@ select 'paragon_economic_settings' as object,
   to_regclass('public.paragon_economic_settings') is not null as exists;
 select 'paragon_feature_flags' as object,
   to_regclass('public.paragon_feature_flags') is not null as exists;
+select 'paragon_coin_post_entry_fn' as object,
+  to_regprocedure('public.paragon_coin_post_entry(uuid,text,integer,text,text,text,text,text,jsonb)') is not null as exists;
+select 'paragon_coin_create_payment_intent_fn' as object,
+  to_regprocedure('public.paragon_coin_create_payment_intent(integer,text,text)') is not null as exists;
 select 'paragon_payment_intents' as object,
   to_regclass('public.paragon_payment_intents') is not null as exists;
 select 'paragon_withdrawals' as object,
@@ -91,6 +95,13 @@ Already executed live 2026-08-18. File is an archive reference.
 **Safe:** idempotent  
 **Adds:** multi-balance accounts, economic settings, feature flags, payment intents, withdrawals v2, payout accounts, audit log, competitions stubs, leaderboard stubs — aligned with `PARAGON-COINS-MASTER-BUILD-SPEC.md` §47.  
 **Does NOT** turn on real-money mode (`real_money_enabled` stays **false** until you decide).
+
+### 4. Coins Phase 2 — authority RPCs (if phase1b exists but RPCs missing)
+**File:** `supabase/coins-master-phase2.sql`  
+**Action:** paste entire file → Run  
+**Safe:** idempotent (`create or replace function`)  
+**Adds:** ledger post/move, payment intent create/claim/confirm, withdrawal lock/pay/reject, admin adjust, my_account/my_ledger, lock_stake.
+
 
 ---
 

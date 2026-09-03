@@ -8,7 +8,7 @@
 
 # 🤝 NEXT-AGENT HANDOFF BRIEF — READ THIS FIRST
 
-**Last updated:** 2026-09-03 (EOP v0.95.0, prompt P-101)
+**Last updated:** 2026-09-03 (EOP v0.96.0, prompt P-102)
 **You are:** the owner's dedicated build agent for **Paragon Archive**, a large multi-product front-end platform.
 
 ## 1. WHO THE OWNER IS & HOW TO WORK WITH THEM
@@ -30,7 +30,7 @@
 - **P-001 preserve-first:** never destroy owner-approved work; extend it.
 - **P-014:** every new HTML/CSS/JS/SQL file starts with the `PARAGON ARCHIVE — EXPORT IDENTITY` comment header (REAL FILE NAME / EXPECTED PROJECT PATH / ROLE / RESTORE-LOAD NOTE).
 - **P-015:** responsive at all resolutions.
-- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v78**) AND the assertion in `tests/archive-hub.test.js`.
+- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v79**) AND the assertion in `tests/archive-hub.test.js`.
 - **NO `window.alert/prompt/confirm` anywhere** — use inline panels or `ParagonTeamConfirm` (in `team/nav.js`).
 - **Canonical entry = `paragon-archive.html`. NEVER create a root index.html.**
 - Progress % must be milestone-derived (D-116) or labelled "team-set".
@@ -147,3 +147,11 @@ Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop (shopper). Meal Plann
 **Coins:** UI ₦1=1 packs; real-money OFF; master phase1 SQL ready. Do not enable real_money until provider+compliance.
 
 **Next:** owner VERIFY reply; badges 21–30; wire `paragon_public_coin_config` fetch into shop; paid quiz server layer only after flags; more skill fidelity (PDF/audio engines) as requested.
+
+## 7h. WHERE WE STOPPED — after P-102 / EOP v0.96.0 (2026-09-03)
+
+**Products:** All 9 skill partials completed at browser-local depth. HEIC/ffmpeg/pandoc/provider still out of scope by honesty.
+
+**Coins:** Phase1 + Phase2 SQL authored. FE uses RPCs when live; guest free-play only; real_money OFF. Owner must run SQL 1→4 and VERIFY.
+
+**Next:** owner SQL; payment provider; optional WASM codecs; badges 21–30; compete settle engine when compete_enabled.
