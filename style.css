@@ -3682,3 +3682,68 @@ html.light .hub-topbar.legal-topbar { background: rgba(243,242,239,0.85); }
 .profile-header-tools { display: inline-flex; align-items: center; gap: 10px; }
 .profile-edit-pencil { padding: 9px 16px; border: 1px solid var(--border); border-radius: 999px; background: rgba(37,99,235,0.1); color: var(--text); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
 .profile-edit-pencil:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+
+/* =====================================================================
+   P-105 — maintenance polish: denser account strip, badge art, coin shop,
+   achievement grid readability, soft surfaces
+   ===================================================================== */
+/* P-105 — maintenance polish */
+.ach-badge-art {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto 6px;
+  filter: drop-shadow(0 4px 10px rgba(108, 92, 231, 0.25));
+}
+.ach-item .emoji {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+}
+.ach-item.locked {
+  opacity: 0.55;
+  filter: grayscale(0.35);
+}
+.ach-item.ready {
+  box-shadow: 0 0 0 1px rgba(162, 155, 254, 0.45), 0 8px 24px rgba(108, 92, 231, 0.18);
+}
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 12px;
+}
+@media (min-width: 720px) {
+  .ach-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+.account-achievement-strip {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.08), rgba(37, 99, 235, 0.05));
+}
+.install-popup-card header h2 {
+  letter-spacing: -0.02em;
+}
+.install-perm-row {
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.install-perm-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+html.light .install-perm-row:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+.team-dash-section {
+  scroll-margin-top: 72px;
+}
+#sql-health-out, #finance-desk-out {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  background: rgba(0, 0, 0, 0.22);
+}
+html.light #sql-health-out,
+html.light #finance-desk-out {
+  background: rgba(0, 0, 0, 0.04);
+}
+/* Product sites — slightly calmer page rhythm */

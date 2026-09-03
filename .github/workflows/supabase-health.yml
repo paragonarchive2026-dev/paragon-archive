@@ -1,0 +1,47 @@
+# PARAGON ARCHIVE — optional owner-run health check from GitHub Actions network
+# Secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL = https://qnylhlyyzpwlfftiygcn.supabase.co
+#   SUPABASE_ANON_KEY = the public anon key from config/supabase.js (NOT service_role)
+name: Supabase SQL health
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '0 8 * * 1'
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe paragon_sql_health RPC
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -e
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Add SUPABASE_URL and SUPABASE_ANON_KEY (anon only) as Actions secrets."
+            exit 1
+          fi
+          echo "Probing $SUPABASE_URL ..."
+          curl -sS -X POST "$SUPABASE_URL/rest/v1/rpc/paragon_sql_health" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{}' | tee health.json
+          echo ""
+          python3 - <<'PY'
+          import json
+          d=json.load(open("health.json"))
+          if isinstance(d, dict) and d.get("message"):
+            print("RPC missing or error:", d)
+            print("→ Run coins-master-phase3.sql (defines paragon_sql_health).")
+            raise SystemExit(1)
+          print("=== ASSURANCE SUMMARY ===")
+          for k in sorted(d.keys()):
+            if k in ("flags","checked_at"): continue
+            v=d[k]
+            mark="OK " if v is True else ("NO " if v is False else "·· ")
+            print(f"{mark}{k} = {v}")
+          if "flags" in d:
+            print("flags:", d["flags"])
+          print("checked_at:", d.get("checked_at"))
+          PY

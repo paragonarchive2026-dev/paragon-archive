@@ -510,6 +510,8 @@ Use the applicable subset for each change:
 | D-220 | 2026-09-03 | Phase 3 webhooks provider-agnostic; secrets only in Edge; real_money stays gated. | Master §44–46. | Confirmed |
 | D-221 | 2026-09-03 | Uploads “complete” = browser engines + coins ph1–4; native/API rows not faked. | Free build law. | Confirmed |
 | D-222 | 2026-09-03 | Phase 4 competition settle is server/team only; browser never referee for money. | Master §6–8. | Confirmed |
+| D-223 | 2026-09-03 | SQL assurance via owner Script A / Team probe / GH Actions anon; never service_role in git. | Security + network. | Confirmed |
+| D-224 | 2026-09-03 | Achievement badges 1–30 complete art set wired in BADGE_ART. | IMAGE-REQUIREMENTS §1.6. | Confirmed |
 | D-205 | 2026-08-26 | PARAGON COINS CORE: balance in personal state, Account coin stat + styled shop popup (₦500/₦1,000/₦5,000 packs at placeholder ₦1=2), buy requests -> Team settings panel (super-admin approve/reject) -> paragonArchive.coinCredits.v1 mirror -> user's device credits with a toast; addCoins/spendCoins helpers + history. Full economics + games/quiz integration rules + the owner's ChatGPT heads-up prompt recorded in docs/COIN-SYSTEM.md (creator-quiz no-win rule, bet-only leaderboards, weekly top-10 rewards, withdrawal flow). | Owner's P-098 coin order. | Confirmed |
 | D-204 | 2026-08-26 | SITE SPECS FROM OWNER SKILLS: all 9 uploaded skill files (recipe-creator, meal-planner, file-converter, invoice-generator, flashcard-generator, personal-shopper, photo-editor, resume-maker, travel-assistant) merged into docs/site-specs/<slug>.md — verbatim use/never-use rules + the FREE adaptation law (vanilla HTML/CSS/JS + localStorage engines replacing the skills' full-stack/API/React architecture; adapters ready for free APIs). Websites build in-project under /sites/<slug>/ in the quiz layout family. | Owner's P-098 skill uploads. | Confirmed |
 | D-203 | 2026-08-26 | RxLife Network + Pharmapaedia added to the catalogue as honest Deployed-family Paragon products (0% build, preview route, no fake progress; AI Brain rows added). | Owner's P-098 order. | Confirmed |
@@ -2648,3 +2650,9 @@ Use the applicable subset for each change:
 **D-221:** “Everything in the 10 uploads” means browser-complete + coins phases 1–4 in repo; native/provider/licence rows stay not-faked.
 **D-222:** Phase 4 = competition/leaderboard/prize/cases server RPCs; client never settles money.
 **Delivered:** phase4 SQL+Edge, finance desk, SKILLS-COMPLETION.md, product depth, cache v81, EOP v0.98.0.
+
+### P-105 — 2026-09-03 — Assurance path + badges 21–30 + polish
+
+**D-223:** Full SQL assurance = owner-run Script A / Team probe / GitHub Actions anon — not agent DNS and not service_role in GitHub.
+**D-224:** Achievement badges 1–30 complete matched set under `assets/achievement-badges/`.
+**Delivered:** verify prompt, Actions workflow, badges 21–30, polish, file tree, EOP v0.99.0, cache v82.

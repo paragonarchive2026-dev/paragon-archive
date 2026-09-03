@@ -1,3 +1,4 @@
+<!-- See also: SUPABASE-AI-VERIFY-PROMPT.md for Supabase AI + GitHub Actions assurance -->
 <!--
   PARAGON ARCHIVE — EXPORT IDENTITY
   REAL FILE NAME: OWNER-SQL-CHECKLIST.md

@@ -120,7 +120,18 @@ const BADGE_ART = {
   "Share Three": "assets/achievement-badges/badge-share-three.png",
   "Theme Explorer": "assets/achievement-badges/badge-theme-explorer.png",
   "Search Explorer": "assets/achievement-badges/badge-search-explorer.png",
-  "Notification Reader": "assets/achievement-badges/badge-notification-reader.png"
+  "Notification Reader": "assets/achievement-badges/badge-notification-reader.png",
+  /* P-105 — badges 21–30 (final stages) */
+  "Archive Veteran": "assets/achievement-badges/badge-archive-veteran.png",
+  "Trusted Reviewer": "assets/achievement-badges/badge-trusted-reviewer.png",
+  "Hub Visitor": "assets/achievement-badges/badge-hub-visitor.png",
+  "Hub Regular": "assets/achievement-badges/badge-hub-regular.png",
+  "QR Creator": "assets/achievement-badges/badge-qr-creator.png",
+  "AI Curious": "assets/achievement-badges/badge-ai-curious.png",
+  "AI Regular": "assets/achievement-badges/badge-ai-regular.png",
+  "Results Seeker": "assets/achievement-badges/badge-results-seeker.png",
+  "Social Spreader": "assets/achievement-badges/badge-social-spreader.png",
+  "Fully Notified": "assets/achievement-badges/badge-fully-notified.png"
 };
 function badgeIconMarkup(task) {
   return BADGE_ART[task.title] ? `<img class="ach-badge-art" src="${BADGE_ART[task.title]}" alt="" loading="lazy">` : `<div class="emoji">${task.icon}</div>`;

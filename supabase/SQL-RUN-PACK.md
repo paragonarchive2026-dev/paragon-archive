@@ -10,6 +10,13 @@
 **Project ref:** `qnylhlyyzpwlfftiygcn`  
 **Where:** Supabase Dashboard → **SQL** → New query → paste file → **Run**
 
+## Confirm what is live (full assurance)
+
+**Easiest:** paste Script A from `supabase/SUPABASE-AI-VERIFY-PROMPT.md` into Supabase SQL (or Supabase AI), copy results back to chat.  
+**Or:** Team desk → Probe SQL health.  
+**Or:** GitHub Actions → workflow `Supabase SQL health` (anon secrets only).  
+Agent sandbox **cannot** DNS-reach Supabase — GitHub secrets do not fix agent DNS.
+
 ## Confirm what is live
 
 ### A) From your browser (recommended)

@@ -5516,3 +5516,16 @@ Owner has a clear SQL VERIFY + run order. Financial engine foundation matches th
 - SQL run order through **phase4** (`coins-master-phase4.sql`).
 - Deploy Edge functions; keep real_money OFF until ready.
 - Demo products before claiming 100% catalogue progress.
+
+## v0.99.0 — 2026-09-03 — Badges 21–30, SQL assurance path, maintenance (P-105)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Confirmed agent still cannot DNS-reach Supabase; documented easiest full-assurance path (SQL Script A / Supabase AI / Team probe / GitHub Actions anon).
+2. Generated + wired achievement badges **21–30** (full 30/30 set).
+3. Fixed missing `pwa-icon-192.png`; layout polish CSS; IMAGE-REQUIREMENTS + file tree + docs.
+4. Suites + cache v82.
+
+### Owner for SQL assurance
+Paste Script A from `supabase/SUPABASE-AI-VERIFY-PROMPT.md` results into chat.
