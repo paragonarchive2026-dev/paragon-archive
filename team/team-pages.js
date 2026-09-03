@@ -4616,8 +4616,11 @@ if (paragonTeamPage() === "settings.html") {
   var STORE_KEY = "paragonTeamSettings.v1";
   var DEFAULTS = { sessionIdleMinutes: 29, sessionWarnSeconds: 60, maintenanceMode: false, registrationOpen: true, reviewsOpen: true };
   var COIN_KEY = "paragonTeamCoinRequests.v1";
+  var COIN_WD_KEY = "paragonTeamCoinWithdrawals.v1";
   function readCoinRequests() { return readJSON(COIN_KEY, []); }
   function writeCoinRequests(list) { writeJSON(COIN_KEY, list); }
+  function readCoinWithdrawals() { return readJSON(COIN_WD_KEY, []); }
+  function writeCoinWithdrawals(list) { writeJSON(COIN_WD_KEY, list); }
   function renderCoinRequests() {
     var host = document.getElementById("coin-requests-list");
     if (!host) return;
@@ -4634,6 +4637,513 @@ if (paragonTeamPage() === "settings.html") {
       '</article>';
     }).join("") : '<p class="team-site-sub">No coin purchase requests yet — real zero.</p>';
   }
+  function renderCoinWithdrawals() {
+    var host = document.getElementById("coin-withdrawals-list");
+    if (!host) return;
+    var list = readCoinWithdrawals().sort(function (a, b) { return Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0); });
+    host.innerHTML = list.length ? list.map(function (request) {
+      return '<article class="team-site-row ' + (request.status === "paid" ? "st-live" : request.status === "rejected" ? "st-archived" : "st-review") + '">' +
+        '<div class="team-site-copy">' +
+          '<div class="team-site-title"><strong>' + escapeHTML(request.displayName || request.user) + '</strong><span class="team-site-badge ' + (request.status === "paid" ? "st-live" : "st-review") + '">' + (request.status === "paid" ? "✅ PAID" : request.status === "rejected" ? "❌ REJECTED" : "🟡 PENDING") + '</span><span class="team-site-cat">' + Number(request.coins || 0).toLocaleString() + ' coins to ~₦' + Number(request.naira || 0).toLocaleString() + '</span></div>' +
+          '<div class="team-site-sub">' + escapeHTML(request.user || "—") + ' · ' + escapeHTML(request.createdAt || "—") + '</div>' +
+          '<div class="team-site-sub">Payout details: ' + escapeHTML(request.bank || "—") + '</div>' +
+        '</div>' +
+        '<div class="team-site-actions">' +
+          (request.status === "pending" ? '<button type="button" class="team-mini-link" data-wdact="paid" data-id="' + request.id + '">Mark paid (deduct coins)</button><button type="button" class="team-mini-link danger" data-wdact="reject" data-id="' + request.id + '">Reject</button>' : "") +
+        '</div>' +
+      '</article>';
+    }).join("") : '<p class="team-site-sub">No withdrawal requests yet — real zero.</p>';
+  }
+
+
+  function financeRest(path, options) {
+    var cfg = window.ParagonConfig || {};
+    var base = String(cfg.supabaseUrl || "").replace(/\/$/, "");
+    var key = cfg.supabaseAnonKey || "";
+    if (!base || !key) return Promise.reject(new Error("No Supabase config"));
+    var headers = Object.assign({
+      apikey: key,
+      Authorization: "Bearer " + key,
+      "Content-Type": "application/json"
+    }, (options && options.headers) || {});
+    return fetch(base + path, Object.assign({}, options || {}, { headers: headers })).then(function (r) {
+      return r.text().then(function (text) {
+        var data = null;
+        try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
+        if (!r.ok) throw new Error((data && data.message) || ("HTTP " + r.status));
+        return data;
+      });
+    });
+  }
+
+  function bindPhase5Rails() {
+    var out = document.getElementById("phase5-rails-out");
+    var btn = document.getElementById("phase5-rails-refresh");
+    if (!out || !btn) return;
+    function snap() {
+      out.textContent = "Loading OPay/Moniepoint rails…";
+      Promise.all([
+        financeRest("/rest/v1/rpc/paragon_sql_health", { method: "POST", body: "{}" }).catch(function (e) { return { error: String(e.message || e) }; }),
+        financeRest("/rest/v1/rpc/paragon_public_coin_config", { method: "POST", body: "{}" }).catch(function () { return null; }),
+        financeRest("/rest/v1/paragon_kyc_profiles?select=user_id,status,payout_rail,payout_account_name,payout_account_number,updated_at&order=updated_at.desc&limit=15").catch(function () { return []; }),
+        financeRest("/rest/v1/paragon_payout_rail_events?select=id,provider,provider_reference,amount_naira,status,created_at&order=created_at.desc&limit=15").catch(function () { return []; })
+      ]).then(function (parts) {
+        var health = parts[0], cfg = parts[1], kyc = parts[2], rails = parts[3];
+        var lines = ["Phase 5 rails @ " + new Date().toISOString(), ""];
+        if (health && health.error) lines.push("Health: " + health.error);
+        else if (health) {
+          lines.push("SQL phase=" + (health.phase || "?") + " · preferred=" + (health.preferred_payment_story || "?"));
+          lines.push("active_provider=" + (health.active_provider || "?") + " payout_rail=" + (health.payout_rail || "?"));
+          lines.push("kyc_table=" + health.paragon_kyc_profiles + " payout_events=" + health.paragon_payout_rail_events);
+        }
+        var p = (cfg && cfg.provider) || {};
+        lines.push("", "Public pay config:");
+        lines.push("  rails: " + JSON.stringify(p.preferred_rails || []));
+        if (p.opay) lines.push("  OPay: " + (p.opay.account_name || "—") + " / " + (p.opay.account_number || "unset"));
+        if (p.moniepoint) lines.push("  Moniepoint: " + (p.moniepoint.account_name || "—") + " / " + (p.moniepoint.account_number || "unset"));
+        lines.push("", "KYC / payout drafts:");
+        if (!kyc || !kyc.length) lines.push("  (none yet or phase5 SQL not run)");
+        else kyc.forEach(function (row) {
+          lines.push("  · [" + row.status + "] " + (row.payout_rail || "?") + " " + (row.payout_account_name || "") + " " + (row.payout_account_number || ""));
+        });
+        lines.push("", "Payout rail events:");
+        if (!rails || !rails.length) lines.push("  (none yet)");
+        else rails.forEach(function (r) {
+          lines.push("  · " + r.provider + " ₦" + r.amount_naira + " [" + r.status + "] " + (r.provider_reference || ""));
+        });
+        lines.push("", "Flutterwave/Paystack are optional adapters only — not required for Nigeria-first.");
+        out.textContent = lines.join("\n");
+      }).catch(function (err) {
+        out.textContent = "Rails snapshot failed: " + err.message + "\nRun coins-master-phase5.sql as team.";
+      });
+    }
+    btn.addEventListener("click", snap);
+    document.getElementById("phase5-payout-record")?.addEventListener("click", function () {
+      var provider = window.prompt("Provider: opay | moniepoint | manual_bank", "opay");
+      if (!provider) return;
+      var amount = Number(window.prompt("Amount ₦", "1000") || 0);
+      var ref = window.prompt("Provider reference / receipt id", "") || "";
+      if (!amount || amount <= 0) return;
+      financeRest("/rest/v1/rpc/paragon_payout_rail_record", {
+        method: "POST",
+        body: JSON.stringify({
+          p_provider: provider,
+          p_amount_naira: Math.round(amount),
+          p_provider_reference: ref || null,
+          p_status: "sent"
+        })
+      }).then(function () {
+        showToast("Payout rail event recorded.");
+        snap();
+      }).catch(function (e) {
+        showToast("Record failed: " + e.message + " — need phase5 SQL + team login.");
+      });
+    });
+  }
+
+
+
+  function bindStage4Quiz() {
+    var out = document.getElementById("stage4-quiz-out");
+    var btn = document.getElementById("stage4-quiz-refresh");
+    if (!out || !btn) return;
+    function load() {
+      out.textContent = "Loading Stage 4 quiz desk…";
+      Promise.all([
+        financeRest("/rest/v1/paragon_quiz_public?select=quiz_key,title,entry_fee_coins,paid_enabled,max_paid_attempts,creator_id,created_at&order=created_at.desc&limit=20").catch(function (e) { return { error: String(e.message || e) }; }),
+        financeRest("/rest/v1/paragon_creator_prizes?select=id,quiz_key,prize_coins,status,creator_id,winner_user_id,created_at&order=created_at.desc&limit=20").catch(function () { return []; }),
+        financeRest("/rest/v1/paragon_quiz_paid_attempts?select=id,quiz_id,user_id,status,score,total,entry_fee_coins,eligible_for_prize,started_at&order=started_at.desc&limit=20").catch(function () { return []; })
+      ]).then(function (parts) {
+        var quizzes = parts[0], prizes = parts[1], attempts = parts[2];
+        var lines = ["Stage 4 quiz desk @ " + new Date().toISOString(), ""];
+        lines.push("Published quizzes (public view — no answer keys):");
+        if (quizzes && quizzes.error) lines.push("  " + quizzes.error + " (run stage4 SQL)");
+        else if (!quizzes || !quizzes.length) lines.push("  (none)");
+        else quizzes.forEach(function (q) {
+          lines.push("  · " + q.quiz_key + " — " + q.title + " fee=" + q.entry_fee_coins + " paid=" + q.paid_enabled);
+        });
+        lines.push("", "Creator prizes:");
+        if (!prizes || !prizes.length) lines.push("  (none)");
+        else prizes.forEach(function (p) {
+          lines.push("  · [" + p.status + "] " + p.quiz_key + " " + p.prize_coins + "c id=" + p.id);
+        });
+        lines.push("", "Paid attempts:");
+        if (!attempts || !attempts.length) lines.push("  (none)");
+        else attempts.forEach(function (a) {
+          lines.push("  · [" + a.status + "] fee " + a.entry_fee_coins + " score " + (a.score != null ? a.score + "/" + a.total : "—") +
+            " prize_ok=" + a.eligible_for_prize + " id=" + a.id);
+        });
+        lines.push("", "Rules: creator self-play never prize/leaderboard eligible; server score only; max paid attempts enforced.");
+        out.textContent = lines.join("\n");
+      });
+    }
+    btn.addEventListener("click", load);
+    var awardBtn = document.getElementById("stage4-prize-award");
+    if (awardBtn) awardBtn.addEventListener("click", function () {
+      var prizeId = window.prompt("Creator prize UUID", "");
+      var winner = window.prompt("Winner user UUID (not the creator)", "");
+      if (!prizeId || !winner) return;
+      financeRest("/rest/v1/rpc/paragon_creator_prize_award", {
+        method: "POST",
+        body: JSON.stringify({ p_prize_id: prizeId, p_winner_user_id: winner })
+      }).then(function () { showToast("Prize awarded (if eligible)."); load(); })
+        .catch(function (e) { showToast("Award failed: " + e.message); });
+    });
+    var voidBtn = document.getElementById("stage4-attempt-void");
+    if (voidBtn) voidBtn.addEventListener("click", function () {
+      var aid = window.prompt("Paid attempt UUID to void/refund", "");
+      if (!aid) return;
+      financeRest("/rest/v1/rpc/paragon_quiz_void_paid_attempt", {
+        method: "POST",
+        body: JSON.stringify({ p_attempt_id: aid, p_reason: "team desk void" })
+      }).then(function () { showToast("Attempt voided / fee refunded."); load(); })
+        .catch(function (e) { showToast("Void failed: " + e.message); });
+    });
+  }
+
+  function bindStage3Games() {
+    var host = document.getElementById("stage3-games-list");
+    var btn = document.getElementById("stage3-games-refresh");
+    if (!host || !btn) return;
+
+    function load() {
+      host.innerHTML = "<p class='team-site-sub'>Loading competitions…</p>";
+      financeRest("/rest/v1/paragon_competitions?select=id,game_key,status,stake_coins,fee_coins,pool_coins,created_at,metadata&order=created_at.desc&limit=25")
+        .then(function (rows) {
+          if (!rows || !rows.length) {
+            host.innerHTML = "<p class='team-site-sub'>No competitions (run phase4 + stage3 SQL).</p>";
+            return;
+          }
+          host.innerHTML = rows.map(function (c) {
+            var id = c.id;
+            var settled = /SETTLED|VOIDED|CANCELLED/i.test(String(c.status || ""));
+            return "<article class='team-site-card'>" +
+              "<strong>" + (c.game_key || "1v1") + "</strong> · " + (c.status || "") +
+              "<div class='team-site-sub'>stake " + c.stake_coins + " · fee " + (c.fee_coins || 0) + " (5% pool) · pool " + (c.pool_coins || 0) +
+              "<br><code style='font-size:10px'>" + id + "</code></div>" +
+              (settled ? "" :
+                "<div class='team-site-actions' style='margin-top:8px;display:flex;flex-wrap:wrap;gap:6px'>" +
+                "<button type='button' class='team-mini-link' data-s3='win' data-id='" + id + "'>Settle WIN</button>" +
+                "<button type='button' class='team-mini-link' data-s3='draw' data-id='" + id + "'>Settle DRAW</button>" +
+                "<button type='button' class='team-mini-link danger' data-s3='void' data-id='" + id + "'>VOID / refund</button>" +
+                "</div>") +
+              "</article>";
+          }).join("");
+        })
+        .catch(function (e) {
+          host.innerHTML = "<p class='team-site-sub'>Load failed: " + e.message + "</p>";
+        });
+    }
+
+    btn.addEventListener("click", load);
+
+    host.addEventListener("click", function (ev) {
+      var b = ev.target.closest("[data-s3]");
+      if (!b) return;
+      var id = b.dataset.id;
+      var act = b.dataset.s3;
+      var outcome = act === "win" ? "settled_win" : act === "draw" ? "settled_draw" : "voided";
+      var winner = null;
+      if (act === "win") {
+        winner = window.prompt("Winner user UUID (auth.users id)", "");
+        if (!winner) return;
+      }
+      window.ParagonTeamConfirm({
+        icon: "⚔️",
+        title: "Settle competition?",
+        lines: [
+          "Outcome: " + outcome,
+          "Server ledger only — never trust a client winner claim.",
+          act === "win" ? "Winner receives pool minus 5% fee." : "Stakes return to available (draw/void)."
+        ],
+        confirmLabel: "Settle now"
+      }).then(function (c) {
+        if (!c.ok) return;
+        financeRest("/rest/v1/rpc/paragon_competition_settle", {
+          method: "POST",
+          body: JSON.stringify({
+            p_competition_id: id,
+            p_outcome: outcome,
+            p_winner_user_id: winner,
+            p_correlation_id: "team-desk-" + Date.now().toString(36)
+          })
+        }).then(function () {
+          showToast("Settled on server.");
+          load();
+        }).catch(function (e) {
+          showToast("Settle failed: " + e.message);
+        });
+      });
+    });
+
+    document.getElementById("stage3-anticheat-flag")?.addEventListener("click", function () {
+      var uid = window.prompt("User UUID to flag", "");
+      if (!uid) return;
+      var typ = window.prompt("Flag type (collusion|velocity|multi_account|client_tamper|other)", "velocity") || "manual";
+      var sev = window.prompt("Severity low|medium|high|critical", "medium") || "medium";
+      financeRest("/rest/v1/rpc/paragon_anticheat_flag", {
+        method: "POST",
+        body: JSON.stringify({
+          p_user_id: uid,
+          p_flag_type: typ,
+          p_severity: sev,
+          p_detail: { source: "team_desk" }
+        })
+      }).then(function () {
+        showToast("Anti-cheat flag recorded.");
+      }).catch(function (e) {
+        showToast("Flag failed: " + e.message + " — need stage3 SQL.");
+      });
+    });
+  }
+
+  function bindFinanceDesk() {
+    var out = document.getElementById("finance-desk-out");
+    var btn = document.getElementById("finance-refresh");
+    if (!out || !btn) return;
+    function renderSnapshot() {
+      out.textContent = "Loading finance snapshot…";
+      Promise.all([
+        financeRest("/rest/v1/rpc/paragon_sql_health", { method: "POST", body: "{}" }).catch(function (e) { return { error: String(e.message || e) }; }),
+        financeRest("/rest/v1/paragon_competitions?select=id,game_key,status,stake_coins,pool_coins,created_at&order=created_at.desc&limit=10").catch(function () { return []; }),
+        financeRest("/rest/v1/paragon_leaderboard_periods?select=id,label,status,prize_pool_coins,starts_at,ends_at&order=starts_at.desc&limit=5").catch(function () { return []; }),
+        financeRest("/rest/v1/paragon_financial_cases?select=id,case_type,status,summary,created_at&order=created_at.desc&limit=10").catch(function () { return []; }),
+        financeRest("/rest/v1/paragon_creator_prizes?select=id,quiz_key,prize_coins,status,created_at&order=created_at.desc&limit=10").catch(function () { return []; })
+      ]).then(function (parts) {
+        var health = parts[0], comps = parts[1], periods = parts[2], cases = parts[3], prizes = parts[4];
+        var lines = ["Finance snapshot @ " + new Date().toISOString(), ""];
+        if (health && health.error) lines.push("Health: " + health.error);
+        else if (health) {
+          lines.push("phase=" + (health.phase || "?") + " · compete_rpc=" + health.rpc_competition_settle + " · lb_rpc=" + health.rpc_leaderboard_settle + " · rails=" + (health.preferred_payment_story || health.active_provider || ""));
+          if (health.flags) lines.push("flags: real_money=" + health.flags.real_money_enabled + " compete=" + health.flags.compete_enabled + " pause=" + health.flags.financial_pause);
+        }
+        lines.push("", "Competitions (latest):");
+        if (!comps || !comps.length) lines.push("  (none or table missing)");
+        else comps.forEach(function (c) {
+          lines.push("  · " + (c.game_key || "?") + " [" + c.status + "] stake " + c.stake_coins + " pool " + c.pool_coins);
+        });
+        lines.push("", "Leaderboard periods:");
+        if (!periods || !periods.length) lines.push("  (none or table missing)");
+        else periods.forEach(function (p) {
+          lines.push("  · " + (p.label || p.id) + " [" + p.status + "] pool " + (p.prize_pool_coins || 0));
+        });
+        lines.push("", "Creator prizes:");
+        if (!prizes || !prizes.length) lines.push("  (none or table missing)");
+        else prizes.forEach(function (p) {
+          lines.push("  · " + p.quiz_key + " " + p.prize_coins + "c [" + p.status + "]");
+        });
+        lines.push("", "Financial cases:");
+        if (!cases || !cases.length) lines.push("  (none or table missing)");
+        else cases.forEach(function (c) {
+          lines.push("  · [" + c.status + "] " + c.case_type + " — " + String(c.summary || "").slice(0, 80));
+        });
+        lines.push("", "Settle competitions via Edge competition-settle or SQL RPCs — never from a client winner claim.");
+        out.textContent = lines.join("\n");
+      }).catch(function (err) {
+        out.textContent = "Finance snapshot failed: " + err.message +
+          "\nRun coins-master-phase4.sql and ensure you are signed in as a team member for RLS reads.";
+      });
+    }
+    btn.addEventListener("click", renderSnapshot);
+    function pause(on) {
+      window.ParagonTeamConfirm({
+        icon: "⏸",
+        title: on ? "Enable financial pause?" : "Lift financial pause?",
+        lines: on
+          ? ["Blocks purchase/withdraw/compete RPCs that check financial_pause.", "Requires phase2+ SQL and team JWT."]
+          : ["Resumes financial RPCs if other flags allow."],
+        confirmLabel: on ? "Pause now" : "Lift pause"
+      }).then(function (c) {
+        if (!c.ok) return;
+        financeRest("/rest/v1/rpc/paragon_set_financial_pause", {
+          method: "POST",
+          body: JSON.stringify({ p_paused: on })
+        }).then(function () {
+          showToast(on ? "Financial pause ON (if SQL live)." : "Financial pause OFF (if SQL live).");
+          renderSnapshot();
+        }).catch(function (e) {
+          showToast("Pause RPC failed: " + e.message + " — need phase4 SQL + team login.");
+        });
+      });
+    }
+    document.getElementById("finance-pause-on")?.addEventListener("click", function () { pause(true); });
+    document.getElementById("finance-pause-off")?.addEventListener("click", function () { pause(false); });
+    document.getElementById("finance-report-snapshot")?.addEventListener("click", function () {
+      out.textContent = "Loading Stage 1 finance report…";
+      financeRest("/rest/v1/rpc/paragon_finance_report_snapshot", { method: "POST", body: "{}" })
+        .then(function (rep) {
+          out.textContent = "Stage 1 finance report\n" + JSON.stringify(rep, null, 2);
+        })
+        .catch(function (e) {
+          out.textContent = "Finance report failed: " + e.message +
+            "\nRun coins-master-stage1-hardening.sql after phase1+2.";
+        });
+    });
+  }
+
+  function bindSqlHealthProbe() {
+    var btn = document.getElementById("probe-sql-health");
+    var out = document.getElementById("sql-health-out");
+    if (!btn || !out) return;
+    btn.addEventListener("click", function () {
+      out.textContent = "Probing…";
+      var cfg = window.ParagonConfig || {};
+      var base = String(cfg.supabaseUrl || "").replace(/\/$/, "");
+      var key = cfg.supabaseAnonKey || "";
+      if (!base || !key || typeof fetch !== "function") {
+        out.textContent = "Missing ParagonConfig supabaseUrl/anon key.";
+        return;
+      }
+      fetch(base + "/rest/v1/rpc/paragon_sql_health", {
+        method: "POST",
+        headers: {
+          apikey: key,
+          Authorization: "Bearer " + key,
+          "Content-Type": "application/json"
+        },
+        body: "{}"
+      }).then(function (r) {
+        return r.text().then(function (text) {
+          var data = null;
+          try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
+          if (!r.ok) {
+            throw new Error((data && data.message) || (data && data.hint) || ("HTTP " + r.status + " — " + String(text).slice(0, 200)));
+          }
+          return data;
+        });
+      }).then(function (data) {
+        var lines = ["SQL health @ " + new Date().toISOString(), ""];
+        if (!data || typeof data !== "object") {
+          out.textContent = "Unexpected response: " + JSON.stringify(data);
+          return;
+        }
+        Object.keys(data).sort().forEach(function (k) {
+          if (k === "flags") {
+            lines.push("flags: " + JSON.stringify(data.flags));
+            return;
+          }
+          var v = data[k];
+          var mark = v === true ? "✅" : v === false ? "❌" : "·";
+          lines.push(mark + " " + k + " = " + JSON.stringify(v));
+        });
+        lines.push("");
+        lines.push("Legend: ✅ table/RPC exists · ❌ missing (run SQL pack) · flags show real_money_enabled etc.");
+        out.textContent = lines.join("\n");
+        try { showToast("SQL health probe finished."); } catch (e) {}
+      }).catch(function (err) {
+        var msg = String(err && err.message || err);
+        out.textContent = "Probe failed: " + msg +
+          "\n\nIf this says could not find function paragon_sql_health → run supabase/coins-master-phase3.sql" +
+          "\nIf network/CORS error → check project URL and that the RPC is granted to anon." +
+          "\nSandbox agents may fail DNS; your browser on a normal network should work.";
+      });
+    });
+  }
+
+
+  function bindStage2Reconcile() {
+    var listHost = document.getElementById("stage2-reconcile-list");
+    var eventsOut = document.getElementById("stage2-reconcile-events");
+    var btn = document.getElementById("stage2-reconcile-refresh");
+    if (!listHost || !btn) return;
+
+    function load() {
+      listHost.innerHTML = "<p class='team-site-sub'>Loading open purchase intents…</p>";
+      if (eventsOut) eventsOut.textContent = "Loading unmatched payment events…";
+      Promise.all([
+        financeRest("/rest/v1/rpc/paragon_coin_team_open_intents", {
+          method: "POST",
+          body: JSON.stringify({ p_limit: 50 })
+        }).catch(function (e) { return { error: String(e.message || e) }; }),
+        financeRest("/rest/v1/rpc/paragon_coin_team_unmatched_events", {
+          method: "POST",
+          body: JSON.stringify({ p_limit: 30 })
+        }).catch(function () { return []; })
+      ]).then(function (parts) {
+        var intents = parts[0];
+        var events = parts[1];
+        if (intents && intents.error) {
+          listHost.innerHTML = "<p class='team-site-sub'>Server intents unavailable: " + intents.error +
+            "<br>Run coins-master-stage2-coin-system.sql (after phase2). Falling back to device mirror list below.</p>";
+        } else if (!intents || !intents.length) {
+          listHost.innerHTML = "<p class='team-site-sub'>No open server purchase intents.</p>";
+        } else {
+          listHost.innerHTML = intents.map(function (row) {
+            return "<article class='team-site-card' data-intent-id='" + row.id + "'>" +
+              "<strong>₦" + Number(row.naira || 0).toLocaleString() + " → " + Number(row.coins || 0).toLocaleString() + " coins</strong>" +
+              "<div class='team-site-sub'>" + (row.user_email || "") + " · " + (row.status || "") +
+              (row.user_claim_ref ? " · claim ref: " + row.user_claim_ref : "") + "</div>" +
+              "<div class='team-site-actions' style='margin-top:8px;display:flex;flex-wrap:wrap;gap:6px'>" +
+              "<button type='button' class='team-mini-link' data-s2act='confirm' data-id='" + row.id + "'>Confirm credit (ledger)</button>" +
+              "<button type='button' class='team-mini-link' data-s2act='match' data-id='" + row.id + "'>Match event + confirm</button>" +
+              "</div></article>";
+          }).join("");
+        }
+        if (eventsOut) {
+          if (!events || !events.length) {
+            eventsOut.textContent = "No unmatched payment events (or phase3 tables not live).";
+          } else if (events.error) {
+            eventsOut.textContent = "Events: " + events.error;
+          } else {
+            eventsOut.textContent = events.map(function (ev) {
+              return (ev.provider || "?") + " · " + (ev.provider_transaction_id || "") +
+                " · ₦" + (ev.amount_naira || 0) + " · " + (ev.status || "") + " · id=" + (ev.id || "");
+            }).join("\n");
+          }
+        }
+      });
+    }
+
+    btn.addEventListener("click", load);
+
+    listHost.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-s2act]");
+      if (!button) return;
+      var id = button.dataset.id;
+      if (!id) return;
+      if (button.dataset.s2act === "confirm") {
+        window.ParagonTeamConfirm({
+          icon: "🪙",
+          title: "Confirm purchase credit?",
+          lines: [
+            "Posts PURCHASE_CREDIT to the server ledger (available bucket).",
+            "Idempotent key purchase:<intent id> — safe to retry.",
+            "Only after real OPay/Moniepoint/bank funds received."
+          ],
+          confirmLabel: "Confirm credit"
+        }).then(function (c) {
+          if (!c.ok) return;
+          financeRest("/rest/v1/rpc/paragon_coin_confirm_payment_intent", {
+            method: "POST",
+            body: JSON.stringify({ p_intent_id: id, p_team_note: "Team desk Stage 2 confirm" })
+          }).then(function () {
+            showToast("Credited on server ledger.");
+            load();
+          }).catch(function (e) {
+            showToast("Confirm failed: " + e.message);
+          });
+        });
+      }
+      if (button.dataset.s2act === "match") {
+        var eventId = window.prompt("Payment event UUID to match (from unmatched list), or leave blank to confirm without event", "") || "";
+        financeRest("/rest/v1/rpc/paragon_coin_match_and_confirm", {
+          method: "POST",
+          body: JSON.stringify({
+            p_intent_id: id,
+            p_event_id: eventId.trim() || null,
+            p_match_method: eventId.trim() ? "manual" : "admin_force",
+            p_note: "Stage 2 desk match"
+          })
+        }).then(function () {
+          showToast("Matched and confirmed (if SQL phase3+ live).");
+          load();
+        }).catch(function (e) {
+          showToast("Match failed: " + e.message + " — try Confirm credit alone.");
+        });
+      }
+    });
+  }
+
   function bindCoinRequests() {
     var host = document.getElementById("coin-requests-list");
     if (!host) return;
@@ -4652,8 +5162,22 @@ if (paragonTeamPage() === "settings.html") {
           var mirrors = readJSON("paragonArchive.coinCredits.v1", []);
           mirrors.push({ for: request.user, coins: request.coins, at: request.approvedAt, id: request.id });
           writeJSON("paragonArchive.coinCredits.v1", mirrors);
-          renderCoinRequests();
-          showToast("Approved — the user's balance updates when their device syncs.");
+          /* Stage 2: if id looks like server intent UUID, confirm on ledger too */
+          if (request.backend && request.id && /^[0-9a-f-]{36}$/i.test(String(request.id))) {
+            financeRest("/rest/v1/rpc/paragon_coin_confirm_payment_intent", {
+              method: "POST",
+              body: JSON.stringify({ p_intent_id: request.id, p_team_note: "Mirror desk approve + server confirm" })
+            }).then(function () {
+              showToast("Approved on server ledger + device mirror.");
+              renderCoinRequests();
+            }).catch(function () {
+              showToast("Approved device mirror only — server confirm failed (run Stage 2 SQL).");
+              renderCoinRequests();
+            });
+          } else {
+            renderCoinRequests();
+            showToast("Approved — the user's balance updates when their device syncs (mirror).");
+          }
         });
       }
       if (button.dataset.coinact === "reject") {
@@ -4664,6 +5188,37 @@ if (paragonTeamPage() === "settings.html") {
       }
     });
     renderCoinRequests();
+  }
+  function bindCoinWithdrawals() {
+    var host = document.getElementById("coin-withdrawals-list");
+    if (!host) return;
+    host.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-wdact]");
+      if (!button) return;
+      var list = readCoinWithdrawals();
+      var request = list.filter(function (entry) { return entry.id === button.dataset.id; })[0];
+      if (!request) return;
+      if (button.dataset.wdact === "paid") {
+        window.ParagonTeamConfirm({ icon: "🏦", title: "Confirm naira payout", lines: ["Mark " + Number(request.coins).toLocaleString() + " coins withdrawn for " + (request.displayName || request.user) + " after you have sent ~₦" + Number(request.naira || 0).toLocaleString() + ".", "Coins will be deducted on the user device via the debit mirror."], confirmLabel: "Mark paid" }).then(function (confirmed) {
+          if (!confirmed.ok) return;
+          request.status = "paid";
+          request.paidAt = new Date().toISOString();
+          writeCoinWithdrawals(list);
+          var debits = readJSON("paragonArchive.coinDebits.v1", []);
+          debits.push({ for: request.user, coins: request.coins, at: request.paidAt, id: request.id, reason: "Withdrawal payout" });
+          writeJSON("paragonArchive.coinDebits.v1", debits);
+          renderCoinWithdrawals();
+          showToast("Marked paid — user balance deducts when their device syncs.");
+        });
+      }
+      if (button.dataset.wdact === "reject") {
+        request.status = "rejected";
+        writeCoinWithdrawals(list);
+        renderCoinWithdrawals();
+        showToast("Withdrawal rejected.");
+      }
+    });
+    renderCoinWithdrawals();
   }
 
   var FLAGS = [
@@ -4767,7 +5322,14 @@ if (paragonTeamPage() === "settings.html") {
 
   if (typeof document !== "undefined" && document.addEventListener) {
     document.addEventListener("DOMContentLoaded", function () {
-    bindCoinRequests();
+    bindStage2Reconcile();
+  bindCoinRequests();
+    bindCoinWithdrawals();
+  bindSqlHealthProbe();
+  bindFinanceDesk();
+  bindStage3Games();
+  bindStage4Quiz();
+  bindPhase5Rails();
       if (!document.getElementById("set-flags")) return;
       var settings = readSettings();
       document.getElementById("set-idle").value = settings.sessionIdleMinutes;

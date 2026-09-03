@@ -8,7 +8,7 @@
 
 # 🤝 NEXT-AGENT HANDOFF BRIEF — READ THIS FIRST
 
-**Last updated:** 2026-08-25 (EOP v0.90.0, prompts P-095/P-096)
+**Last updated:** 2026-09-03 (EOP v1.04.0, prompt P-110)
 **You are:** the owner's dedicated build agent for **Paragon Archive**, a large multi-product front-end platform.
 
 ## 1. WHO THE OWNER IS & HOW TO WORK WITH THEM
@@ -30,7 +30,7 @@
 - **P-001 preserve-first:** never destroy owner-approved work; extend it.
 - **P-014:** every new HTML/CSS/JS/SQL file starts with the `PARAGON ARCHIVE — EXPORT IDENTITY` comment header (REAL FILE NAME / EXPECTED PROJECT PATH / ROLE / RESTORE-LOAD NOTE).
 - **P-015:** responsive at all resolutions.
-- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v75**) AND the assertion in `tests/archive-hub.test.js`.
+- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v88**) AND the assertion in `tests/archive-hub.test.js`.
 - **NO `window.alert/prompt/confirm` anywhere** — use inline panels or `ParagonTeamConfirm` (in `team/nav.js`).
 - **Canonical entry = `paragon-archive.html`. NEVER create a root index.html.**
 - Progress % must be milestone-derived (D-116) or labelled "team-set".
@@ -113,3 +113,111 @@
 **NEXT TURN (owner's plan):** BUILD the first websites from the specs under /sites/<slug>/ (quiz layout family: topbar/header/footer, dark tokens, unclickable home-page example section, >3 tabs allowed, logo -> Archive detail, siteUrl wiring + buildProgress via the Construction Desk when live). Owner will send more skills/API plans (spec-first). Then badges 21–30, then games+quiz coin/leaderboard integration as those products build.
 
 **Standing gotchas (new):** CHANGES.md must be rewritten at the end of EVERY turn; catalogue additions need the preview-route normalization + AI-BRAIN row (fixtures enforce); keyword boosts must show honest "You searched:" reasons; coin flows never create coins without a team approval record.
+
+## 7e. WHERE WE STOPPED — after P-099 / EOP v0.93.0 (2026-09-03)
+
+**Restored** the full workspace from GitHub after the zip→.md upload path failed in a fresh Arena session.
+
+**Shipped:** nine in-project product sites under `/sites/` with shared `sites/_shared` kit (quiz-family topbar, dark tokens, theme toggle, localStorage helpers). Catalogue OPEN now launches:
+Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop (shopper). Meal Planner is a companion tool linked beside Recipe. Honest `buildProgress` 55–80 (not 100). Cache **v76**. File tree 314 files / ~6.2 MB. Suites expected 3/3 with P-099 fixture.
+
+**Next turn candidates:**
+1. Owner demo-pass any site → raise that site's `buildProgress` to 100 via Construction Desk / catalogue.
+2. Achievement badges **21–30** (final 10 at the 10-cap).
+3. More owner skill/API drops → new `docs/site-specs/` + more `/sites/<slug>/` builds.
+4. Deepen any v1 site the owner prioritizes (e.g. true PDF lib, richer recipe substitutions).
+5. Brevo hold / announcements SQL / production domain — still owner-side.
+
+**Standing gotchas:** never fake buildProgress 100; meal-planner has no separate catalogue row (pairs with Recipe); personal-shopper is NOT a checkout storefront; site logos must keep Archive detail links; cache bump on shell changes; no alert/prompt/confirm; regenerate paragon-file-tree.html when structure changes.
+
+## 7f. WHERE WE STOPPED — after P-100 / EOP v0.94.0 (2026-09-03)
+
+**Shipped:** `supabase/coins-schema.sql` + `SQL-RUN-PACK.md` (owner should run announcements + coins SQL now). Coin shop: history + withdrawals. Team desk: withdrawal Paid flow + debit mirror. Nine product sites deepened (subs, Anki, invoice CSV/link, resume cover letter, travel entry checks, photo overlay/rotate, meal←recipe, shopper compare, files job log). Cache v77.
+
+**Upload note:** Arena still failed to materialise the 10 MD attachments on disk this session; build used in-repo COIN-SYSTEM + site-specs. If owner pushes skills to `docs/skills/`, merge any remaining verbatim rules next turn.
+
+**Next:** owner runs SQL; owner sets real ₦ rates; badges 21–30; optional Supabase client wiring for coin RPCs; deepen any site owner prioritises after demo.
+
+## 7g. WHERE WE STOPPED — after P-101 / EOP v0.95.0 (2026-09-03)
+
+**Skills are on disk** via GitHub `uploads/` + `docs/skills/` + root coins master.
+
+**SQL:** Owner must run VERIFY in `supabase/OWNER-SQL-CHECKLIST.md` and report results. Then run any missing of: announcements-schema → coins-schema → coins-master-phase1. Agent cannot probe Supabase DNS from this sandbox.
+
+**Coins:** UI ₦1=1 packs; real-money OFF; master phase1 SQL ready. Do not enable real_money until provider+compliance.
+
+**Next:** owner VERIFY reply; badges 21–30; wire `paragon_public_coin_config` fetch into shop; paid quiz server layer only after flags; more skill fidelity (PDF/audio engines) as requested.
+
+## 7h. WHERE WE STOPPED — after P-102 / EOP v0.96.0 (2026-09-03)
+
+**Products:** All 9 skill partials completed at browser-local depth. HEIC/ffmpeg/pandoc/provider still out of scope by honesty.
+
+**Coins:** Phase1 + Phase2 SQL authored. FE uses RPCs when live; guest free-play only; real_money OFF. Owner must run SQL 1→4 and VERIFY.
+
+**Next:** owner SQL; payment provider; optional WASM codecs; badges 21–30; compete settle engine when compete_enabled.
+
+## 7i. WHERE WE STOPPED — after P-103 / EOP v0.97.0
+
+**Phase 3 coins built** (SQL + Edge + Team probe). Sandbox still cannot confirm live SQL (DNS). Owner must Probe or paste VERIFY.
+
+**Next:** owner run phase3 SQL + deploy Edge; provider keys; optional real_money flip; compete settle when enabled.
+
+## 7j. WHERE WE STOPPED — after P-104 / EOP v0.98.0
+
+**Skills:** See `docs/SKILLS-COMPLETION.md` — browser depth complete; native/provider rows documented.
+
+**Coins:** Phases 1–4 SQL + Edge in repo. Owner must run SQL 1→6, deploy functions, Probe health. real_money OFF.
+
+**Next:** owner SQL+Edge; provider; optional WASM codecs; badges 21–30; paid quiz server when compete_enabled.
+
+## 7k. WHERE WE STOPPED — after P-105 / EOP v0.99.0
+
+**SQL assurance:** Owner uses `supabase/SUPABASE-AI-VERIFY-PROMPT.md` Script A (or Team probe / GH Actions). Agent cannot DNS Supabase.
+
+**Badges:** 30/30 art files exist and are wired.
+
+**Next:** owner paste Script A results; run any false migrations; Edge deploy; founder photo still OWNER-only.
+
+## 7l. WHERE WE STOPPED — after P-106 / EOP v1.00.0
+
+**Achievements:** 50/50 tasks + badge art. Ads + Top 10 leaderboard + streaks.
+
+**Next:** optional AI polish of geometric badges 41–50; owner AdSense publisher ID when approved; founder photo still OWNER-only.
+
+## 7m. WHERE WE STOPPED — after P-107 / EOP v1.01.0
+
+**Badges:** 50/50 AI art (41–50 polished this turn).
+
+**Coins:** Phases **1–5** in repo. Preferred rails **OPay/Moniepoint**. Flutterwave never required by master spec.
+
+**Remaining (owner):** run SQL 1–5, deploy Edge, paste OPay/Moniepoint account numbers, optional webhooks, licence before `real_money_enabled`.
+
+**Skills uploads/:** all 10 browser-complete at honest depth; native/API rows still out of scope.
+
+## 7n. WHERE WE STOPPED — after P-108 / EOP v1.02.0
+
+**Stage 1 foundation: COMPLETE in repo.** Checklist: `docs/COINS-AUDIT-CHECKLIST.md`.
+
+**Skipped (already done):** ledger, RLS, ₦1=1, stakes 100–10000, 5% fee, withdraw fee, guest rules, phases 3–5.
+
+**Filled this turn:** claim/withdraw rate limits, platform books, 30% fee→reward, finance report, DR doc.
+
+**Next:** owner runs SQL; owner pastes **Stage 2**.
+
+## 7o. WHERE WE STOPPED — after P-109 / EOP v1.03.0
+
+**Stage 2 coin system: COMPLETE in repo.** See `docs/COINS-STAGE2.md`.
+
+**Owner:** run `coins-master-stage2-coin-system.sql` (after phase2). Use Team Stage 2 reconcile desk.
+
+**Next:** owner Stage 3 brief (or production activation).
+
+## 7p. WHERE WE STOPPED — after P-110 / EOP v1.04.0
+
+**Stage 3 Games: COMPLETE in repo.** `docs/COINS-STAGE3.md`.
+
+**Stage 4 Quiz: COMPLETE in repo.** `docs/COINS-STAGE4.md`.
+
+**Owner:** run `coins-master-stage3-games.sql` after phase4; then `coins-master-stage4-quiz.sql` for paid quiz.
+
+**Next:** production activation brief (do not flip real_money until ordered) or Stage 5 if any.

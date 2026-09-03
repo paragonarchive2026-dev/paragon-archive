@@ -1,0 +1,53 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: settings.html
+  EXPECTED PROJECT PATH: /sites/invoice-generator/settings.html
+  ROLE: Paragon Invoice — seller/business profile (local).
+  RESTORE-LOAD NOTE: In-project product site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Invoice — Business</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Invoice">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-invoice.png" alt="">
+        <span class="brand-name">Paragon Invoice</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link">Invoices</a>
+      <a href="settings.html" class="nav-link active">Business</a>
+    </nav>
+    <div class="header-actions">
+      <button type="button" class="icon-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
+    </div>
+  </header>
+  <main class="page" style="max-width:640px">
+    <h1 class="page-title">Business profile</h1>
+    <p class="page-sub">Printed on every invoice. Stored only in this browser.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="panel">
+      <div class="field"><label for="bizName">Business name</label><input id="bizName" placeholder="Your studio or company"></div>
+      <div class="field"><label for="bizEmail">Billing email</label><input id="bizEmail" type="email"></div>
+      <div class="field"><label for="bizPhone">Phone</label><input id="bizPhone"></div>
+      <div class="field"><label for="bizAddress">Address</label><textarea id="bizAddress"></textarea></div>
+      <div class="field"><label for="bizTax">Tax ID / VAT</label><input id="bizTax"></div>
+      <button type="button" class="btn btn-primary" id="saveBiz">Save business</button>
+    </div>
+  </main>
+  <footer class="footer">
+    <p><a href="../../paragon-archive.html?site=Paragon%20Invoice">Open in Paragon Archive</a></p>
+  </footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

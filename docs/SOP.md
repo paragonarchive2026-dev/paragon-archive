@@ -494,6 +494,33 @@ Use the applicable subset for each change:
 | D-192 | 2026-08-26 | ICON-FACED CARDS: trending, staff-pick (featured + minis), and recently-added cards now use the website's real icon art AS the card face (the gradient tile is retired for iconed sites and remains only as the honest fallback); paragonTile chips removed (D-172). | Owner's P-097 card-face order. | Confirmed |
 | D-191 | 2026-08-26 | CONSOLIDATED TEAM DESK + WASTE SWEEP (owner file-reduction order): all 29 team pages merged into ONE routed shell (team/desk.html? ?page=, 30 panels incl. the new Construction Desk page) — team folder 32 → 6 files, whole project 276 → 244 files (69 code files); the Construction Desk becomes its own sidebar destination with per-row "Mark under construction / Retire construction / Construction page" actions wired to the public pages; removed community-schema.sql (executed live 2026-08-18) and the cancelled quiz take-away export; schema.sql relabelled an EXECUTED archive reference. The ~100 websites will be BUILT INSIDE THIS PROJECT (owner reversed the separate-agent strategy after learning ads cannot inject into other domains). | Owner's P-097 consolidation + build-here decision. | Confirmed |
 | D-206 | 2026-08-26 | DEPLOYMENT + CHANGES TRACKING: docs/DEPLOYMENT-GUIDE.md (GitHub → Vercel/Netlify free, SPCK workflow, upload limits ~10-20 files/message or one zip, custom-domain unlocks, the $5-once optional Chrome-extension frameless-app path) and docs/CHANGES.md (the per-turn changed-files list the owner uploads). The agent cannot push to GitHub directly — the guide is the procedure. | Owner's P-098 deployment questions. | Confirmed |
+| D-207 | 2026-09-03 | Nine in-project product sites under /sites/ with shared quiz-family kit; personal-shopper maps to Paragon Shop; meal-planner is a Recipe companion tool. | P-098 next-turn plan + D-191 build-here. | Confirmed |
+| D-208 | 2026-09-03 | Catalogue siteUrls for the eight live products point at /sites/… with honest buildProgress 55–80 (not 100 until owner demo). | Site Build Kit acceptance checklist. | Confirmed |
+| D-209 | 2026-09-03 | Unfinished-preview fixture LIVE_SITES expanded to include the eight newly opened products. | Preserve P-009 honesty for remaining concept previews. | Confirmed |
+| D-210 | 2026-09-03 | Coins backend SQL (wallets/ledger/RPCs) is multi-device source of truth; localStorage remains offline-first fallback. | Owner asked for all SQL to run ASAP. | Confirmed |
+| D-211 | 2026-09-03 | Coin withdrawals = manual team naira payout + debit mirror/SQL complete RPC — no automated bank API. | Free-tier / Nigeria bank-transfer logistics. | Confirmed |
+| D-212 | 2026-09-03 | Product sites deepen with local engines even when skills describe React/API; free build law holds. | Site Build Kit + D-191. | Confirmed |
+| D-213 | 2026-09-03 | When Arena attachments fail, owner pushes skills to GitHub `uploads/`; agent pulls from main. | Owner workflow. | Confirmed |
+| D-214 | 2026-09-03 | Production coin target ₦1=1 redeemable coin; packs 500/1000/5000; real_money_enabled default false. | Coins master build spec. | Confirmed |
+| D-215 | 2026-09-03 | SQL verification is owner-run VERIFY queries; sandbox has no DNS to Supabase. | Platform network limit. | Confirmed |
+| D-216 | 2026-09-03 | Skill complete = all browser-capable engines; native/server rows stay honest not-faked. | Free build law. | Confirmed |
+| D-217 | 2026-09-03 | Coins Phase 2 = ledger RPCs + FE gates; provider webhooks deferred to owner Phase 3. | Master spec. | Confirmed |
+| D-218 | 2026-09-03 | buildProgress 80–92 after depth; 100 only after owner demo. | Site Build Kit. | Confirmed |
+| D-219 | 2026-09-03 | Sandbox cannot DNS-resolve Supabase; Team desk probe / Dashboard is SQL truth. | Network limit. | Confirmed |
+| D-220 | 2026-09-03 | Phase 3 webhooks provider-agnostic; secrets only in Edge; real_money stays gated. | Master §44–46. | Confirmed |
+| D-221 | 2026-09-03 | Uploads “complete” = browser engines + coins ph1–4; native/API rows not faked. | Free build law. | Confirmed |
+| D-222 | 2026-09-03 | Phase 4 competition settle is server/team only; browser never referee for money. | Master §6–8. | Confirmed |
+| D-223 | 2026-09-03 | SQL assurance via owner Script A / Team probe / GH Actions anon; never service_role in git. | Security + network. | Confirmed |
+| D-224 | 2026-09-03 | Achievement badges 1–30 complete art set wired in BADGE_ART. | IMAGE-REQUIREMENTS §1.6. | Confirmed |
+| D-225 | 2026-09-03 | Achievements expand to 50 (ads, top-10 leaderboard, engagement). | Engagement growth. | Confirmed |
+| D-226 | 2026-09-03 | Ad badges use real impressions/taps; reserved slots until AdSense; no fake revenue. | P-009 / D-179. | Confirmed |
+| D-227 | 2026-09-03 | Engagement leaderboard is practice rank; money comps stay server-settled. | D-222. | Confirmed |
+| D-228 | 2026-09-03 | OPay/Moniepoint preferred payment rails; Flutterwave not required. | Coin master §44–45; owner intent. | Confirmed |
+| D-229 | 2026-09-03 | Coins SQL phases 1–5 complete; remaining = owner activation not missing phase file. | COINS-PHASES.md. | Confirmed |
+| D-230 | 2026-09-03 | Stage 1 foundation complete in repo; real_money stays OFF. | Master Stage 1. | Confirmed |
+| D-231 | 2026-09-03 | Stage 2 waits for owner brief; do not rebuild completed phases. | Workflow. | Confirmed |
+| D-232 | 2026-09-03 | Stage 2 coin system complete; credit only after confirm/match. | Master Stage 2. | Confirmed |
+| D-233 | 2026-09-03 | Stage 3 games: server settle only; 5% fee; points; anticheat foundations. | Master Stage 3. | Confirmed |
 | D-205 | 2026-08-26 | PARAGON COINS CORE: balance in personal state, Account coin stat + styled shop popup (₦500/₦1,000/₦5,000 packs at placeholder ₦1=2), buy requests -> Team settings panel (super-admin approve/reject) -> paragonArchive.coinCredits.v1 mirror -> user's device credits with a toast; addCoins/spendCoins helpers + history. Full economics + games/quiz integration rules + the owner's ChatGPT heads-up prompt recorded in docs/COIN-SYSTEM.md (creator-quiz no-win rule, bet-only leaderboards, weekly top-10 rewards, withdrawal flow). | Owner's P-098 coin order. | Confirmed |
 | D-204 | 2026-08-26 | SITE SPECS FROM OWNER SKILLS: all 9 uploaded skill files (recipe-creator, meal-planner, file-converter, invoice-generator, flashcard-generator, personal-shopper, photo-editor, resume-maker, travel-assistant) merged into docs/site-specs/<slug>.md — verbatim use/never-use rules + the FREE adaptation law (vanilla HTML/CSS/JS + localStorage engines replacing the skills' full-stack/API/React architecture; adapters ready for free APIs). Websites build in-project under /sites/<slug>/ in the quiz layout family. | Owner's P-098 skill uploads. | Confirmed |
 | D-203 | 2026-08-26 | RxLife Network + Pharmapaedia added to the catalogue as honest Deployed-family Paragon products (0% build, preview route, no fake progress; AI Brain rows added). | Owner's P-098 order. | Confirmed |
@@ -2576,3 +2603,96 @@ Use the applicable subset for each change:
 - ⚙️ Activate reserved Tutor and product-specific Paragon AI modes only as each real product, curriculum/tool permissions, safety policy, and backend context become available
 - ⚙️ Optional server-side HttpOnly refresh-token/session hardening
 - ⚙️ Final hosting, monitoring, analytics, asset CDN, backups, and deployment pipeline
+
+### P-099 — 2026-09-03 — Continue from GitHub restore: build first /sites/ products from the nine specs
+
+**Owner intent (decoded):** Zip upload failed earlier; owner pushed the workspace to GitHub and asked to continue building the website. Handoff (NEXT-AGENT after P-098) ordered the first in-project builds under `/sites/<slug>/`.
+
+**Decisions**
+- D-207: Ship nine vanilla product sites sharing `sites/_shared` kit; map personal-shopper → catalogue Paragon Shop; meal-planner pairs with Paragon Recipe without a separate catalogue row.
+- D-208: Catalogue `siteUrl` points at in-project paths; `buildProgress` honest mid-range (55–80) until owner demo pass — not fake 100.
+- D-209: LIVE_SITES / unfinished-preview fixture expanded so only remaining unfinished records keep concept-preview routes.
+
+**Delivered:** shared kit, 9 site folders + SPEC.md each, catalogue wiring, REALLY_UPDATED, cache v76, P-099 fixture, file tree, EOP v0.93.0, CHANGES, NEXT-AGENT.
+
+### P-100 — 2026-09-03 — Coins master + 9 skill files (upload path flaky); SQL pack + product depth
+
+**Owner intent:** Use 10 uploaded MD files (coins master + 9 product skills), deepen the 9 sites, ship all Supabase SQL to run now.
+
+**Decisions**
+- D-210: Coins backend SQL is the multi-device source of truth; localStorage remains offline-first fallback and same-device team desk loop.
+- D-211: Withdrawals are manual team payouts (no automated bank API in free tier).
+- D-212: Product depth upgrades stay vanilla/local engines per Site Build Kit even when skill files describe React/API stacks.
+
+**Delivered:** coins-schema.sql, SQL-RUN-PACK.md, withdrawals UI, 9 site upgrades, EOP v0.94.0, cache v77.
+
+### P-101 — 2026-09-03 — GitHub uploads/ skills + coins master Phase 1b + full maintenance
+
+**Owner intent:** Skills live in GitHub `uploads/`; agent reads them; SQL checklist; maintain Archive/Hub/Account/Team/Updates/detail/products.
+
+**Decisions**
+- D-213: Skill source of truth = `uploads/` (+ mirror `docs/skills/`) on GitHub when Arena disk uploads fail.
+- D-214: Coin purchase production target ₦1 = 1 coin; real_money_enabled defaults false.
+- D-215: Owner verifies SQL via OWNER-SQL-CHECKLIST (agent cannot reach Supabase DNS from this sandbox).
+
+**Delivered:** coins-master-phase1.sql, OWNER-SQL-CHECKLIST, rate honesty, product-wave announcement, skill depth, cache v78, EOP v0.95.0.
+
+### P-102 — 2026-09-03 — Complete all skill partials + coins master Phase 2
+
+**Owner intent:** Finish everything previously marked partial on the 9 uploads skills and the coins master “No”.
+
+**Decisions**
+- D-216: Skill “complete” for free Paragon products means full browser-local engines for every capability that can run without paid servers/native binaries; remaining skill rows stay documented as not-faked.
+- D-217: Coins master Phase 2 ships authority SQL RPCs + FE gates; provider webhooks are Phase 3 (owner).
+- D-218: buildProgress may rise into the 80–92 band after depth passes; 100 only after owner demo per Site Build Kit.
+
+**Delivered:** product depth P-102, coins-master-phase2.sql, FE coin authority path, cache v79, EOP v0.96.0.
+
+### P-103 — 2026-09-03 — Coins Phase 3 + live SQL confirmation path
+
+**D-219:** Sandbox DNS cannot reach Supabase; owner browser Team probe / Dashboard VERIFY is source of truth for “SQL ran”.
+**D-220:** Phase 3 = provider-agnostic webhook + reconcile; never credit from client-only claims.
+**Delivered:** phase3 SQL, Edge pair, Team probe, deploy doc, cache v80, EOP v0.97.0.
+
+### P-104 — 2026-09-03 — Phase 4 + complete remaining skill browser depth
+
+**D-221:** “Everything in the 10 uploads” means browser-complete + coins phases 1–4 in repo; native/provider/licence rows stay not-faked.
+**D-222:** Phase 4 = competition/leaderboard/prize/cases server RPCs; client never settles money.
+**Delivered:** phase4 SQL+Edge, finance desk, SKILLS-COMPLETION.md, product depth, cache v81, EOP v0.98.0.
+
+### P-105 — 2026-09-03 — Assurance path + badges 21–30 + polish
+
+**D-223:** Full SQL assurance = owner-run Script A / Team probe / GitHub Actions anon — not agent DNS and not service_role in GitHub.
+**D-224:** Achievement badges 1–30 complete matched set under `assets/achievement-badges/`.
+**Delivered:** verify prompt, Actions workflow, badges 21–30, polish, file tree, EOP v0.99.0, cache v82.
+
+### P-106 — 2026-09-03 — 50 achievements (ads + leaderboard)
+
+**D-225:** Achievement set is 50 tasks / 10 stages; badges 31–50 focus ads, top-10 climb, retention.
+**D-226:** Ad achievements count honest impressions + intentional support taps (reserved slots until AdSense live) — never fake revenue.
+**D-227:** Engagement leaderboard is practice ranking on-device; coin competition settle stays server/team only (D-222).
+**Delivered:** 20 badges + tasks, ads bridge, leaderboard UI, cache v83, EOP v1.00.0.
+
+### P-107 — 2026-09-03 — Phase 5 OPay/Moniepoint + badge polish
+
+**D-228:** Preferred payment rails are OPay and Moniepoint (bank-transfer-first). Flutterwave/Paystack are optional adapters only.
+**D-229:** Coins SQL phases 1–5 complete in repo; no mandatory phase 6 SQL. Remaining work is owner activation and optional live APIs/compliance.
+**Delivered:** phase5.sql, webhook normalizers, Team rails desk, FE pay cards, COINS-PHASES.md, badges 41–50 AI art, cache v84.
+
+### P-108 — 2026-09-03 — Stage 1 foundation complete (audit + hardening)
+
+**D-230:** Stage 1 foundation is complete in-repo (ledger, RLS, authority RPCs, real_money OFF, rate limits, reserves, reports). Owner must run SQL for live effect.
+**D-231:** Do not redo completed coin phases; Stage 2 starts only from owner brief on remaining gaps (paid quiz server, live API payouts, etc.).
+**Delivered:** COINS-AUDIT-CHECKLIST, stage1-hardening.sql, finance report desk, DR doc, cache v85.
+
+### P-109 — 2026-09-03 — Stage 2 coin system
+
+**D-232:** Stage 2 (purchase, reconcile, credits, history, buckets, idempotency, duplicate protection) complete in repo; credits only via confirm/match.
+**Delivered:** stage2 SQL, shop claim/history/buckets, Team reconcile desk, cache v86.
+
+### P-110 — 2026-09-03 — Stage 3 Games
+
+**D-233:** Stage 3 games complete in repo: 1v1 stake, 5% fee, server settle, draw/void, points, anticheat foundations. Browser never settles money.
+**Delivered:** stage3-games.sql, FE desk, Team settle, COINS-STAGE3.md, cache v87.
+
+**Stage 4 Quiz delivered (P-111):** stage4-quiz.sql, paid bridge, Team prize desk, COINS-STAGE4.md, cache v88. Free quiz localStorage unchanged.

@@ -456,6 +456,40 @@ if (document.getElementById("questionsContainer")) {
     publishedQuizId = collected.quiz.id;
     closePreview();
     document.getElementById("successModal").style.display = "flex";
+    /* Stage 4 optional: fund a creator prize + publish server definition (paid path) */
+    try {
+      if (window.ParagonQuizPaid && window.ParagonQuizPaid.isConfigured()) {
+        var prizeEl = document.getElementById("creatorPrizeCoins");
+        var feeEl = document.getElementById("paidEntryFeeCoins");
+        var prize = prizeEl ? Math.round(Number(prizeEl.value) || 0) : 0;
+        var fee = feeEl ? Math.round(Number(feeEl.value) || 0) : 0;
+        var answerKey = (collected.quiz.questions || []).map(function (q) { return Number(q.correct); });
+        var questionsPublic = (collected.quiz.questions || []).map(function (q) {
+          return { text: q.text, options: q.options };
+        });
+        if (fee > 0 || prize > 0) {
+          window.ParagonQuizPaid.publishQuiz({
+            p_quiz_key: collected.quiz.id,
+            p_title: collected.quiz.title,
+            p_description: collected.quiz.description || "",
+            p_questions_public: questionsPublic,
+            p_answer_key: answerKey,
+            p_entry_fee_coins: fee,
+            p_paid_enabled: fee > 0,
+            p_category: collected.quiz.category || "general",
+            p_difficulty: collected.quiz.difficulty || "medium",
+            p_timer_seconds: Number(collected.quiz.timer) || 0,
+            p_max_paid_attempts: 3
+          }).then(function () {
+            if (prize > 0) {
+              return window.ParagonQuizPaid.lockCreatorPrize(collected.quiz.id, prize, "prize-" + collected.quiz.id);
+            }
+          }).catch(function (err) {
+            console.warn("Server quiz publish skipped:", err && err.message);
+          });
+        }
+      }
+    } catch (e) { /* free publish still succeeded locally */ }
   }
 
   document.getElementById("addQuestionBtn").addEventListener("click", addQuestionBlock);
@@ -567,6 +601,8 @@ if (document.getElementById("startScreen")) {
   var timerHandle = null;
   var timeLeft = 0;
   var startedAt = 0;
+  var paidAttemptId = null;
+  var paidMode = false;
   var TIMER_CIRCUMFERENCE = 2 * Math.PI * 45;
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -660,7 +696,7 @@ if (document.getElementById("startScreen")) {
     el("feedbackText").textContent = isCorrect ? "Correct!" : timedOut ? "Time's up!" : "Not quite!";
     el("feedbackText").className = "feedback-text " + (isCorrect ? "good" : "bad");
     el("correctAnswer").textContent = isCorrect ? "" : "Correct answer: " + question.options[question.correct];
-    el("nextBtn").textContent = current === quiz.questions.length - 1 ? "See Results 🏁" : "Next Question →";
+    el("nextBtn").textContent = current === quiz.questions.length - 1 ? "See Results" : "Next Question";
     show("feedbackContainer");
     el("nextBtn").focus();
   }
@@ -676,8 +712,28 @@ if (document.getElementById("startScreen")) {
       quizId: quiz.id, quizTitle: quiz.title,
       score: correct, total: total, answers: answers,
       wrong: wrong, skipped: skipped, seconds: seconds,
-      finishedAt: new Date().toISOString()
+      finishedAt: new Date().toISOString(),
+      paidAttemptId: paidAttemptId || null,
+      clientOnly: !paidMode
     });
+
+    /* Stage 4: if paid attempt active, submit answers for SERVER score (authoritative). */
+    if (paidMode && paidAttemptId && window.ParagonQuizPaid) {
+      var chosen = answers.map(function (a) { return typeof a.chosen === "number" ? a.chosen : -1; });
+      window.ParagonQuizPaid.scoreAttempt(paidAttemptId, chosen, "client-" + Date.now().toString(36))
+        .then(function (server) {
+          if (server && typeof server.score === "number") {
+            correct = server.score;
+            total = server.total || total;
+            if (el("completeMessage")) {
+              el("completeMessage").textContent = (el("completeMessage").textContent || "") +
+                " Server score: " + server.score + "/" + server.total +
+                (server.eligible_for_prize === false ? " (not prize-eligible — creator self-play protection)." : ".");
+            }
+          }
+        })
+        .catch(function () { /* keep local display; team can rescore */ });
+    }
 
     hide("playScreen");
     show("completeScreen");
@@ -740,11 +796,35 @@ if (document.getElementById("startScreen")) {
 
   /* ---- Bindings ---- */
   el("startQuizBtn").addEventListener("click", function () {
-    hide("startScreen");
-    show("playScreen");
-    startedAt = Date.now();
-    renderQuestion();
-    window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+    var wantPaid = new URLSearchParams(window.location.search).get("paid") === "1" ||
+      Number(quiz.entryFeeCoins || quiz.entry_fee_coins || 0) > 0;
+    function beginPlay() {
+      hide("startScreen");
+      show("playScreen");
+      startedAt = Date.now();
+      renderQuestion();
+      window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+    }
+    if (wantPaid && window.ParagonQuizPaid && window.ParagonQuizPaid.isConfigured()) {
+      var key = quiz.serverKey || quiz.id;
+      window.ParagonQuizPaid.startPaidAttempt(key, "play-" + key + "-" + Date.now().toString(36))
+        .then(function (attempt) {
+          paidMode = true;
+          paidAttemptId = attempt && attempt.id;
+          if (attempt && attempt.metadata && attempt.metadata.is_creator_self_play) {
+            window.alert("Creator self-play: you can practice paid mode but you cannot win this quiz prize or farm leaderboard points from it.");
+          }
+          beginPlay();
+        })
+        .catch(function (err) {
+          window.alert("Paid attempt could not start (" + (err && err.message ? err.message : err) + "). Starting free play instead.");
+          paidMode = false;
+          paidAttemptId = null;
+          beginPlay();
+        });
+      return;
+    }
+    beginPlay();
   });
   el("nextBtn").addEventListener("click", function () {
     if (!locked) return;

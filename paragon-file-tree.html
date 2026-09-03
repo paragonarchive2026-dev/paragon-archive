@@ -1,334 +1,436 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Paragon Archive — Project File Tree</title>
 <!--
   PARAGON ARCHIVE — EXPORT IDENTITY
   REAL FILE NAME: paragon-file-tree.html
-  EXPECTED PROJECT PATH: /paragon-file-tree.html (kept OUTSIDE /paragon-archive/, day-one deliverable)
-  ROLE: Live project file tree — regenerated on every structural change per owner rule (P-071).
-  RESTORE-LOAD NOTE: Standalone; open directly in a browser.
 -->
-<style>
-:root{--bg:#0f1117;--panel:#161a23;--line:#2c3242;--text:#e6e9f0;--muted:#8b93a7;--accent:#4f8cff;
---js:#f1d94a;--html:#e5623d;--css:#4f8cff;--md:#7aa2f7;--img:#9ece6a;--sql:#38b6d8;--json:#b18af8;--folder:#e8b64c}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;padding:32px 16px 64px;display:flex;flex-direction:column;align-items:center}
-header{max-width:900px;width:100%;margin-bottom:20px}
-h1{font-size:25px} h1 span{color:var(--accent)}
-header p{color:var(--muted);margin-top:6px;font-size:13.5px;line-height:1.55}
-.tree{max-width:900px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 18px;font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.9}
-.row{white-space:nowrap;overflow-x:auto}
-.row.folder b{color:var(--folder)}
-.count{color:var(--muted);font-size:11px;margin-left:8px}
-.js{color:var(--js)}.html{color:var(--html)}.css{color:var(--css)}.md{color:var(--md)}.img{color:var(--img)}.sql{color:var(--sql)}.json{color:var(--json)}.other{color:var(--text)}
-.stats{margin-top:16px;color:var(--muted);font-size:12.5px}
-</style>
-</head>
-<body>
-<header>
-<h1>◈ PARAGON <span>ARCHIVE</span> — Project File Tree</h1>
-<p>Regenerated <b>2026-08-31</b> after <b>P-098 / EOP v0.92.0</b> — 9 site-specs from the owner's skills, Paragon Coins core, true-fullscreen maximize, keyword search, RxLife + Pharmapaedia in Deployed, badges 20/30, deployment guide; cache v75.<b>paragon-archive.html</b>.</p>
-</header>
-<div class="tree">
-<div class="row folder">📁 <b>paragon-archive/</b><span class="count">(266 files)</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>ads/</b><span class="count">(1 files)</span></div>
-<div class="row" style="padding-left:18px"><span class="js">adsense.js</span><span class="count">2 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>ai/</b><span class="count">(1 files)</span></div>
-<div class="row" style="padding-left:18px"><span class="js">paragon-archive-ai.js</span><span class="count">45 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>assets/</b><span class="count">(185 files)</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>achievement-badges/</b><span class="count">(20 files)</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-account.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-collection-keeper.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-collector-three.png</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-explorer-five.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-explorer-ten.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-first-rating.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-first-review.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-first-save.png</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-first-share.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-first-visit.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-five-star.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-helpful-voice.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-notification-reader.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-progress-starter.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-progress-three.png</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-reviewer-three.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-saver-five.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-search-explorer.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-share-three.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">badge-theme-explorer.png</span><span class="count">4 KB</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>brand/</b><span class="count">(9 files)</span></div>
-<div class="row" style="padding-left:36px"><span class="img">apple-touch-180.png</span><span class="count">41 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">favicon-16.png</span><span class="count">540 B</span></div>
-<div class="row" style="padding-left:36px"><span class="img">favicon-32.png</span><span class="count">1 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">favicon.ico</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">logo-full.png</span><span class="count">54 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">logo-mark.png</span><span class="count">26 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">og-default.jpg</span><span class="count">62 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">pwa-icon.png</span><span class="count">28 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">splash.png</span><span class="count">40 KB</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>category-icons/</b><span class="count">(14 files)</span></div>
-<div class="row" style="padding-left:36px"><span class="img">creative.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">deployed.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">dev-tools.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">education.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">entertainment.png</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">finance.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">games.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">health.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">lifestyle.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">media.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">originals.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">productivity.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">social.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">tools.png</span><span class="count">5 KB</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>hero-banners/</b><span class="count">(15 files)</span></div>
-<div class="row" style="padding-left:36px"><span class="img">creative.jpg</span><span class="count">64 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">default.jpg</span><span class="count">35 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">deployed.jpg</span><span class="count">28 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">dev-tools.jpg</span><span class="count">57 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">education.jpg</span><span class="count">60 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">entertainment.jpg</span><span class="count">68 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">finance.jpg</span><span class="count">34 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">games.jpg</span><span class="count">88 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">health.jpg</span><span class="count">48 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">lifestyle.jpg</span><span class="count">80 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">media.jpg</span><span class="count">78 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">originals.jpg</span><span class="count">67 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">productivity.jpg</span><span class="count">50 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">social.jpg</span><span class="count">58 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">tools.jpg</span><span class="count">45 KB</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>icons/</b><span class="count">(2 files)</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-192.png</span><span class="count">46 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-512.png</span><span class="count">296 KB</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>illustrations/</b><span class="count">(25 files)</span></div>
-<div class="row" style="padding-left:36px"><span class="img">achievement-locked.png</span><span class="count">62 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">auth-bg.jpg</span><span class="count">39 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">bug-report.png</span><span class="count">38 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">cookie-icon.png</span><span class="count">22 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">default-avatar.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">email-verify.png</span><span class="count">27 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">empty-bookmarks.png</span><span class="count">22 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">empty-collections.png</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">empty-history.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">empty-reviews.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">empty-search.png</span><span class="count">26 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">empty-updates.png</span><span class="count">21 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">error-404.png</span><span class="count">38 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">error-500.png</span><span class="count">45 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">free-for-everyone.jpg</span><span class="count">67 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">guest-welcome.png</span><span class="count">34 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">header-about.jpg</span><span class="count">126 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">header-privacy.jpg</span><span class="count">63 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">header-request.jpg</span><span class="count">56 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">header-support.jpg</span><span class="count">42 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">maintenance.png</span><span class="count">27 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">offline.png</span><span class="count">26 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">success-submit.png</span><span class="count">50 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">timeline-journey.jpg</span><span class="count">42 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">welcome-hero.jpg</span><span class="count">71 KB</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>site-icons/</b><span class="count">(99 files)</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-alive.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-anime.png</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-arcade.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-beats.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-bet.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-bookmarks.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-budget.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-calc.png</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-calendar.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-canvas.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-cards.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-chat.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-chess.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-clock.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-code.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-collab.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-color.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-comics.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-confess.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-connect.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-contacts.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-contrast.png</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-countdown.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-crypto.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-debate.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-deploy.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-design.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-devtools.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-dictionary.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-domain.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-draw.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-events.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-exam.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-feed.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-files.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-fit.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-flash.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-fonts.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-forum.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-habits.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-icons.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-invest.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-invoice.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-journal.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-kids.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-language.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-learn.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-markdown.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-math.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-meet.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-meme.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-mental.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-mind.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-mixes.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-mood.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-movie.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-music.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-notes.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-palette.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-password.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-paste.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-photo.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-podcast.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-poll.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-puzzle.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-qr.png</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-quiz.png</span><span class="count">23 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-quotes.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-race.png</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-radio.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-random.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-read.png</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-receipt.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-recipe.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-resume.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-rpg.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-seo.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-shop.png</span><span class="count">10 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-sleep.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-snippets.png</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-sounds.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-speed.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-spin.png</span><span class="count">12 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-stocks.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-stories.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-survival.png</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-tasks.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-theater.png</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-timecapsule.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-travel.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-trivia.png</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-tutor.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-type.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-vibe.png</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-wall.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-wardrobe.png</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-watch.png</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-weather.png</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="img">paragon-whiteboard.png</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="img">hub-hero.jpg</span><span class="count">170 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>auth/</b><span class="count">(3 files)</span></div>
-<div class="row" style="padding-left:18px"><span class="md">INTEGRATION.md</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">paragon-sync.js</span><span class="count">8 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">supabase-auth.js</span><span class="count">9 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>config/</b><span class="count">(1 files)</span></div>
-<div class="row" style="padding-left:18px"><span class="js">supabase.js</span><span class="count">1 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>data/</b><span class="count">(5 files)</span></div>
-<div class="row" style="padding-left:18px"><span class="js">catalogue-expansion-45-100.js</span><span class="count">17 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">catalogue-expansion.js</span><span class="count">12 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">metrics.js</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">sites.js</span><span class="count">19 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">updates.js</span><span class="count">1 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>docs/</b><span class="count">(23 files)</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>site-specs/</b><span class="count">(10 files)</span></div>
-<div class="row" style="padding-left:36px"><span class="md">_TEMPLATE.md</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">file-converter.md</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">flashcard-generator.md</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">invoice-generator.md</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">meal-planner.md</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">personal-shopper.md</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">photo-editor.md</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">recipe-creator.md</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">resume-maker.md</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">travel-assistant.md</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">ADSENSE-SETUP.md</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">AI-BRAIN.md</span><span class="count">37 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">BREVO-CONTACT.md</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">BUILD-PLAN-COMMUNITY-DEPLOYED.md</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">CHANGES.md</span><span class="count">1 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">COIN-SYSTEM.md</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">DEPLOYMENT-GUIDE.md</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">EOP.md</span><span class="count">342 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">GOOGLE-OAUTH-BRANDING.md</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">IMAGE-REQUIREMENTS.md</span><span class="count">24 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">NEXT-AGENT.md</span><span class="count">15 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">SITE-BUILD-KIT.md</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="md">SOP.md</span><span class="count">325 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>native/</b><span class="count">(1 files)</span></div>
-<div class="row" style="padding-left:18px"><span class="md">PWA-APP-MODE.md</span><span class="count">4 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>paragon-quiz/</b><span class="count">(7 files)</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>css/</b><span class="count">(1 files)</span></div>
-<div class="row" style="padding-left:36px"><span class="css">style.css</span><span class="count">29 KB</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>js/</b><span class="count">(1 files)</span></div>
-<div class="row" style="padding-left:36px"><span class="js">quiz.js</span><span class="count">39 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="html">create.html</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="html">explore.html</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="html">index.html</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="html">play.html</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="html">results.html</span><span class="count">3 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>supabase/</b><span class="count">(7 files)</span></div>
-<div class="row folder" style="padding-left:18px">📁 <b>functions/</b><span class="count">(5 files)</span></div>
-<div class="row folder" style="padding-left:36px">📁 <b>_shared/</b><span class="count">(1 files)</span></div>
-<div class="row" style="padding-left:54px"><span class="other">email-templates.mjs</span><span class="count">10 KB</span></div>
-<div class="row folder" style="padding-left:36px">📁 <b>send-transactional-email/</b><span class="count">(1 files)</span></div>
-<div class="row" style="padding-left:54px"><span class="other">index.ts</span><span class="count">5 KB</span></div>
-<div class="row folder" style="padding-left:36px">📁 <b>submit-support-message/</b><span class="count">(1 files)</span></div>
-<div class="row" style="padding-left:54px"><span class="other">index.ts</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">EMAIL-INTEGRATION.md</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:36px"><span class="md">SUPPORT-INTEGRATION.md</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="sql">announcements-schema.sql</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="sql">schema.sql</span><span class="count">18 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>team/</b><span class="count">(6 files)</span></div>
-<div class="row" style="padding-left:18px"><span class="html">desk.html</span><span class="count">82 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="html">login.html</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">nav.js</span><span class="count">20 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">permissions.js</span><span class="count">9 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">session.js</span><span class="count">5 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">team-pages.js</span><span class="count">317 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>tests/</b><span class="count">(3 files)</span></div>
-<div class="row" style="padding-left:18px"><span class="js">suite-ai-team.test.js</span><span class="count">26 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">suite-core.test.js</span><span class="count">34 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="js">suite-ux.test.js</span><span class="count">120 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>tools/</b><span class="count">(2 files)</span></div>
-<div class="row" style="padding-left:18px"><span class="js">browser-smoke.js</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:18px"><span class="other">process-icons.py</span><span class="count">2 KB</span></div>
-<div class="row folder" style="padding-left:0px">📁 <b>vendor/</b><span class="count">(1 files)</span></div>
-<div class="row" style="padding-left:18px"><span class="js">qrcode.min.js</span><span class="count">21 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="html">404.html</span><span class="count">1 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="html">500.html</span><span class="count">1 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="other">ads.txt</span><span class="count">435 B</span></div>
-<div class="row" style="padding-left:0px"><span class="js">app.js</span><span class="count">294 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="js">archive-hub.js</span><span class="count">56 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="html">community-board.html</span><span class="count">4 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="js">community-board.js</span><span class="count">18 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="html">developer-portal.html</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="js">developer-portal.js</span><span class="count">12 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="html">maintenance.html</span><span class="count">1 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="json">manifest.webmanifest</span><span class="count">2 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="html">offline.html</span><span class="count">1 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="html">paragon-archive-hub.html</span><span class="count">132 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="html">paragon-archive.html</span><span class="count">37 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="html">paragon-product-preview.html</span><span class="count">1 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="js">privacy.js</span><span class="count">7 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="js">product-preview.js</span><span class="count">16 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="js">pwa.js</span><span class="count">6 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="js">service-worker.js</span><span class="count">3 KB</span></div>
-<div class="row" style="padding-left:0px"><span class="css">style.css</span><span class="count">335 KB</span></div>
-</div>
-<p class="stats">Total: 266 files · 5.99 MB · budget &lt; 100 MB ✅</p>
-</body>
-</html>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Paragon File Tree</title>
+<style>body{font-family:ui-monospace,Menlo,monospace;background:#0a0a0f;color:#e8e8f0;padding:24px}a{color:#a29bfe}.dir{color:#6c5ce7;font-weight:700}.size{color:#555570}</style></head><body>
+<h1>Paragon Archive — File Tree</h1><p>382 files · 62.7 MB</p><pre>
+<span class="dir">📁 .github/</span>
+  <span class="dir">📁 workflows/</span>
+    📄 supabase-health.yml <span class="size">1.8 KB</span>
+📄 404.html <span class="size">1.6 KB</span>
+📄 500.html <span class="size">1.6 KB</span>
+📄 PARAGON-COINS-MASTER-BUILD-SPEC.md <span class="size">56.3 KB</span>
+📄 README.md <span class="size">18 B</span>
+<span class="dir">📁 ads/</span>
+  📄 adsense.js <span class="size">5.0 KB</span>
+📄 ads.txt <span class="size">435 B</span>
+<span class="dir">📁 ai/</span>
+  📄 paragon-archive-ai.js <span class="size">45.6 KB</span>
+📄 app.js <span class="size">327.9 KB</span>
+📄 archive-hub.js <span class="size">56.6 KB</span>
+<span class="dir">📁 assets/</span>
+  <span class="dir">📁 achievement-badges/</span>
+    📄 badge-account.png <span class="size">5.8 KB</span>
+    📄 badge-ad-ally.png <span class="size">1.8 MB</span>
+    📄 badge-ad-champion.png <span class="size">1.6 MB</span>
+    📄 badge-ad-curious.png <span class="size">1.7 MB</span>
+    📄 badge-ad-patron.png <span class="size">2.0 MB</span>
+    📄 badge-ad-supporter.png <span class="size">1.8 MB</span>
+    📄 badge-ai-curious.png <span class="size">1.9 MB</span>
+    📄 badge-ai-regular.png <span class="size">2.0 MB</span>
+    📄 badge-archive-legend.png <span class="size">2.2 MB</span>
+    📄 badge-archive-veteran.png <span class="size">2.2 MB</span>
+    📄 badge-category-hopper.png <span class="size">1.7 MB</span>
+    📄 badge-coin-curious.png <span class="size">1.8 MB</span>
+    📄 badge-collection-keeper.png <span class="size">3.9 KB</span>
+    📄 badge-collector-three.png <span class="size">2.6 KB</span>
+    📄 badge-community-step.png <span class="size">1.7 MB</span>
+    📄 badge-daily-return.png <span class="size">2.0 MB</span>
+    📄 badge-detail-deep-dive.png <span class="size">1.9 MB</span>
+    📄 badge-explorer-five.png <span class="size">4.1 KB</span>
+    📄 badge-explorer-ten.png <span class="size">5.9 KB</span>
+    📄 badge-first-rating.png <span class="size">8.9 KB</span>
+    📄 badge-first-review.png <span class="size">3.8 KB</span>
+    📄 badge-first-save.png <span class="size">2.7 KB</span>
+    📄 badge-first-share.png <span class="size">3.6 KB</span>
+    📄 badge-first-visit.png <span class="size">4.9 KB</span>
+    📄 badge-five-star.png <span class="size">4.6 KB</span>
+    📄 badge-fully-notified.png <span class="size">1.5 MB</span>
+    📄 badge-helpful-voice.png <span class="size">6.2 KB</span>
+    📄 badge-hub-regular.png <span class="size">1.8 MB</span>
+    📄 badge-hub-visitor.png <span class="size">1.9 MB</span>
+    📄 badge-install-ready.png <span class="size">1.9 MB</span>
+    📄 badge-leaderboard-climber.png <span class="size">1.8 MB</span>
+    📄 badge-leaderboard-scout.png <span class="size">2.1 MB</span>
+    📄 badge-notification-reader.png <span class="size">4.9 KB</span>
+    📄 badge-podium-push.png <span class="size">1.9 MB</span>
+    📄 badge-product-pilot.png <span class="size">1.7 MB</span>
+    📄 badge-progress-starter.png <span class="size">3.3 KB</span>
+    📄 badge-progress-three.png <span class="size">2.9 KB</span>
+    📄 badge-qr-creator.png <span class="size">2.1 MB</span>
+    📄 badge-results-seeker.png <span class="size">1.7 MB</span>
+    📄 badge-reviewer-three.png <span class="size">3.5 KB</span>
+    📄 badge-saver-five.png <span class="size">4.8 KB</span>
+    📄 badge-search-explorer.png <span class="size">7.7 KB</span>
+    📄 badge-share-three.png <span class="size">5.3 KB</span>
+    📄 badge-social-spreader.png <span class="size">1.9 MB</span>
+    📄 badge-theme-explorer.png <span class="size">4.5 KB</span>
+    📄 badge-top-ten-contender.png <span class="size">1.9 MB</span>
+    📄 badge-top-ten-finisher.png <span class="size">1.8 MB</span>
+    📄 badge-trusted-reviewer.png <span class="size">1.9 MB</span>
+    📄 badge-update-watcher.png <span class="size">1.8 MB</span>
+    📄 badge-week-streak.png <span class="size">1.7 MB</span>
+  <span class="dir">📁 brand/</span>
+    📄 apple-touch-180.png <span class="size">41.2 KB</span>
+    📄 favicon-16.png <span class="size">540 B</span>
+    📄 favicon-32.png <span class="size">1.6 KB</span>
+    📄 favicon.ico <span class="size">5.6 KB</span>
+    📄 logo-full.png <span class="size">54.5 KB</span>
+    📄 logo-mark.png <span class="size">26.4 KB</span>
+    📄 og-default.jpg <span class="size">62.8 KB</span>
+    📄 pwa-icon-192.png <span class="size">46.4 KB</span>
+    📄 pwa-icon.png <span class="size">28.7 KB</span>
+    📄 splash.png <span class="size">40.9 KB</span>
+  <span class="dir">📁 category-icons/</span>
+    📄 creative.png <span class="size">4.0 KB</span>
+    📄 deployed.png <span class="size">5.9 KB</span>
+    📄 dev-tools.png <span class="size">6.0 KB</span>
+    📄 education.png <span class="size">3.4 KB</span>
+    📄 entertainment.png <span class="size">9.2 KB</span>
+    📄 finance.png <span class="size">6.0 KB</span>
+    📄 games.png <span class="size">6.7 KB</span>
+    📄 health.png <span class="size">7.3 KB</span>
+    📄 lifestyle.png <span class="size">4.8 KB</span>
+    📄 media.png <span class="size">5.7 KB</span>
+    📄 originals.png <span class="size">6.8 KB</span>
+    📄 productivity.png <span class="size">6.1 KB</span>
+    📄 social.png <span class="size">6.9 KB</span>
+    📄 tools.png <span class="size">6.0 KB</span>
+  <span class="dir">📁 hero-banners/</span>
+    📄 creative.jpg <span class="size">64.3 KB</span>
+    📄 default.jpg <span class="size">35.2 KB</span>
+    📄 deployed.jpg <span class="size">28.2 KB</span>
+    📄 dev-tools.jpg <span class="size">57.2 KB</span>
+    📄 education.jpg <span class="size">60.8 KB</span>
+    📄 entertainment.jpg <span class="size">68.5 KB</span>
+    📄 finance.jpg <span class="size">34.1 KB</span>
+    📄 games.jpg <span class="size">88.2 KB</span>
+    📄 health.jpg <span class="size">48.4 KB</span>
+    📄 lifestyle.jpg <span class="size">80.3 KB</span>
+    📄 media.jpg <span class="size">78.5 KB</span>
+    📄 originals.jpg <span class="size">67.7 KB</span>
+    📄 productivity.jpg <span class="size">51.0 KB</span>
+    📄 social.jpg <span class="size">58.6 KB</span>
+    📄 tools.jpg <span class="size">45.7 KB</span>
+  📄 hub-hero.jpg <span class="size">170.9 KB</span>
+  <span class="dir">📁 icons/</span>
+    📄 paragon-192.png <span class="size">46.4 KB</span>
+    📄 paragon-512.png <span class="size">296.0 KB</span>
+  <span class="dir">📁 illustrations/</span>
+    📄 achievement-locked.png <span class="size">62.5 KB</span>
+    📄 auth-bg.jpg <span class="size">39.2 KB</span>
+    📄 bug-report.png <span class="size">38.2 KB</span>
+    📄 cookie-icon.png <span class="size">22.8 KB</span>
+    📄 default-avatar.png <span class="size">4.8 KB</span>
+    📄 email-verify.png <span class="size">28.0 KB</span>
+    📄 empty-bookmarks.png <span class="size">22.1 KB</span>
+    📄 empty-collections.png <span class="size">9.2 KB</span>
+    📄 empty-history.png <span class="size">5.6 KB</span>
+    📄 empty-reviews.png <span class="size">4.8 KB</span>
+    📄 empty-search.png <span class="size">26.4 KB</span>
+    📄 empty-updates.png <span class="size">21.5 KB</span>
+    📄 error-404.png <span class="size">38.9 KB</span>
+    📄 error-500.png <span class="size">45.4 KB</span>
+    📄 free-for-everyone.jpg <span class="size">67.4 KB</span>
+    📄 guest-welcome.png <span class="size">34.6 KB</span>
+    📄 header-about.jpg <span class="size">126.5 KB</span>
+    📄 header-privacy.jpg <span class="size">63.5 KB</span>
+    📄 header-request.jpg <span class="size">56.3 KB</span>
+    📄 header-support.jpg <span class="size">42.7 KB</span>
+    📄 maintenance.png <span class="size">27.3 KB</span>
+    📄 offline.png <span class="size">26.2 KB</span>
+    📄 success-submit.png <span class="size">50.8 KB</span>
+    📄 timeline-journey.jpg <span class="size">42.3 KB</span>
+    📄 welcome-hero.jpg <span class="size">71.4 KB</span>
+  <span class="dir">📁 site-icons/</span>
+    📄 paragon-alive.png <span class="size">4.9 KB</span>
+    📄 paragon-anime.png <span class="size">9.6 KB</span>
+    📄 paragon-arcade.png <span class="size">7.7 KB</span>
+    📄 paragon-beats.png <span class="size">5.0 KB</span>
+    📄 paragon-bet.png <span class="size">6.5 KB</span>
+    📄 paragon-bookmarks.png <span class="size">5.3 KB</span>
+    📄 paragon-budget.png <span class="size">5.6 KB</span>
+    📄 paragon-calc.png <span class="size">9.4 KB</span>
+    📄 paragon-calendar.png <span class="size">5.2 KB</span>
+    📄 paragon-canvas.png <span class="size">6.1 KB</span>
+    📄 paragon-cards.png <span class="size">7.6 KB</span>
+    📄 paragon-chat.png <span class="size">6.7 KB</span>
+    📄 paragon-chess.png <span class="size">6.3 KB</span>
+    📄 paragon-clock.png <span class="size">7.3 KB</span>
+    📄 paragon-code.png <span class="size">4.3 KB</span>
+    📄 paragon-collab.png <span class="size">6.0 KB</span>
+    📄 paragon-color.png <span class="size">8.2 KB</span>
+    📄 paragon-comics.png <span class="size">3.2 KB</span>
+    📄 paragon-confess.png <span class="size">6.7 KB</span>
+    📄 paragon-connect.png <span class="size">6.6 KB</span>
+    📄 paragon-contacts.png <span class="size">6.8 KB</span>
+    📄 paragon-contrast.png <span class="size">3.0 KB</span>
+    📄 paragon-countdown.png <span class="size">4.6 KB</span>
+    📄 paragon-crypto.png <span class="size">5.6 KB</span>
+    📄 paragon-debate.png <span class="size">5.6 KB</span>
+    📄 paragon-deploy.png <span class="size">4.3 KB</span>
+    📄 paragon-design.png <span class="size">6.6 KB</span>
+    📄 paragon-devtools.png <span class="size">3.4 KB</span>
+    📄 paragon-dictionary.png <span class="size">4.8 KB</span>
+    📄 paragon-domain.png <span class="size">8.0 KB</span>
+    📄 paragon-draw.png <span class="size">6.2 KB</span>
+    📄 paragon-events.png <span class="size">7.5 KB</span>
+    📄 paragon-exam.png <span class="size">4.3 KB</span>
+    📄 paragon-feed.png <span class="size">5.3 KB</span>
+    📄 paragon-files.png <span class="size">5.8 KB</span>
+    📄 paragon-fit.png <span class="size">4.3 KB</span>
+    📄 paragon-flash.png <span class="size">8.7 KB</span>
+    📄 paragon-fonts.png <span class="size">7.0 KB</span>
+    📄 paragon-forum.png <span class="size">5.3 KB</span>
+    📄 paragon-habits.png <span class="size">7.9 KB</span>
+    📄 paragon-icons.png <span class="size">6.1 KB</span>
+    📄 paragon-invest.png <span class="size">4.3 KB</span>
+    📄 paragon-invoice.png <span class="size">7.4 KB</span>
+    📄 paragon-journal.png <span class="size">4.4 KB</span>
+    📄 paragon-kids.png <span class="size">5.5 KB</span>
+    📄 paragon-language.png <span class="size">5.6 KB</span>
+    📄 paragon-learn.png <span class="size">5.0 KB</span>
+    📄 paragon-markdown.png <span class="size">3.4 KB</span>
+    📄 paragon-math.png <span class="size">5.7 KB</span>
+    📄 paragon-meet.png <span class="size">6.8 KB</span>
+    📄 paragon-meme.png <span class="size">4.3 KB</span>
+    📄 paragon-mental.png <span class="size">5.3 KB</span>
+    📄 paragon-mind.png <span class="size">6.6 KB</span>
+    📄 paragon-mixes.png <span class="size">8.7 KB</span>
+    📄 paragon-mood.png <span class="size">6.7 KB</span>
+    📄 paragon-movie.png <span class="size">8.9 KB</span>
+    📄 paragon-music.png <span class="size">6.8 KB</span>
+    📄 paragon-notes.png <span class="size">6.2 KB</span>
+    📄 paragon-palette.png <span class="size">6.3 KB</span>
+    📄 paragon-password.png <span class="size">8.0 KB</span>
+    📄 paragon-paste.png <span class="size">5.5 KB</span>
+    📄 paragon-photo.png <span class="size">7.3 KB</span>
+    📄 paragon-podcast.png <span class="size">7.5 KB</span>
+    📄 paragon-poll.png <span class="size">4.0 KB</span>
+    📄 paragon-puzzle.png <span class="size">4.9 KB</span>
+    📄 paragon-qr.png <span class="size">9.0 KB</span>
+    📄 paragon-quiz.png <span class="size">23.2 KB</span>
+    📄 paragon-quotes.png <span class="size">8.2 KB</span>
+    📄 paragon-race.png <span class="size">9.6 KB</span>
+    📄 paragon-radio.png <span class="size">8.4 KB</span>
+    📄 paragon-random.png <span class="size">4.5 KB</span>
+    📄 paragon-read.png <span class="size">9.1 KB</span>
+    📄 paragon-receipt.png <span class="size">6.1 KB</span>
+    📄 paragon-recipe.png <span class="size">8.0 KB</span>
+    📄 paragon-resume.png <span class="size">7.1 KB</span>
+    📄 paragon-rpg.png <span class="size">8.3 KB</span>
+    📄 paragon-seo.png <span class="size">5.9 KB</span>
+    📄 paragon-shop.png <span class="size">10.9 KB</span>
+    📄 paragon-sleep.png <span class="size">4.9 KB</span>
+    📄 paragon-snippets.png <span class="size">2.8 KB</span>
+    📄 paragon-sounds.png <span class="size">7.7 KB</span>
+    📄 paragon-speed.png <span class="size">4.2 KB</span>
+    📄 paragon-spin.png <span class="size">12.3 KB</span>
+    📄 paragon-stocks.png <span class="size">4.9 KB</span>
+    📄 paragon-stories.png <span class="size">8.2 KB</span>
+    📄 paragon-survival.png <span class="size">7.5 KB</span>
+    📄 paragon-tasks.png <span class="size">5.5 KB</span>
+    📄 paragon-theater.png <span class="size">9.8 KB</span>
+    📄 paragon-timecapsule.png <span class="size">6.3 KB</span>
+    📄 paragon-travel.png <span class="size">4.6 KB</span>
+    📄 paragon-trivia.png <span class="size">3.5 KB</span>
+    📄 paragon-tutor.png <span class="size">5.2 KB</span>
+    📄 paragon-type.png <span class="size">5.5 KB</span>
+    📄 paragon-vibe.png <span class="size">8.5 KB</span>
+    📄 paragon-wall.png <span class="size">6.9 KB</span>
+    📄 paragon-wardrobe.png <span class="size">4.2 KB</span>
+    📄 paragon-watch.png <span class="size">5.2 KB</span>
+    📄 paragon-weather.png <span class="size">9.6 KB</span>
+    📄 paragon-whiteboard.png <span class="size">6.5 KB</span>
+<span class="dir">📁 auth/</span>
+  📄 INTEGRATION.md <span class="size">4.9 KB</span>
+  📄 paragon-sync.js <span class="size">8.9 KB</span>
+  📄 supabase-auth.js <span class="size">9.4 KB</span>
+📄 community-board.html <span class="size">4.3 KB</span>
+📄 community-board.js <span class="size">18.6 KB</span>
+<span class="dir">📁 config/</span>
+  📄 supabase.js <span class="size">1.6 KB</span>
+<span class="dir">📁 data/</span>
+  📄 catalogue-expansion-45-100.js <span class="size">18.7 KB</span>
+  📄 catalogue-expansion.js <span class="size">13.5 KB</span>
+  📄 metrics.js <span class="size">9.9 KB</span>
+  📄 sites.js <span class="size">19.5 KB</span>
+  📄 updates.js <span class="size">1.4 KB</span>
+📄 developer-portal.html <span class="size">6.1 KB</span>
+📄 developer-portal.js <span class="size">13.0 KB</span>
+<span class="dir">📁 docs/</span>
+  📄 ADSENSE-SETUP.md <span class="size">3.4 KB</span>
+  📄 AI-BRAIN.md <span class="size">37.6 KB</span>
+  📄 BREVO-CONTACT.md <span class="size">3.2 KB</span>
+  📄 BUILD-PLAN-COMMUNITY-DEPLOYED.md <span class="size">5.1 KB</span>
+  📄 CHANGES.md <span class="size">726 B</span>
+  📄 COIN-SYSTEM.md <span class="size">5.8 KB</span>
+  📄 COINS-PHASES.md <span class="size">3.2 KB</span>
+  📄 DEPLOYMENT-GUIDE.md <span class="size">4.2 KB</span>
+  📄 EOP.md <span class="size">352.1 KB</span>
+  📄 GOOGLE-OAUTH-BRANDING.md <span class="size">4.0 KB</span>
+  📄 IMAGE-REQUIREMENTS.md <span class="size">24.1 KB</span>
+  📄 NEXT-AGENT.md <span class="size">20.1 KB</span>
+  📄 SITE-BUILD-KIT.md <span class="size">4.1 KB</span>
+  📄 SKILLS-COMPLETION.md <span class="size">3.6 KB</span>
+  📄 SOP.md <span class="size">334.2 KB</span>
+  <span class="dir">📁 site-specs/</span>
+    📄 _TEMPLATE.md <span class="size">2.0 KB</span>
+    📄 file-converter.md <span class="size">2.4 KB</span>
+    📄 flashcard-generator.md <span class="size">2.5 KB</span>
+    📄 invoice-generator.md <span class="size">3.0 KB</span>
+    📄 meal-planner.md <span class="size">2.7 KB</span>
+    📄 personal-shopper.md <span class="size">2.9 KB</span>
+    📄 photo-editor.md <span class="size">2.4 KB</span>
+    📄 recipe-creator.md <span class="size">4.5 KB</span>
+    📄 resume-maker.md <span class="size">3.0 KB</span>
+    📄 travel-assistant.md <span class="size">2.6 KB</span>
+  <span class="dir">📁 skills/</span>
+    📄 File-Converter.md <span class="size">18.2 KB</span>
+    📄 FlashCard-Quiz-Creator.md <span class="size">13.6 KB</span>
+    📄 Invoice-Generator.md <span class="size">15.9 KB</span>
+    📄 Meal-Planner.md <span class="size">21.0 KB</span>
+    📄 PARAGON-COINS-MASTER-BUILD-SPEC.md <span class="size">56.3 KB</span>
+    📄 Personal-Shopper.md <span class="size">17.1 KB</span>
+    📄 Photo-Editor.md <span class="size">16.1 KB</span>
+    📄 Recipe-Creator.md <span class="size">8.7 KB</span>
+    📄 Resume-Maker.md <span class="size">21.0 KB</span>
+    📄 Travel-Assitance.md <span class="size">26.9 KB</span>
+📄 maintenance.html <span class="size">1.6 KB</span>
+📄 manifest.webmanifest <span class="size">2.2 KB</span>
+<span class="dir">📁 native/</span>
+  📄 PWA-APP-MODE.md <span class="size">4.6 KB</span>
+📄 offline.html <span class="size">1.6 KB</span>
+📄 paragon-archive-hub.html <span class="size">132.4 KB</span>
+📄 paragon-archive.html <span class="size">37.8 KB</span>
+📄 paragon-file-tree.html <span class="size">24.3 KB</span>
+📄 paragon-product-preview.html <span class="size">1.6 KB</span>
+<span class="dir">📁 paragon-quiz/</span>
+  📄 create.html <span class="size">7.8 KB</span>
+  <span class="dir">📁 css/</span>
+    📄 style.css <span class="size">29.1 KB</span>
+  📄 explore.html <span class="size">3.5 KB</span>
+  📄 index.html <span class="size">7.3 KB</span>
+  <span class="dir">📁 js/</span>
+    📄 quiz.js <span class="size">39.7 KB</span>
+  📄 play.html <span class="size">7.8 KB</span>
+  📄 results.html <span class="size">3.6 KB</span>
+📄 privacy.js <span class="size">7.9 KB</span>
+📄 product-preview.js <span class="size">16.5 KB</span>
+📄 pwa.js <span class="size">6.2 KB</span>
+📄 service-worker.js <span class="size">4.0 KB</span>
+<span class="dir">📁 sites/</span>
+  <span class="dir">📁 _shared/</span>
+    📄 site-kit.css <span class="size">12.7 KB</span>
+    📄 site-kit.js <span class="size">11.1 KB</span>
+  <span class="dir">📁 file-converter/</span>
+    📄 SPEC.md <span class="size">826 B</span>
+    📄 app.html <span class="size">6.4 KB</span>
+    📄 app.js <span class="size">15.6 KB</span>
+    📄 guide.html <span class="size">2.7 KB</span>
+    📄 index.html <span class="size">4.7 KB</span>
+  <span class="dir">📁 flashcard-generator/</span>
+    📄 SPEC.md <span class="size">816 B</span>
+    📄 app.html <span class="size">3.8 KB</span>
+    📄 app.js <span class="size">16.8 KB</span>
+    📄 index.html <span class="size">4.7 KB</span>
+    📄 study.html <span class="size">3.4 KB</span>
+  <span class="dir">📁 invoice-generator/</span>
+    📄 SPEC.md <span class="size">835 B</span>
+    📄 app.html <span class="size">5.7 KB</span>
+    📄 app.js <span class="size">17.9 KB</span>
+    📄 index.html <span class="size">4.8 KB</span>
+    📄 settings.html <span class="size">2.4 KB</span>
+  <span class="dir">📁 meal-planner/</span>
+    📄 SPEC.md <span class="size">815 B</span>
+    📄 app.html <span class="size">5.6 KB</span>
+    📄 app.js <span class="size">10.3 KB</span>
+    📄 index.html <span class="size">4.7 KB</span>
+    📄 shop.html <span class="size">2.0 KB</span>
+  <span class="dir">📁 personal-shopper/</span>
+    📄 SPEC.md <span class="size">835 B</span>
+    📄 app.html <span class="size">4.3 KB</span>
+    📄 app.js <span class="size">8.0 KB</span>
+    📄 budget.html <span class="size">2.0 KB</span>
+    📄 index.html <span class="size">4.7 KB</span>
+  <span class="dir">📁 photo-editor/</span>
+    📄 SPEC.md <span class="size">797 B</span>
+    📄 app.html <span class="size">5.1 KB</span>
+    📄 app.js <span class="size">11.1 KB</span>
+    📄 index.html <span class="size">4.7 KB</span>
+  <span class="dir">📁 recipe-creator/</span>
+    📄 SPEC.md <span class="size">809 B</span>
+    📄 app.html <span class="size">5.2 KB</span>
+    📄 app.js <span class="size">17.5 KB</span>
+    📄 ideas.html <span class="size">2.5 KB</span>
+    📄 index.html <span class="size">4.7 KB</span>
+  <span class="dir">📁 resume-maker/</span>
+    📄 SPEC.md <span class="size">813 B</span>
+    📄 app.html <span class="size">5.8 KB</span>
+    📄 app.js <span class="size">10.8 KB</span>
+    📄 index.html <span class="size">4.8 KB</span>
+    📄 preview.html <span class="size">2.3 KB</span>
+  <span class="dir">📁 travel-assistant/</span>
+    📄 SPEC.md <span class="size">809 B</span>
+    📄 app.html <span class="size">6.2 KB</span>
+    📄 app.js <span class="size">13.8 KB</span>
+    📄 index.html <span class="size">4.7 KB</span>
+    📄 pack.html <span class="size">2.1 KB</span>
+📄 style.css <span class="size">339.4 KB</span>
+<span class="dir">📁 supabase/</span>
+  📄 OWNER-SQL-CHECKLIST.md <span class="size">7.1 KB</span>
+  📄 SQL-RUN-PACK.md <span class="size">2.7 KB</span>
+  📄 SUPABASE-AI-VERIFY-PROMPT.md <span class="size">6.8 KB</span>
+  📄 announcements-schema.sql <span class="size">5.1 KB</span>
+  📄 coins-master-phase1.sql <span class="size">17.5 KB</span>
+  📄 coins-master-phase2.sql <span class="size">21.1 KB</span>
+  📄 coins-master-phase3.sql <span class="size">12.8 KB</span>
+  📄 coins-master-phase4.sql <span class="size">26.0 KB</span>
+  📄 coins-master-phase5.sql <span class="size">20.1 KB</span>
+  📄 coins-schema.sql <span class="size">16.9 KB</span>
+  <span class="dir">📁 functions/</span>
+    📄 COINS-PHASE3-DEPLOY.md <span class="size">3.2 KB</span>
+    📄 COINS-PHASE5-OPAY-MONIEPOINT.md <span class="size">3.2 KB</span>
+    📄 EMAIL-INTEGRATION.md <span class="size">6.8 KB</span>
+    📄 SUPPORT-INTEGRATION.md <span class="size">4.7 KB</span>
+    <span class="dir">📁 _shared/</span>
+      📄 email-templates.mjs <span class="size">10.1 KB</span>
+    <span class="dir">📁 coin-payment-webhook/</span>
+      📄 index.ts <span class="size">13.3 KB</span>
+    <span class="dir">📁 coin-reconcile/</span>
+      📄 index.ts <span class="size">4.8 KB</span>
+    <span class="dir">📁 competition-settle/</span>
+      📄 index.ts <span class="size">4.4 KB</span>
+    <span class="dir">📁 send-transactional-email/</span>
+      📄 index.ts <span class="size">5.5 KB</span>
+    <span class="dir">📁 submit-support-message/</span>
+      📄 index.ts <span class="size">7.5 KB</span>
+  📄 schema.sql <span class="size">18.4 KB</span>
+<span class="dir">📁 team/</span>
+  📄 desk.html <span class="size">85.9 KB</span>
+  📄 login.html <span class="size">5.1 KB</span>
+  📄 nav.js <span class="size">20.1 KB</span>
+  📄 permissions.js <span class="size">9.4 KB</span>
+  📄 session.js <span class="size">5.1 KB</span>
+  📄 team-pages.js <span class="size">332.5 KB</span>
+<span class="dir">📁 tests/</span>
+  📄 suite-ai-team.test.js <span class="size">26.9 KB</span>
+  📄 suite-core.test.js <span class="size">34.1 KB</span>
+  📄 suite-ux.test.js <span class="size">140.0 KB</span>
+<span class="dir">📁 tools/</span>
+  📄 browser-smoke.js <span class="size">2.3 KB</span>
+  📄 process-icons.py <span class="size">2.2 KB</span>
+<span class="dir">📁 uploads/</span>
+  📄 File-Converter.md <span class="size">18.2 KB</span>
+  📄 FlashCard-Quiz-Creator.md <span class="size">13.6 KB</span>
+  📄 Invoice-Generator.md <span class="size">15.9 KB</span>
+  📄 Meal-Planner.md <span class="size">21.0 KB</span>
+  📄 Personal-Shopper.md <span class="size">17.1 KB</span>
+  📄 Photo-Editor.md <span class="size">16.1 KB</span>
+  📄 Recipe-Creator.md <span class="size">8.7 KB</span>
+  📄 Resume-Maker.md <span class="size">21.0 KB</span>
+  📄 Travel-Assitance.md <span class="size">26.9 KB</span>
+<span class="dir">📁 vendor/</span>
+  📄 qrcode.min.js <span class="size">21.3 KB</span>
+</pre></body></html>

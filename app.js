@@ -120,11 +120,159 @@ const BADGE_ART = {
   "Share Three": "assets/achievement-badges/badge-share-three.png",
   "Theme Explorer": "assets/achievement-badges/badge-theme-explorer.png",
   "Search Explorer": "assets/achievement-badges/badge-search-explorer.png",
-  "Notification Reader": "assets/achievement-badges/badge-notification-reader.png"
+  "Notification Reader": "assets/achievement-badges/badge-notification-reader.png",
+  /* P-105 — badges 21–30 (final stages) */
+  "Archive Veteran": "assets/achievement-badges/badge-archive-veteran.png",
+  "Trusted Reviewer": "assets/achievement-badges/badge-trusted-reviewer.png",
+  "Hub Visitor": "assets/achievement-badges/badge-hub-visitor.png",
+  "Hub Regular": "assets/achievement-badges/badge-hub-regular.png",
+  "QR Creator": "assets/achievement-badges/badge-qr-creator.png",
+  "AI Curious": "assets/achievement-badges/badge-ai-curious.png",
+  "AI Regular": "assets/achievement-badges/badge-ai-regular.png",
+  "Results Seeker": "assets/achievement-badges/badge-results-seeker.png",
+  "Social Spreader": "assets/achievement-badges/badge-social-spreader.png",
+  "Fully Notified": "assets/achievement-badges/badge-fully-notified.png",
+  /* P-106 — badges 31–50: ads, leaderboard, engagement (10 stages total) */
+  "Ad Curious": "assets/achievement-badges/badge-ad-curious.png",
+  "Ad Supporter": "assets/achievement-badges/badge-ad-supporter.png",
+  "Ad Ally": "assets/achievement-badges/badge-ad-ally.png",
+  "Ad Champion": "assets/achievement-badges/badge-ad-champion.png",
+  "Ad Patron": "assets/achievement-badges/badge-ad-patron.png",
+  "Leaderboard Scout": "assets/achievement-badges/badge-leaderboard-scout.png",
+  "Leaderboard Climber": "assets/achievement-badges/badge-leaderboard-climber.png",
+  "Top Ten Contender": "assets/achievement-badges/badge-top-ten-contender.png",
+  "Top Ten Finisher": "assets/achievement-badges/badge-top-ten-finisher.png",
+  "Podium Push": "assets/achievement-badges/badge-podium-push.png",
+  "Daily Return": "assets/achievement-badges/badge-daily-return.png",
+  "Week Streak": "assets/achievement-badges/badge-week-streak.png",
+  "Coin Curious": "assets/achievement-badges/badge-coin-curious.png",
+  "Product Pilot": "assets/achievement-badges/badge-product-pilot.png",
+  "Install Ready": "assets/achievement-badges/badge-install-ready.png",
+  "Community Step": "assets/achievement-badges/badge-community-step.png",
+  "Detail Deep Dive": "assets/achievement-badges/badge-detail-deep-dive.png",
+  "Category Hopper": "assets/achievement-badges/badge-category-hopper.png",
+  "Update Watcher": "assets/achievement-badges/badge-update-watcher.png",
+  "Archive Legend": "assets/achievement-badges/badge-archive-legend.png"
 };
 function badgeIconMarkup(task) {
   return BADGE_ART[task.title] ? `<img class="ach-badge-art" src="${BADGE_ART[task.title]}" alt="" loading="lazy">` : `<div class="emoji">${task.icon}</div>`;
 }
+
+/* P-106 — engagement counters (ads, leaderboard, streaks). Honest local scores;
+   server leaderboard periods (phase4) remain team-settled when live. */
+function engagementScore() {
+  const reviews = Object.values(localReviews || {}).flat().length;
+  /* Do not call achievementTasks() here — leaderboard checks run during achievement render. */
+  return (
+    localVisits.length * 4 +
+    bookmarkedSites.size * 3 +
+    reviews * 6 +
+    Number(accountProfile.shareCount || 0) * 5 +
+    Number(accountProfile.adClickCount || 0) * 8 +
+    Number(accountProfile.adImpressionCount || 0) * 1 +
+    Number(accountProfile.hubVisitCount || 0) * 3 +
+    Number(accountProfile.aiQuestionCount || 0) * 4 +
+    Number(accountProfile.productOpenCount || 0) * 5 +
+    Number(accountProfile.dayStreak || 0) * 10 +
+    Number(accountProfile.detailOpenCount || 0) * 2 +
+    Number(accountProfile.leaderboardCheckCount || 0) * 3 +
+    Math.min(coinBalance(), 500) * 0.05
+  );
+}
+
+function localDayKey(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function bumpDayStreak() {
+  if (!hasPersonalSession()) return;
+  const today = localDayKey();
+  const last = String(accountProfile.lastActiveDay || "");
+  if (last === today) return;
+  const yesterday = localDayKey(new Date(Date.now() - 86400000));
+  if (last === yesterday) accountProfile.dayStreak = Number(accountProfile.dayStreak || 0) + 1;
+  else accountProfile.dayStreak = 1;
+  accountProfile.lastActiveDay = today;
+  persistPersonalState();
+}
+
+function bumpEngagement(field, by = 1) {
+  if (!hasPersonalSession() || !field) return;
+  accountProfile[field] = Number(accountProfile[field] || 0) + by;
+  persistPersonalState();
+  try { renderAchievementsAccount(); } catch (_) { /* account tab may be idle */ }
+}
+
+window.ParagonArchiveAdsBridge = {
+  onImpression(purpose) {
+    bumpEngagement("adImpressionCount", 1);
+  },
+  onEngage(purpose, meta) {
+    bumpEngagement("adClickCount", 1);
+  }
+};
+
+function computeMyLeaderboardRank(score) {
+  /* Device-local competitive board: stable synthetic rivals + you.
+     Encourages climbing; not a money settlement source (D-222). */
+  const seeds = [980, 920, 860, 800, 740, 690, 640, 590, 540, 500, 460, 420, 380, 340, 300, 270, 240, 210, 180, 150];
+  const rivals = seeds.map((base, index) => ({
+    name: ["Nova", "Kemi", "Ada", "Tunde", "Zara", "Chidi", "Maya", "Leo", "Ife", "Sam", "Rae", "Ola", "Nia", "Ben", "Ayo", "Lux", "Ivy", "Kai", "Sade", "Jon"][index],
+    score: base + ((index * 17) % 40)
+  }));
+  const me = { name: "You", score: Math.round(score), isYou: true };
+  const board = rivals.concat([me]).sort((a, b) => b.score - a.score || (a.isYou ? -1 : 1));
+  const rank = board.findIndex(row => row.isYou) + 1;
+  return { rank, board: board.slice(0, 12), score: me.score };
+}
+
+function recordLeaderboardCheck(openCount = false) {
+  if (!hasPersonalSession()) return null;
+  const { rank, board, score } = computeMyLeaderboardRank(engagementScore());
+  if (openCount) bumpEngagement("leaderboardOpenCount", 1);
+  bumpEngagement("leaderboardCheckCount", 1);
+  const prev = Number(accountProfile.leaderboardBestRank || 0);
+  if (!prev || rank < prev) accountProfile.leaderboardBestRank = rank;
+  persistPersonalState();
+  try { renderAchievementsAccount(); } catch (_) {}
+  return { rank, board, score, best: Number(accountProfile.leaderboardBestRank || rank) };
+}
+
+window.openEngagementLeaderboard = function() {
+  if (!requirePersonalSession("view the engagement leaderboard")) return;
+  const snap = recordLeaderboardCheck(true) || computeMyLeaderboardRank(engagementScore());
+  const overlay = document.createElement("div");
+  overlay.id = "leaderboard-overlay";
+  overlay.className = "install-popup-overlay active";
+  overlay.innerHTML = `
+    <div class="install-popup-card leaderboard-card" role="dialog" aria-modal="true" aria-label="Engagement leaderboard">
+      <header><h2>🏆 Engagement leaderboard</h2>
+        <button type="button" class="icon-btn-small" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock')" aria-label="Close">×</button>
+      </header>
+      <p class="install-popup-note">Climb with real Archive activity — reviews, shares, <strong>support-ad taps</strong>, product use, and daily returns. Top 10 unlocks Contender / Finisher badges. Podium (top 3) unlocks Podium Push. This board is engagement practice on your device; coin competitions stay server-settled.</p>
+      <div class="leaderboard-you">Your score <strong>${snap.score.toLocaleString()}</strong> · Rank <strong>#${snap.rank}</strong> · Best <strong>#${snap.best || snap.rank}</strong></div>
+      <ol class="leaderboard-list">
+        ${snap.board.map((row, index) => `
+          <li class="${row.isYou ? "is-you" : ""}">
+            <span class="lb-rank">#${index + 1}</span>
+            <span class="lb-name">${row.isYou ? "You" : row.name}</span>
+            <span class="lb-score">${Math.round(row.score).toLocaleString()} pts</span>
+          </li>`).join("")}
+      </ol>
+      <div class="install-popup-actions" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;">
+        <button type="button" class="primary-action" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock');openEngagementLeaderboard()">↻ Recheck rank</button>
+        <button type="button" class="secondary-action" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock');document.querySelector('[data-paragon-ad]')?.scrollIntoView({behavior:'smooth',block:'center'})">Support via ads</button>
+        <button type="button" class="secondary-action" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock')">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.classList.add("popup-lock");
+  showToast(snap.rank <= 10 ? `Top 10 — you are #${snap.rank}. Keep climbing!` : `Rank #${snap.rank} — engage more to break top 10.`);
+};
+
 
 /* ============================================
    PARAGON ARCHIVE — FULL APPLICATION LOGIC
@@ -341,6 +489,24 @@ function mergePersonalStates(accountValue = {}, guestValue = {}) {
       qrCount: Number(account.profile?.qrCount || 0) + Number(guest.profile?.qrCount || 0),
       aiQuestionCount: Number(account.profile?.aiQuestionCount || 0) + Number(guest.profile?.aiQuestionCount || 0),
       resultsSearchCount: Number(account.profile?.resultsSearchCount || 0) + Number(guest.profile?.resultsSearchCount || 0),
+      adImpressionCount: Number(account.profile?.adImpressionCount || 0) + Number(guest.profile?.adImpressionCount || 0),
+      adClickCount: Number(account.profile?.adClickCount || 0) + Number(guest.profile?.adClickCount || 0),
+      leaderboardOpenCount: Number(account.profile?.leaderboardOpenCount || 0) + Number(guest.profile?.leaderboardOpenCount || 0),
+      leaderboardCheckCount: Number(account.profile?.leaderboardCheckCount || 0) + Number(guest.profile?.leaderboardCheckCount || 0),
+      leaderboardBestRank: (() => {
+        const ranks = [Number(account.profile?.leaderboardBestRank || 0), Number(guest.profile?.leaderboardBestRank || 0)].filter(n => n > 0);
+        return ranks.length ? Math.min(...ranks) : 0;
+      })(),
+      dayStreak: Math.max(Number(account.profile?.dayStreak || 0), Number(guest.profile?.dayStreak || 0)),
+      lastActiveDay: account.profile?.lastActiveDay || guest.profile?.lastActiveDay || null,
+      coinShopOpenCount: Number(account.profile?.coinShopOpenCount || 0) + Number(guest.profile?.coinShopOpenCount || 0),
+      productOpenCount: Number(account.profile?.productOpenCount || 0) + Number(guest.profile?.productOpenCount || 0),
+      installOpenCount: Number(account.profile?.installOpenCount || 0) + Number(guest.profile?.installOpenCount || 0),
+      communityOpenCount: Number(account.profile?.communityOpenCount || 0) + Number(guest.profile?.communityOpenCount || 0),
+      detailOpenCount: Number(account.profile?.detailOpenCount || 0) + Number(guest.profile?.detailOpenCount || 0),
+      categoryBrowseCount: Number(account.profile?.categoryBrowseCount || 0) + Number(guest.profile?.categoryBrowseCount || 0),
+      updatesViewCount: Number(account.profile?.updatesViewCount || 0) + Number(guest.profile?.updatesViewCount || 0),
+      categoriesBrowsed: [...new Set([...(account.profile?.categoriesBrowsed || []), ...(guest.profile?.categoriesBrowsed || [])])].slice(0, 40),
       achievementStage: Math.max(1, Number(account.profile?.achievementStage || 1), Number(guest.profile?.achievementStage || 1)),
       publicNotificationReads: { ...(guest.profile?.publicNotificationReads || {}), ...(account.profile?.publicNotificationReads || {}) },
       finalAchievementUnlockedAt: account.profile?.finalAchievementUnlockedAt || guest.profile?.finalAchievementUnlockedAt || null
@@ -928,6 +1094,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (applyPlatformMaintenanceLockdown()) return; /* P-097 — whole-platform maintenance outranks everything */
   if (new URLSearchParams(window.location.search).get("install") === "1") window.setTimeout(() => window.openParagonInstall?.(), 2600); /* P-097 — shared install link */
   showWelcomeSplash(); // P-096 — splash opens FIRST, instantly, before identity/auth resolves (bug fix)
+  try { bumpDayStreak(); } catch (_) { /* identity may still settle */ }
   // D-109 achievement engagement hooks: Hub visits and Paragon AI questions.
   document.addEventListener("click", event => {
     const link = event.target?.closest?.('a[href*="paragon-archive-hub.html"]');
@@ -949,6 +1116,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderRecentlyAdded();
   renderUpdates();
   fetchLiveAnnouncements(); // P-094 — pull managed announcements from the live backend (silent, cached fallback)
+  fetchPublicCoinConfig(); // P-101 — silent; applies economy when SQL phase1b is live
   renderAccount();
   bindNav();
   bindUpdateFilters();
@@ -1658,6 +1826,16 @@ function renderCategoryOverlay(categoryName = activeCategoryView) {
 }
 
 window.showCategoryInOverlay = function(categoryName) {
+  try {
+    if (hasPersonalSession() && categoryName) {
+      const seen = new Set(Array.isArray(accountProfile.categoriesBrowsed) ? accountProfile.categoriesBrowsed : []);
+      seen.add(String(categoryName));
+      accountProfile.categoriesBrowsed = [...seen].slice(0, 40);
+      accountProfile.categoryBrowseCount = seen.size;
+      persistPersonalState();
+      renderAchievementsAccount();
+    }
+  } catch (_) {}
   renderCategoryOverlay(categoryName);
   document.getElementById("category-overlay")?.scrollTo?.({ top: 0, behavior: "smooth" });
   requestAnimationFrame(() => document.getElementById("category-back")?.focus({ preventScroll: true }));
@@ -1756,7 +1934,7 @@ function buildUpdateEvents() {
       });
     }
     const versionDate = parseVersionDate(site.version);
-    const REALLY_UPDATED = ["Paragon Quiz", "Paragon Archive Hub"]; // P-092 — only genuinely shipped products have real update entries
+    const REALLY_UPDATED = ["Paragon Quiz", "Paragon Archive Hub", "Paragon Invoice", "Paragon Resume", "Paragon Recipe", "Paragon Flash", "Paragon Files", "Paragon Travel", "Paragon Photo", "Paragon Shop"]; // P-092/P-099 — only genuinely shipped products have real update entries
     if (versionDate && site.updates?.length && REALLY_UPDATED.includes(site.name)) {
       events.push({
         id: `updated-${site.name}-${site.version}`,
@@ -1795,6 +1973,7 @@ function buildUpdateEvents() {
       { id: "announcement-2026-08-18-backend-live", type: "special", siteName: null, title: "The Paragon backend went LIVE", message: "Database schema, Email + Google sign-in, and the community & developer tables are all live and probe-verified. Signed-in members' board posts now publish to the real backend.", linkUrl: null, image: null, imageName: null, status: "published", publishedAt: "2026-08-18T18:00:00+01:00", scheduledFor: null, createdAt: "2026-08-18T18:00:00+01:00", publishedBy: "Paragon Founder" },
       { id: "announcement-2026-08-18-community-board", type: "special", siteName: null, title: "The Community Board is open", message: "Members can post, comment, like, report and appeal — with a real moderation loop on the Team desk. Join through Account, then Paragon Community.", linkUrl: null, image: null, imageName: null, status: "published", publishedAt: "2026-08-18T17:00:00+01:00", scheduledFor: null, createdAt: "2026-08-18T17:00:00+01:00", publishedBy: "Paragon Founder" },
       { id: "announcement-2026-08-18-developer-portal", type: "special", siteName: null, title: "The Developer Portal is open", message: "Apply as a developer, pass the real 8-point review gate, and your website joins the public Deployed category.", linkUrl: null, image: null, imageName: null, status: "published", publishedAt: "2026-08-18T16:00:00+01:00", scheduledFor: null, createdAt: "2026-08-18T16:00:00+01:00", publishedBy: "Paragon Founder" },
+      { id: "announcement-2026-09-03-product-wave", type: "new", siteName: null, title: "First product wave is OPEN inside the Archive", message: "Paragon Invoice, Resume, Recipe, Flash, Files, Travel, Photo and Shop now open real same-origin apps under /sites/ — local-first, free, with honest construction progress. Meal Planner pairs with Recipe. Coins financial SQL is ready for the team to run (real-money stays OFF).", linkUrl: null, image: null, imageName: null, status: "published", publishedAt: "2026-09-03T12:00:00+01:00", scheduledFor: null, createdAt: "2026-09-03T12:00:00+01:00", publishedBy: "Paragon Founder" },
       { id: "announcement-2026-08-04-catalogue-expansion", type: "special", siteName: null, title: "A larger Paragon collection is now available", message: "New productivity, education, creative, social, finance, lifestyle, entertainment, games, and developer experiences have joined the archive.", linkUrl: null, image: null, imageName: null, status: "published", publishedAt: "2026-08-04T03:15:00+01:00", scheduledFor: null, createdAt: "2026-08-04T03:15:00+01:00", publishedBy: "Paragon Founder" }
     ];
     if (window.localStorage.getItem("paragonTeamAnnouncements.v1") === null) {
@@ -1849,6 +2028,32 @@ function buildUpdateEvents() {
   } catch (error) { /* storage blocked — feed stays as generated */ }
 
   return events.sort((first, second) => second.date - first.date || first.title.localeCompare(second.title));
+}
+
+/* P-101 — public coin economy/flags from master phase1b (anon RPC). Silent no-op if SQL not run. */
+window.ParagonCoinPublicConfig = window.ParagonCoinPublicConfig || null;
+function fetchPublicCoinConfig() {
+  try {
+    const base = (window.ParagonConfig?.supabaseUrl || "").replace(/\/$/, "");
+    const key = window.ParagonConfig?.supabaseAnonKey || "";
+    if (!base || !key || typeof window.fetch !== "function") return;
+    window.fetch(`${base}/rest/v1/rpc/paragon_public_coin_config`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json" },
+      body: "{}"
+    })
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error("coin config " + r.status))))
+      .then(data => {
+        window.ParagonCoinPublicConfig = data;
+        try { window.localStorage.setItem("paragonArchive.coinPublicConfig.v1", JSON.stringify(data)); } catch (_) {}
+      })
+      .catch(() => {
+        try {
+          const cached = window.localStorage.getItem("paragonArchive.coinPublicConfig.v1");
+          if (cached) window.ParagonCoinPublicConfig = JSON.parse(cached);
+        } catch (_) {}
+      });
+  } catch (_) {}
 }
 
 /* P-094 — public feed refreshes from the live announcements backend (read-only, anon).
@@ -2211,7 +2416,8 @@ function achievementTasks() {
   const voteCount = Object.values(reviewVotes || {}).filter(Boolean).length;
   const progressCount = Object.keys(sharedProgress || {}).length;
   const readNotifications = inAppNotifications.filter(notification => notification.readAt).length;
-  return [
+  const bestRank = Number(accountProfile.leaderboardBestRank || 0);
+  const list = [
     { icon: "🥇", title: "First Visit", detail: "Open one website detail.", complete: localVisits.length >= 1 },
     { icon: "⭐", title: "First Rating", detail: "Rate one website.", complete: reviews.some(review => Number(review.stars) >= 1) },
     { icon: "📝", title: "First Review", detail: "Write one review.", complete: reviews.some(review => String(review.text || "").trim()) },
@@ -2241,8 +2447,32 @@ function achievementTasks() {
     { icon: "🤖", title: "AI Regular", detail: "Ask Paragon AI three questions.", complete: Number(accountProfile.aiQuestionCount || 0) >= 3 },
     { icon: "🔎", title: "Results Seeker", detail: "Run three full Search Results searches.", complete: Number(accountProfile.resultsSearchCount || 0) >= 3 },
     { icon: "📣", title: "Social Spreader", detail: "Share five detail links to apps or people.", complete: Number(accountProfile.shareCount || 0) >= 5 },
-    { icon: "🔔", title: "Fully Notified", detail: "Read ten account notifications.", complete: readNotifications >= 10 }
+    { icon: "🔔", title: "Fully Notified", detail: "Read ten account notifications.", complete: readNotifications >= 10 },
+    /* P-106 — stages 7–10: ads, leaderboard climb, retention & engagement */
+    { icon: "👀", title: "Ad Curious", detail: "View one reserved or live ad slot.", complete: Number(accountProfile.adImpressionCount || 0) >= 1 },
+    { icon: "📢", title: "Ad Supporter", detail: "Tap a support ad once (helps Paragon stay free).", complete: Number(accountProfile.adClickCount || 0) >= 1 },
+    { icon: "🤝", title: "Ad Ally", detail: "Tap support ads three times.", complete: Number(accountProfile.adClickCount || 0) >= 3 },
+    { icon: "🏅", title: "Ad Champion", detail: "Tap support ads ten times.", complete: Number(accountProfile.adClickCount || 0) >= 10 },
+    { icon: "💎", title: "Ad Patron", detail: "View twenty ad slots while browsing.", complete: Number(accountProfile.adImpressionCount || 0) >= 20 },
+    { icon: "📊", title: "Leaderboard Scout", detail: "Open the engagement leaderboard once.", complete: Number(accountProfile.leaderboardOpenCount || 0) >= 1 },
+    { icon: "🧗", title: "Leaderboard Climber", detail: "Check the leaderboard three times.", complete: Number(accountProfile.leaderboardCheckCount || 0) >= 3 },
+    { icon: "🔟", title: "Top Ten Contender", detail: "Reach a personal best rank of 10 or better.", complete: bestRank > 0 && bestRank <= 10 },
+    { icon: "🏁", title: "Top Ten Finisher", detail: "Hold top-10 best rank after five board checks.", complete: bestRank > 0 && bestRank <= 10 && Number(accountProfile.leaderboardCheckCount || 0) >= 5 },
+    { icon: "🥇", title: "Podium Push", detail: "Reach a personal best rank of 3 or better.", complete: bestRank > 0 && bestRank <= 3 },
+    { icon: "📅", title: "Daily Return", detail: "Come back on a second day (streak 2).", complete: Number(accountProfile.dayStreak || 0) >= 2 },
+    { icon: "🔥", title: "Week Streak", detail: "Keep a seven-day return streak.", complete: Number(accountProfile.dayStreak || 0) >= 7 },
+    { icon: "🪙", title: "Coin Curious", detail: "Open the Paragon Coins shop once.", complete: Number(accountProfile.coinShopOpenCount || 0) >= 1 },
+    { icon: "🚀", title: "Product Pilot", detail: "Open three Paragon product tools.", complete: Number(accountProfile.productOpenCount || 0) >= 3 },
+    { icon: "📲", title: "Install Ready", detail: "Open Install & app permissions once.", complete: Number(accountProfile.installOpenCount || 0) >= 1 },
+    { icon: "👥", title: "Community Step", detail: "Open Community from Account once.", complete: Number(accountProfile.communityOpenCount || 0) >= 1 },
+    { icon: "🔍", title: "Detail Deep Dive", detail: "Open fifteen website detail pages.", complete: Number(accountProfile.detailOpenCount || 0) >= 15 },
+    { icon: "🗂️", title: "Category Hopper", detail: "Browse five different categories.", complete: Number(accountProfile.categoryBrowseCount || 0) >= 5 },
+    { icon: "📰", title: "Update Watcher", detail: "Open the Updates tab five times.", complete: Number(accountProfile.updatesViewCount || 0) >= 5 },
+    { icon: "👑", title: "Archive Legend", detail: "Finish every other achievement first.", complete: false }
   ];
+  const prior = list.slice(0, -1);
+  list[list.length - 1].complete = prior.every(task => task.complete);
+  return list;
 }
 
 function currentAchievementStage(tasks = achievementTasks()) {
@@ -2261,7 +2491,7 @@ function renderAchievementsAccount() {
   const stageComplete = stage.tasks.length > 0 && stage.tasks.every(task => task.complete);
   const hasNext = stage.stage < stage.totalStages;
   const taskMarkup = stage.tasks.map(task => `
-    <article class="ach-item ${task.complete ? "completed" : ""}"><div class="emoji">${task.icon}</div><h4>${task.title}</h4><p>${task.complete ? "Completed" : task.detail}</p></article>`).join("");
+    <article class="ach-item ${task.complete ? "completed" : ""}">${badgeIconMarkup(task)}<h4>${task.title}</h4><p>${task.complete ? "Completed" : task.detail}</p></article>`).join("");
   const lockMarkup = hasNext ? `<button type="button" class="ach-item ${stageComplete ? "ready" : "locked"}" ${stageComplete ? "onclick=\"unlockNextAchievementStage()\"" : "disabled"} aria-label="More Soon: ${remaining} tasks remaining"><div class="emoji">${stageComplete ? "🔓" : `<img class="ach-lock-illus" src="assets/illustrations/achievement-locked.png" alt="" loading="lazy">`}</div><h4>More Soon</h4><p>${remaining} task${remaining === 1 ? "" : "s"} remaining</p></button>` : "";
   const stageCompleted = stage.tasks.filter(task => task.complete).length;
   const achievementPercent = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
@@ -2411,7 +2641,9 @@ function renderAccount() {
       <div class="row"><div><h4>🔔 Notifications</h4><p>${guestMode ? "Temporary for this session." : "Sync notification preferences."}</p></div><label><input type="checkbox" class="toggle" ${notificationsOn ? "checked" : ""} onchange="toggleNotificationsPreference(this)" aria-label="Notifications"></label></div>
       ${loggedIn && providerLabel(authUser) === "Email" ? `<div class="row"><button type="button" class="settings-link" onclick="openPasswordUpdate()"><span>🔑 Change Password</span></button></div>` : ""}
       <div class="row"><button type="button" class="settings-link" onclick="openParagonInstall()"><span>📲 Install Paragon Archive &amp; app permissions</span></button></div>
-      <div class="row"><button type="button" class="settings-link" onclick="openCoinShop()"><span>🪙 Paragon Coins — balance ${coinBalance().toLocaleString()} · buy coins</span></button></div>
+      <div class="row"><button type="button" class="settings-link" onclick="openCoinShop()"><span>🪙 Paragon Coins — balance ${coinBalance().toLocaleString()} · buy (real-money OFF)</span></button></div>
+      <div class="row"><button type="button" class="settings-link" onclick="openEngagementLeaderboard()"><span>🏆 Engagement leaderboard — climb to Top 10</span></button></div>
+      <div class="row"><button type="button" class="settings-link" onclick="openGamesCompeteDesk()"><span>⚔️ 1v1 competitive stake (server settle · free play separate)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="shareParagonApp()"><span>📤 Share Paragon Archive (install link)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openCommunityEntry()"><span>${communityMembershipRecord() ? "👥 Paragon Community · Open the Board" : "👥 Paragon Community"}</span></button></div>
       <div class="row"><a class="settings-link" href="paragon-archive-hub.html"><span><img class="settings-brand-mark" src="assets/brand/logo-mark.png" alt=""> Paragon Archive Hub</span></a></div>
@@ -2445,6 +2677,7 @@ window.openBecomeDeveloper = function() {
 };
 
 window.openCommunityEntry = async function() {
+  try { if (hasPersonalSession()) { accountProfile.communityOpenCount = Number(accountProfile.communityOpenCount || 0) + 1; persistPersonalState(); renderAchievementsAccount(); } } catch (_) {}
   if (communityMembershipRecord()) { window.location.href = "community-board.html"; return; }
   const overlay = ensureUtilityOverlay("community-join-overlay");
   overlay.innerHTML = `
@@ -2929,79 +3162,639 @@ window.openEmailAuth = function(mode = "signin") {
 
 
 /* =====================================================================
-   P-098 — PARAGON COINS (platform core): free balance starts at REAL ZERO.
-   • Balance lives in the personal state (account-synced; guest = session)
-   • Buy-coin requests go to the Team desk (super-admin approves -> coins credit)
-   • Betting/leaderboards/withdrawals consume this balance (games + quiz spec:
-     docs/COIN-SYSTEM.md). No real-money handling anywhere in the front-end.
+   P-098/P-101/P-102 — PARAGON COINS
+   Master rules:
+   • Browser balance is DISPLAY/CACHE only — server ledger is authority when SQL is live.
+   • Guest = free-play only (no buy / withdraw / stake).
+   • real_money_enabled comes from paragon_public_coin_config (default false).
+   • No fake bank confirmations. Purchase = team/RPC confirm after real transfer.
    ===================================================================== */
-function coinBalance() { return Math.max(0, Math.round(Number(accountProfile.coinBalance || 0))); }
-/* P-098 — approved coin credits from the Team desk land here (same-device loop). */
+function opayMoniepointPayMarkup() {
+  const p = (window.ParagonCoinPublicConfig || {}).provider || {};
+  const rails = Array.isArray(p.preferred_rails) ? p.preferred_rails : ["opay", "moniepoint", "manual_bank"];
+  const opay = p.opay || {};
+  const moni = p.moniepoint || {};
+  const esc = (v) => String(v || "").replace(/[<>]/g, "");
+  const card = (title, acct) => {
+    if (!acct || (!acct.account_number && !acct.account_name)) return "";
+    return `<div class="coin-rail-card"><strong>${esc(title)}</strong>
+      <div>${esc(acct.bank_name || title)}</div>
+      <div>${esc(acct.account_name || "")}</div>
+      <div class="coin-rail-number">${esc(acct.account_number || "— set by team —")}</div>
+      ${acct.label ? `<small>${esc(acct.label)}</small>` : ""}</div>`;
+  };
+  const cards = [
+    rails.includes("opay") ? card("OPay", opay) : "",
+    rails.includes("moniepoint") ? card("Moniepoint", moni) : ""
+  ].filter(Boolean).join("");
+  const instructions = esc(p.bank_transfer_instructions || p.support_contact_note ||
+    "Transfer with OPay or Moniepoint. Put your Paragon email in the narration. Coins credit only after confirmation — never from this click alone.");
+  return `<div class="install-popup-note coin-rails-block" style="margin-top:10px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.08)">
+    <b>How to pay (Nigeria — OPay / Moniepoint first) · real-money OFF · Stage 1 ledger</b>
+    <p style="margin:8px 0;font-size:12px;line-height:1.45">${instructions}</p>
+    <div class="coin-rails-grid">${cards || "<small>Team will publish OPay/Moniepoint account numbers after phase5 SQL + settings update. Flutterwave is <em>not</em> required.</small>"}</div>
+  </div>`;
+}
+
+function coinConfigFlags() {
+  const cfg = window.ParagonCoinPublicConfig || {};
+  const flags = cfg.flags || cfg.economy && cfg.flags || {};
+  const economy = cfg.economy || {};
+  return {
+    realMoney: !!(flags.real_money_enabled),
+    purchases: flags.purchases_enabled !== false, /* manual path allowed while real money off */
+    withdrawals: flags.withdrawals_enabled !== false,
+    compete: !!flags.compete_enabled,
+    pause: !!flags.financial_pause,
+    nairaPerCoinBuy: Number(economy.naira_per_coin_purchase) || 1,
+    nairaPerCoinOut: Number(economy.naira_per_coin_redeemable) || 1,
+    minPurchase: Number(economy.min_purchase_naira) || 500,
+    minWithdraw: Number(economy.min_withdraw_coins) || 500,
+    feeAt: Number(economy.withdraw_fee_coins_at_or_above) || 10000,
+    feeCoins: Number(economy.withdraw_fee_coins) || 50,
+    packs: Array.isArray(economy.packs) ? economy.packs : [
+      { naira: 500, coins: 500, label: "Starter" },
+      { naira: 1000, coins: 1000, label: "Standard" },
+      { naira: 5000, coins: 5000, label: "Pro" }
+    ]
+  };
+}
+
+function isRegisteredMember() {
+  return !!(authUser && authUser.email && !String(authUser.email).includes("Guest"));
+}
+
+function coinBalance() {
+  /* Prefer server account cache when present */
+  if (accountProfile.coinAccount && accountProfile.coinAccount.available_coins != null) {
+    return Math.max(0, Math.round(Number(accountProfile.coinAccount.available_coins) || 0));
+  }
+  return Math.max(0, Math.round(Number(accountProfile.coinBalance || 0)));
+}
+
+function coinBalanceBuckets() {
+  const a = accountProfile.coinAccount || {};
+  return {
+    available: Math.max(0, Math.round(Number(a.available_coins != null ? a.available_coins : accountProfile.coinBalance) || 0)),
+    locked: Math.max(0, Math.round(Number(a.locked_coins) || 0)),
+    pending: Math.max(0, Math.round(Number(a.pending_coins) || 0)),
+    restricted: Math.max(0, Math.round(Number(a.restricted_coins) || 0))
+  };
+}
+
+/* Same-device team desk mirrors (offline prototype). Never treat as bank proof. */
 function syncApprovedCoinCredits() {
   try {
+    if (!isRegisteredMember()) return;
+    const who = authUser?.email || "";
     const credits = JSON.parse(window.localStorage.getItem("paragonArchive.coinCredits.v1") || "[]");
-    const mine = credits.filter(credit => credit.for === (authUser?.email || "Guest (this device)") && !credit.claimed);
-    if (!mine.length) return;
-    let total = 0;
-    mine.forEach(credit => { total += Number(credit.coins) || 0; credit.claimed = true; });
-    window.localStorage.setItem("paragonArchive.coinCredits.v1", JSON.stringify(credits));
-    addCoins(total, "Purchase approved by the Paragon Team");
-    showToast(`🪙 ${total.toLocaleString()} coins added — purchase approved!`);
+    const mine = credits.filter(credit => credit.for === who && !credit.claimed);
+    if (mine.length) {
+      let total = 0;
+      mine.forEach(credit => { total += Number(credit.coins) || 0; credit.claimed = true; });
+      window.localStorage.setItem("paragonArchive.coinCredits.v1", JSON.stringify(credits));
+      addCoinsLocal(total, "Purchase approved by the Paragon Team (device mirror)");
+      showToast(`🪙 ${total.toLocaleString()} coins added — team approved (display cache).`);
+    }
+    const debits = JSON.parse(window.localStorage.getItem("paragonArchive.coinDebits.v1") || "[]");
+    const myDebits = debits.filter(d => d.for === who && !d.claimed);
+    if (myDebits.length) {
+      let total = 0;
+      myDebits.forEach(d => {
+        const n = Number(d.coins) || 0;
+        if (n > 0 && spendCoinsLocal(n, d.reason || "Withdrawal payout")) total += n;
+        d.claimed = true;
+      });
+      window.localStorage.setItem("paragonArchive.coinDebits.v1", JSON.stringify(debits));
+      if (total) showToast(`🏦 ${total.toLocaleString()} coins withdrawn after team payout (display cache).`);
+    }
   } catch (error) { /* blocked */ }
 }
-function addCoins(amount, reason) {
+
+function addCoinsLocal(amount, reason) {
   if (!hasPersonalSession()) return false;
   const value = Math.round(Number(amount) || 0);
   if (!value) return false;
   accountProfile.coinBalance = coinBalance() + value;
-  accountProfile.coinHistory = [{ at: new Date().toISOString(), amount: value, reason: String(reason || "adjustment") }, ...(accountProfile.coinHistory || [])].slice(0, 50);
+  if (accountProfile.coinAccount) {
+    accountProfile.coinAccount.available_coins = (Number(accountProfile.coinAccount.available_coins) || 0) + value;
+  }
+  accountProfile.coinHistory = [{ at: new Date().toISOString(), amount: value, reason: String(reason || "adjustment"), source: "local" }, ...(accountProfile.coinHistory || [])].slice(0, 50);
   persistPersonalState();
   return true;
 }
-function spendCoins(amount, reason) {
+function spendCoinsLocal(amount, reason) {
   const value = Math.round(Number(amount) || 0);
   if (value <= 0 || coinBalance() < value) return false;
   accountProfile.coinBalance = coinBalance() - value;
-  accountProfile.coinHistory = [{ at: new Date().toISOString(), amount: -value, reason: String(reason || "spend") }, ...(accountProfile.coinHistory || [])].slice(0, 50);
+  if (accountProfile.coinAccount) {
+    accountProfile.coinAccount.available_coins = Math.max(0, (Number(accountProfile.coinAccount.available_coins) || 0) - value);
+  }
+  accountProfile.coinHistory = [{ at: new Date().toISOString(), amount: -value, reason: String(reason || "spend"), source: "local" }, ...(accountProfile.coinHistory || [])].slice(0, 50);
   persistPersonalState();
   return true;
 }
-window.requestCoinPurchase = function(nairaAmount) {
-  const naira = Math.round(Number(nairaAmount) || 0);
-  if (!hasPersonalSession()) { requirePersonalSession("buy Paragon coins"); return; }
-  if (naira < 500) { showToast("The smallest coin pack is ₦500.", "warning"); return; }
-  const coins = Math.round(naira * 2); /* honest placeholder rate: ₦1 = 2 coins (owner sets the real rate) */
+/* Public aliases used by games — local cache only until server stake RPCs */
+function addCoins(amount, reason) { return addCoinsLocal(amount, reason); }
+function spendCoins(amount, reason) { return spendCoinsLocal(amount, reason); }
+
+function supabaseRest(path, options) {
+  const base = (window.ParagonConfig?.supabaseUrl || "").replace(/\/$/, "");
+  const key = window.ParagonConfig?.supabaseAnonKey || "";
+  if (!base || !key || typeof window.fetch !== "function") return Promise.reject(new Error("no-supabase"));
+  const headers = Object.assign({
+    apikey: key,
+    "Content-Type": "application/json"
+  }, options?.headers || {});
   try {
-    const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");
-    list.push({ id: "coin-" + Date.now().toString(36), user: authUser?.email || "Guest (this device)", displayName: accountProfile.displayName || "Guest", naira, coins, status: "pending", createdAt: new Date().toISOString() });
-    window.localStorage.setItem("paragonTeamCoinRequests.v1", JSON.stringify(list));
-    showToast(`Request sent — ${coins.toLocaleString()} coins await super-admin approval. pendingBackendSync`);
-  } catch (error) { showToast("The request could not be saved on this device.", "warning"); }
+    const session = window.authClient?.getSession?.() || window.ParagonAuth?.session;
+    const token = session?.access_token || key;
+    headers.Authorization = "Bearer " + token;
+  } catch (_) {
+    headers.Authorization = "Bearer " + key;
+  }
+  return window.fetch(base + path, Object.assign({}, options, { headers })).then(async r => {
+    const text = await r.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) { data = text; }
+    if (!r.ok) throw new Error((data && data.message) || (data && data.error_description) || ("http " + r.status));
+    return data;
+  });
+}
+
+function refreshCoinAccountFromServer() {
+  if (!isRegisteredMember()) return Promise.resolve(null);
+  /* Stage 2: prefer wallet view (account + ledger + intents); fall back to my_account */
+  return supabaseRest("/rest/v1/rpc/paragon_coin_my_wallet_view", {
+    method: "POST",
+    body: JSON.stringify({ p_ledger_limit: 40 })
+  }).then(view => {
+    if (!view || !view.account) {
+      return supabaseRest("/rest/v1/rpc/paragon_coin_my_account", { method: "POST", body: "{}" })
+        .then(account => {
+          if (!account) return null;
+          accountProfile.coinAccount = account;
+          accountProfile.coinBalance = Math.max(0, Math.round(Number(account.available_coins) || 0));
+          persistPersonalState();
+          return account;
+        });
+    }
+    accountProfile.coinAccount = view.account;
+    accountProfile.coinBalance = Math.max(0, Math.round(Number(view.available_coins) || 0));
+    accountProfile.serverLedger = Array.isArray(view.ledger) ? view.ledger : [];
+    accountProfile.paymentIntents = Array.isArray(view.payment_intents) ? view.payment_intents : [];
+    /* Merge server ledger into display history (server wins) */
+    accountProfile.coinHistory = (accountProfile.serverLedger || []).map(row => ({
+      at: row.created_at,
+      amount: Number(row.amount) || 0,
+      reason: String(row.entry_type || "ledger") + (row.reference_type ? " · " + row.reference_type : ""),
+      source: "server",
+      bucket: row.bucket,
+      idempotency_key: row.idempotency_key || null
+    })).concat(
+      (accountProfile.coinHistory || []).filter(h => h.source === "local")
+    ).slice(0, 60);
+    persistPersonalState();
+    return view;
+  }).catch(() =>
+    supabaseRest("/rest/v1/rpc/paragon_coin_my_account", { method: "POST", body: "{}" })
+      .then(account => {
+        if (!account) return null;
+        accountProfile.coinAccount = account;
+        accountProfile.coinBalance = Math.max(0, Math.round(Number(account.available_coins) || 0));
+        persistPersonalState();
+        return account;
+      })
+      .catch(() => null)
+  );
+}
+
+window.claimCoinPayment = function(intentId) {
+  if (!isRegisteredMember()) {
+    showToast("Sign in to claim a payment.", "warning");
+    return;
+  }
+  if (!intentId) { showToast("Missing purchase request id.", "warning"); return; }
+  const ref = window.prompt("OPay/Moniepoint receipt or transfer reference", "") || "";
+  if (ref.trim().length < 3) {
+    showToast("Enter a real transfer reference (min 3 characters).", "warning");
+    return;
+  }
+  supabaseRest("/rest/v1/rpc/paragon_coin_claim_payment", {
+    method: "POST",
+    body: JSON.stringify({
+      p_intent_id: intentId,
+      p_claim_ref: ref.trim().slice(0, 200),
+      p_claim_note: "User claimed transfer from coin shop"
+    })
+  }).then(() => {
+    showToast("Claim recorded — coins credit only after team/provider confirms. Not credited yet.");
+    refreshCoinAccountFromServer().finally(() => openCoinShop());
+  }).catch(err => {
+    const msg = String(err?.message || err || "");
+    if (/limit/i.test(msg)) showToast("Claim limit: max 5 payment claims per 24 hours.", "warning");
+    else showToast("Claim failed — run Stage 2 SQL or try again. " + msg.slice(0, 120), "warning");
+  });
 };
+
+window.requestCoinPurchase = function(nairaAmount) {
+  const cfg = coinConfigFlags();
+  if (cfg.pause) { showToast("Financial operations are paused by the team.", "warning"); return; }
+  if (!hasPersonalSession()) { requirePersonalSession("buy Paragon coins"); return; }
+  if (!isRegisteredMember()) {
+    showToast("Guests are free-play only. Sign in to request coin purchases.", "warning");
+    return;
+  }
+  const naira = Math.round(Number(nairaAmount) || 0);
+  if (naira < cfg.minPurchase) { showToast(`The smallest coin pack is ₦${cfg.minPurchase.toLocaleString()}.`, "warning"); return; }
+  const coins = Math.round(naira * cfg.nairaPerCoinBuy);
+  const idem = "buy-" + (authUser?.id || "u") + "-" + naira + "-" + Date.now().toString(36);
+
+  /* Try server payment intent first; fall back to team desk local queue */
+  supabaseRest("/rest/v1/rpc/paragon_coin_create_payment_intent", {
+    method: "POST",
+    body: JSON.stringify({ p_naira: naira, p_idempotency_key: idem, p_pack_label: "pack-" + naira })
+  }).then(intent => {
+    try {
+      const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");
+      list.push({
+        id: intent?.id || idem,
+        user: authUser.email,
+        displayName: accountProfile.displayName || authUser.email,
+        naira, coins,
+        status: intent?.status || "awaiting_transfer",
+        backend: true,
+        createdAt: new Date().toISOString()
+      });
+      window.localStorage.setItem("paragonTeamCoinRequests.v1", JSON.stringify(list));
+    } catch (_) {}
+    if (intent?.id) {
+      accountProfile.paymentIntents = [
+        { id: intent.id, naira, coins, status: intent.status || "awaiting_transfer", created_at: new Date().toISOString() },
+        ...(accountProfile.paymentIntents || [])
+      ].slice(0, 15);
+      persistPersonalState();
+    }
+    showToast(`Purchase request recorded — ${coins.toLocaleString()} coins after confirm of ₦${naira.toLocaleString()}. Not credited yet. Claim with your OPay/Moniepoint receipt when paid.`);
+    refreshCoinAccountFromServer().finally(() => {
+      try { openCoinShop(); } catch (_) {}
+    });
+  }).catch(() => {
+    try {
+      const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");
+      list.push({
+        id: idem,
+        user: authUser.email,
+        displayName: accountProfile.displayName || authUser.email,
+        naira, coins,
+        status: "pending",
+        backend: false,
+        createdAt: new Date().toISOString()
+      });
+      window.localStorage.setItem("paragonTeamCoinRequests.v1", JSON.stringify(list));
+      showToast(`Request saved on this device — ${coins.toLocaleString()} coins await team approval after real payment. (Server RPC not live yet.)`);
+    } catch (error) {
+      showToast("The request could not be saved on this device.", "warning");
+    }
+  });
+};
+
+window.requestCoinWithdrawal = function() {
+  const cfg = coinConfigFlags();
+  if (cfg.pause) { showToast("Financial operations are paused by the team.", "warning"); return; }
+  if (!hasPersonalSession()) { requirePersonalSession("request a coin withdrawal"); return; }
+  if (!isRegisteredMember()) {
+    showToast("Guests cannot withdraw. Sign in with a registered account.", "warning");
+    return;
+  }
+  const bal = coinBalance();
+  if (bal < cfg.minWithdraw) {
+    showToast(`Minimum withdrawal is ${cfg.minWithdraw.toLocaleString()} coins.`, "warning");
+    return;
+  }
+  const coinsEl = document.getElementById("coin-withdraw-amount");
+  const bankEl = document.getElementById("coin-withdraw-bank");
+  const coins = Math.round(Number(coinsEl?.value) || 0);
+  const bank = String(bankEl?.value || "").trim();
+  if (coins < cfg.minWithdraw) { showToast(`Enter at least ${cfg.minWithdraw.toLocaleString()} coins.`, "warning"); return; }
+  if (coins > bal) { showToast("You do not have that many available coins.", "warning"); return; }
+  if (bank.length < 8) { showToast("Add bank/account details for the team payout (min 8 characters).", "warning"); return; }
+  const fee = coins >= cfg.feeAt ? cfg.feeCoins : 0;
+  const naira = Math.max(0, Math.round((coins - fee) * cfg.nairaPerCoinOut));
+  const idem = "wd-" + (authUser?.id || "u") + "-" + coins + "-" + Date.now().toString(36);
+
+  supabaseRest("/rest/v1/rpc/paragon_coin_request_withdrawal", {
+    method: "POST",
+    body: JSON.stringify({
+      p_coins: coins,
+      p_bank_snapshot: bank,
+      p_payout_account_id: null,
+      p_idempotency_key: idem
+    })
+  }).then(row => {
+    spendCoinsLocal(coins, "Withdrawal lock (awaiting team payout)");
+    try {
+      const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinWithdrawals.v1") || "[]");
+      list.push({
+        id: row?.id || idem,
+        user: authUser.email,
+        displayName: accountProfile.displayName || authUser.email,
+        coins, fee, naira, bank, status: "pending", backend: true,
+        createdAt: new Date().toISOString()
+      });
+      window.localStorage.setItem("paragonTeamCoinWithdrawals.v1", JSON.stringify(list));
+    } catch (_) {}
+    refreshCoinAccountFromServer();
+    showToast(`Withdrawal queued — ${coins.toLocaleString()} coins locked. ~₦${naira.toLocaleString()} after fee when team pays.`);
+    document.getElementById("coin-shop-overlay")?.remove();
+    document.body.classList.remove("popup-lock");
+  }).catch(() => {
+    /* Offline / SQL not run: queue for team desk only — do NOT deduct until paid (honest) */
+    try {
+      const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinWithdrawals.v1") || "[]");
+      list.push({
+        id: idem,
+        user: authUser.email,
+        displayName: accountProfile.displayName || authUser.email,
+        coins, fee, naira, bank, status: "pending", backend: false,
+        createdAt: new Date().toISOString()
+      });
+      window.localStorage.setItem("paragonTeamCoinWithdrawals.v1", JSON.stringify(list));
+      showToast(`Withdrawal request saved for the team desk. Coins stay available until the team marks paid (server lock not live yet). ~₦${naira.toLocaleString()} after fee.`);
+      document.getElementById("coin-shop-overlay")?.remove();
+      document.body.classList.remove("popup-lock");
+    } catch (error) {
+      showToast("Could not save withdrawal request.", "warning");
+    }
+  });
+};
+
+
+window.openFinancialCase = function(caseType, summary) {
+  if (!isRegisteredMember()) {
+    showToast("Sign in to open a financial case.", "warning");
+    return;
+  }
+  const detail = summary || "User reported a coin/payment problem from the coin shop.";
+  supabaseRest("/rest/v1/rpc/paragon_open_financial_case", {
+    method: "POST",
+    body: JSON.stringify({
+      p_case_type: caseType || "other",
+      p_summary: detail.slice(0, 500),
+      p_reference_type: "coin_shop",
+      p_reference_id: null,
+      p_detail: { at: new Date().toISOString() }
+    })
+  }).then(() => {
+    showToast("Financial case opened for the team. Keep your payment references.");
+  }).catch(() => {
+    try {
+      const list = JSON.parse(localStorage.getItem("paragonTeamFinancialCases.v1") || "[]");
+      list.push({
+        id: "case-" + Date.now().toString(36),
+        user: authUser?.email,
+        caseType: caseType || "other",
+        summary: detail,
+        status: "open",
+        createdAt: new Date().toISOString()
+      });
+      localStorage.setItem("paragonTeamFinancialCases.v1", JSON.stringify(list));
+      showToast("Case saved on this device for the team desk (server RPC not live yet).");
+    } catch (e) {
+      showToast("Could not open a case.", "warning");
+    }
+  });
+};
+
+
+window.openKycPayoutDraft = function() {
+  if (!requirePersonalSession("save payout details")) return;
+  const rail = window.prompt("Payout rail: type opay or moniepoint", "opay") || "opay";
+  const name = window.prompt("Account name on OPay/Moniepoint", accountProfile.displayName || "") || "";
+  const number = window.prompt("Wallet / account number", "") || "";
+  const phone = window.prompt("Phone (optional, E.164 e.g. +234…)", "") || "";
+  if (!number.trim()) { showToast("Account number required.", "warning"); return; }
+  supabaseRest("/rest/v1/rpc/paragon_kyc_upsert_draft", {
+    method: "POST",
+    body: JSON.stringify({
+      p_legal_name: name || null,
+      p_phone_e164: phone || null,
+      p_payout_account_name: name || null,
+      p_payout_account_number: number.trim(),
+      p_payout_bank_name: /monie/i.test(rail) ? "Moniepoint MFB" : "OPay",
+      p_payout_rail: /monie/i.test(rail) ? "moniepoint" : "opay"
+    })
+  }).then(() => showToast("Payout details saved for team review (KYC draft)."))
+    .catch(() => showToast("Saved locally note — run phase5 SQL for server KYC.", "warning"));
+};
+
+
+/* =====================================================================
+   P-110 — Stage 3 Games desk (1v1 stake UI)
+   Free play always available outside this desk. Stakes lock via server RPC.
+   Browser NEVER settles winners — team/service only.
+   ===================================================================== */
+window.openGamesCompeteDesk = function() {
+  if (!requirePersonalSession("open competitive games")) return;
+  if (!isRegisteredMember()) {
+    showToast("Sign in with a real account to stake coins. Guests stay free-play only.", "warning");
+    return;
+  }
+  const cfg = coinConfigFlags();
+  document.getElementById("games-compete-overlay")?.remove();
+
+  const run = (view) => {
+    const buckets = coinBalanceBuckets();
+    const pre = view?.preflight || {};
+    const matches = Array.isArray(view?.matches) ? view.matches : [];
+    const matchHtml = matches.slice(0, 10).map(m => {
+      return `<li class="coin-intent-row"><span><b>${String(m.game_key || "1v1").replace(/[<>]/g, "")}</b> · ${Number(m.stake_coins || 0)}c · ${String(m.status || "").replace(/[<>]/g, "")} · me: ${String(m.result || "pending").replace(/[<>]/g, "")}</span></li>`;
+    }).join("") || "<li><small>No staked matches yet. Free play never needs this desk.</small></li>";
+
+    const warnings = Array.isArray(pre.warnings) ? pre.warnings : [];
+    const warnHtml = warnings.length
+      ? `<ul style="margin:8px 0;padding-left:18px;font-size:12px">${warnings.map(w => `<li>${String(w.code || JSON.stringify(w)).replace(/[<>]/g, "")}</li>`).join("")}</ul>`
+      : "<p class=\"install-popup-note\">Preflight clear (or SQL not live yet).</p>";
+
+    const overlay = document.createElement("div");
+    overlay.id = "games-compete-overlay";
+    overlay.className = "install-popup-overlay active";
+    overlay.innerHTML = `
+      <div class="install-popup-card" role="dialog" aria-modal="true" aria-label="Competitive 1v1">
+        <header><h2>1v1 Competitive stake</h2>
+          <button type="button" class="icon-btn-small" onclick="document.getElementById('games-compete-overlay')?.remove();document.body.classList.remove('popup-lock')" aria-label="Close">×</button>
+        </header>
+        <p class="install-popup-note">Free play is always available without coins. This desk locks stakes on the <strong>server</strong> (100–10,000 coins). House fee = <strong>5% of the two-player pool</strong>. Winners are settled by the Paragon Team / Edge only — your browser cannot credit a win.</p>
+        <div class="leaderboard-you">Available <b>${buckets.available.toLocaleString()}</b> · locked <b>${buckets.locked.toLocaleString()}</b>
+          · compete_flag=${cfg.compete ? "on" : "off"} · real_money=${cfg.realMoney ? "on" : "OFF"}</div>
+        ${warnHtml}
+        <label style="display:block;margin:10px 0 4px;font-size:12px">Game key</label>
+        <input id="compete-game-key" value="1v1-practice" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit">
+        <label style="display:block;margin:10px 0 4px;font-size:12px">Stake (coins)</label>
+        <input id="compete-stake" type="number" min="100" max="10000" step="50" value="100" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit">
+        <div class="install-popup-actions" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+          <button type="button" class="primary-action" onclick="createOneVOneChallenge()">Create challenge (lock my stake)</button>
+          <button type="button" class="secondary-action" onclick="refreshOpenChallenges()">Open challenges</button>
+          <button type="button" class="secondary-action" onclick="document.getElementById('games-compete-overlay')?.remove();document.body.classList.remove('popup-lock')">Close</button>
+        </div>
+        <div id="compete-open-list" style="margin-top:12px"></div>
+        <h4 style="margin:14px 0 6px;font-size:13px">My recent stakes</h4>
+        <ul style="list-style:none;padding:0;margin:0;display:grid;gap:6px">${matchHtml}</ul>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.body.classList.add("popup-lock");
+  };
+
+  supabaseRest("/rest/v1/rpc/paragon_competition_my_list", {
+    method: "POST", body: JSON.stringify({ p_limit: 15 })
+  }).then(run).catch(() => run(null));
+};
+
+window.createOneVOneChallenge = function() {
+  if (!isRegisteredMember()) return;
+  const gameKey = String(document.getElementById("compete-game-key")?.value || "1v1").trim() || "1v1";
+  const stake = Math.round(Number(document.getElementById("compete-stake")?.value) || 0);
+  if (stake < 100 || stake > 10000) {
+    showToast("Stake must be between 100 and 10,000 coins.", "warning");
+    return;
+  }
+  const fee = Math.round(stake * 2 * 0.05);
+  supabaseRest("/rest/v1/rpc/paragon_competition_create", {
+    method: "POST",
+    body: JSON.stringify({
+      p_game_key: gameKey,
+      p_stake_coins: stake,
+      p_opponent: null,
+      p_metadata: { client: "archive-games-desk", fee_preview: fee }
+    })
+  }).then(row => {
+    showToast(`Challenge created — ${stake} coins locked. Fee preview ${fee}c (5% of pool when settled as a win). Waiting for opponent.`);
+    refreshCoinAccountFromServer();
+    openGamesCompeteDesk();
+  }).catch(err => {
+    const msg = String(err?.message || err || "");
+    showToast("Could not create challenge: " + msg.slice(0, 140), "warning");
+  });
+};
+
+window.refreshOpenChallenges = function() {
+  const host = document.getElementById("compete-open-list");
+  if (!host) return;
+  host.innerHTML = "<small>Loading open challenges…</small>";
+  supabaseRest("/rest/v1/rpc/paragon_competition_open_challenges", {
+    method: "POST",
+    body: JSON.stringify({ p_game_key: null, p_limit: 15 })
+  }).then(rows => {
+    const list = Array.isArray(rows) ? rows : (rows ? [rows] : []);
+    if (!list.length) {
+      host.innerHTML = "<small>No open challenges (or Stage 3 SQL not run).</small>";
+      return;
+    }
+    host.innerHTML = `<h4 style="font-size:13px">Open challenges</h4>` + list.map(c => {
+      const id = String(c.id || "").replace(/'/g, "");
+      return `<div class="coin-intent-row"><span>${String(c.game_key || "").replace(/[<>]/g, "")} · ${Number(c.stake_coins || 0)}c · fee ${Number(c.fee_coins || 0)}c</span>
+        <button type="button" class="secondary-action coin-claim-btn" onclick="joinOneVOneChallenge('${id}')">Join (lock my stake)</button></div>`;
+    }).join("");
+  }).catch(() => {
+    host.innerHTML = "<small>Open challenges unavailable — run stage3 SQL.</small>";
+  });
+};
+
+window.joinOneVOneChallenge = function(competitionId) {
+  if (!competitionId || !isRegisteredMember()) return;
+  supabaseRest("/rest/v1/rpc/paragon_competition_join", {
+    method: "POST",
+    body: JSON.stringify({
+      p_competition_id: competitionId,
+      p_idempotency_key: "join-" + competitionId + "-" + (authUser?.id || "u")
+    })
+  }).then(() => {
+    showToast("Joined — both stakes locked when two players seated. Play free UI; Team settles the money outcome.");
+    refreshCoinAccountFromServer();
+    openGamesCompeteDesk();
+  }).catch(err => showToast("Join failed: " + String(err?.message || err).slice(0, 120), "warning"));
+};
+
+
 window.openCoinShop = function() {
+  try { if (hasPersonalSession()) { accountProfile.coinShopOpenCount = Number(accountProfile.coinShopOpenCount || 0) + 1; persistPersonalState(); renderAchievementsAccount(); } } catch (_) {}
   if (typeof document.createElement !== "function") return;
-  document.getElementById("coin-shop-overlay")?.remove();
-  const overlay = document.createElement("div");
-  overlay.id = "coin-shop-overlay";
-  overlay.className = "utility-overlay active install-overlay";
-  overlay.innerHTML = `
-    <div class="install-popup-card" style="width:min(500px,94vw);" role="dialog" aria-modal="true">
-      <header><h2>🪙 Paragon Coins</h2><p>Coins power game bets, quiz entry fees and creator prizes. Balance: <b>${coinBalance().toLocaleString()} coins</b></p></header>
+  syncApprovedCoinCredits();
+  refreshCoinAccountFromServer().finally(() => {
+    document.getElementById("coin-shop-overlay")?.remove();
+    const cfg = coinConfigFlags();
+    const buckets = coinBalanceBuckets();
+    const history = (accountProfile.coinHistory || []).slice(0, 12).map(entry => {
+      const sign = Number(entry.amount) >= 0 ? "+" : "";
+      const when = entry.at ? new Date(entry.at).toLocaleString() : "";
+      const src = entry.source === "server" ? "server" : "local";
+      const buck = entry.bucket ? ` · ${entry.bucket}` : "";
+      return `<li><b>${sign}${Number(entry.amount).toLocaleString()}</b> · ${String(entry.reason || "").replace(/[<>]/g, "")} <small>${when}${buck} · ${src}</small></li>`;
+    }).join("") || "<li><small>No movements yet — balance starts at real zero. Server ledger appears after SQL Stage 2.</small></li>";
+    const intents = (accountProfile.paymentIntents || []).slice(0, 8).map(intent => {
+      const st = String(intent.status || "pending");
+      const claimable = ["awaiting_transfer", "created", "claimed"].includes(st);
+      const id = String(intent.id || "").replace(/'/g, "");
+      return `<li class="coin-intent-row">
+        <span>₦${Number(intent.naira || 0).toLocaleString()} to ${Number(intent.coins || 0).toLocaleString()}c · <b>${st.replace(/[<>]/g, "")}</b></span>
+        ${claimable && id ? `<button type="button" class="secondary-action coin-claim-btn" onclick="claimCoinPayment('${id}')">I paid — claim</button>` : ""}
+      </li>`;
+    }).join("") || "<li><small>No purchase requests yet. Pick a pack below — request never auto-credits.</small></li>";
+    const packs = cfg.packs.map(p => {
+      const naira = Number(p.naira) || 0;
+      const coins = Number(p.coins) || Math.round(naira * cfg.nairaPerCoinBuy);
+      return [naira, coins, p.label || ""];
+    });
+    const overlay = document.createElement("div");
+    overlay.id = "coin-shop-overlay";
+    overlay.className = "utility-overlay active install-overlay";
+    overlay.innerHTML = `
+    <div class="install-popup-card" style="width:min(560px,96vw);max-height:90vh;overflow:auto;" role="dialog" aria-modal="true">
+      <header><h2>🪙 Paragon Coins</h2>
+        <p>Free-to-play always works. <b>Real-money mode is ${cfg.realMoney ? "ON" : "OFF"}</b>${cfg.pause ? " · FINANCIAL PAUSE" : ""}.
+        Available <b>${buckets.available.toLocaleString()}</b>
+        · locked <b>${buckets.locked.toLocaleString()}</b>
+        · pending <b>${buckets.pending.toLocaleString()}</b>
+        · restricted <b>${buckets.restricted.toLocaleString()}</b>
+        <br><small>Server ledger is authority when SQL is live. localStorage is display cache only. Guests: free-play — no buy/withdraw.</small>
+        </p>
+      </header>
       <div class="install-perm-list">
-        ${[[500, 1000], [1000, 2000], [5000, 10000]].map(([naira, coins]) => `
-          <label class="install-perm-row" style="cursor:pointer" onclick="requestCoinPurchase(${naira}); document.getElementById('coin-shop-overlay').remove();">
-            <div><b>₦${naira.toLocaleString()}</b><small>≈ ${coins.toLocaleString()} coins — request goes to the Team desk for approval (pay only after approval, from the team's payment details).</small></div>
+        ${packs.map(([naira, coins, label]) => `
+          <label class="install-perm-row" style="cursor:pointer" onclick="requestCoinPurchase(${naira});">
+            <div><b>₦${naira.toLocaleString()}${label ? " · " + String(label).replace(/[<>]/g,"") : ""}</b>
+              <small>to ${coins.toLocaleString()} coins after team confirms your transfer. Nothing is credited from this click alone.</small></div>
             <span class="primary-action" style="pointer-events:none;">Request</span>
           </label>`).join("")}
       </div>
-      <div class="install-popup-actions">
-        <button type="button" class="secondary-action" onclick="document.getElementById('coin-shop-overlay').remove(); document.body.classList.remove('popup-lock')">Close</button>
+      <div style="margin:14px 0 8px;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+        <b style="display:block;margin-bottom:8px;">Withdraw (manual team payout)</b>
+        <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Coins (min ${cfg.minWithdraw})</label>
+        <input id="coin-withdraw-amount" type="number" min="${cfg.minWithdraw}" step="100" value="${cfg.minWithdraw}" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit">
+        <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Bank details</label>
+        <textarea id="coin-withdraw-bank" rows="2" placeholder="Bank · Account name · Account number" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit"></textarea>
+        <button type="button" class="secondary-action" onclick="requestCoinWithdrawal()">Request withdrawal</button>
+        <small class="install-popup-note" style="display:block;margin-top:8px;">Redeemable target ₦${cfg.nairaPerCoinOut}/coin; fee ${cfg.feeCoins} coins if ≥ ${cfg.feeAt.toLocaleString()} coins. Server ledger is authority when SQL Phase 2+ is live.</small>
+${opayMoniepointPayMarkup()}
+        <div class="coin-stage2-block">
+          <h4 style="margin:14px 0 6px">Purchase requests</h4>
+          <ul class="coin-intents-list" style="list-style:none;padding:0;margin:0;display:grid;gap:6px">${intents}</ul>
+          <h4 style="margin:14px 0 6px">Transaction history</h4>
+          <ul class="coin-history-list" style="list-style:none;padding:0;margin:0;display:grid;gap:4px;max-height:180px;overflow:auto;font-size:12px">${history}</ul>
+          <p class="install-popup-note" style="margin-top:8px">Credits post only after team/provider confirmation (idempotent). Duplicate provider references are rejected. Request click never mints coins.</p>
+        </div>
       </div>
-      <small class="install-popup-note">Free-to-play always stays free — coins are only for betting, entry fees and prizes. Withdrawals/selling coins back to Paragon are handled by the team (docs/COIN-SYSTEM.md).</small>
+      <div style="margin-top:8px"><b>Recent (this device)</b><ul style="margin:8px 0 0 18px;padding:0;font-size:13px">${history}</ul></div>
+      <div class="install-popup-actions">
+        <button type="button" class="secondary-action" onclick="openKycPayoutDraft()">OPay / Moniepoint payout details</button>
+        <button type="button" class="secondary-action" onclick="openFinancialCase('payment','Problem with a coin purchase or withdrawal')">Report a money problem</button>
+        <button type="button" class="secondary-action" onclick="document.getElementById('coin-shop-overlay')?.remove();document.body.classList.remove('popup-lock')">Close</button>
+      </div>
     </div>`;
-  document.body.appendChild(overlay);
-  document.body.classList.add("popup-lock");
-  overlay.addEventListener("click", event => { if (event.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); } });
+    document.body.appendChild(overlay);
+    document.body.classList.add("popup-lock");
+    overlay.addEventListener("click", e => { if (e.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); } });
+  });
 };
 
 /* =====================================================================
@@ -3060,6 +3853,7 @@ window.toggleInstallPermission = async function(input, name) {
   window.renderInstallPopupStates?.();
 };
 window.openParagonInstall = function() {
+  try { if (hasPersonalSession()) { accountProfile.installOpenCount = Number(accountProfile.installOpenCount || 0) + 1; persistPersonalState(); renderAchievementsAccount(); } } catch (_) {}
   if (typeof document.createElement !== "function") return;
   document.getElementById("paragon-install-overlay")?.remove();
   const overlay = document.createElement("div");
@@ -3508,6 +4302,13 @@ function closeAllTransientUI() {
 }
 
 window.switchToTab = function(name, options = {}) {
+  try {
+    if (String(name) === "updates" && hasPersonalSession()) {
+      accountProfile.updatesViewCount = Number(accountProfile.updatesViewCount || 0) + 1;
+      persistPersonalState();
+      renderAchievementsAccount();
+    }
+  } catch (_) {}
   const { scroll = true, updateHash = true } = options;
   if (!["websites", "updates", "account"].includes(name)) name = "websites";
   closeAllTransientUI();
@@ -4992,6 +5793,13 @@ window.launchSite = function(siteName, button) {
   /* P-094 — the launch URL resolves through the pending footer destination for the Hub. */
   const launchUrl = resolveLaunchUrl(site) || "";
   const launchSite = launchUrl ? { ...site, siteUrl: launchUrl } : site;
+  try {
+    if (hasPersonalSession() && String(launchUrl || site.siteUrl || "").includes("/sites/")) {
+      accountProfile.productOpenCount = Number(accountProfile.productOpenCount || 0) + 1;
+      persistPersonalState();
+      renderAchievementsAccount();
+    }
+  } catch (_) {}
   const hasUrl = Boolean(launchUrl);
   let frameLoaded = !hasUrl;
   let visualReady = false;
@@ -5254,6 +6062,12 @@ function setActiveTabState(tabName) {
 }
 
 window.openDetail = function(name) {
+  try {
+    if (hasPersonalSession()) {
+      accountProfile.detailOpenCount = Number(accountProfile.detailOpenCount || 0) + 1;
+      persistPersonalState();
+    }
+  } catch (_) {}
   const site = sites.find(s => s.name === name) || (name === deployedTemplateExample.name ? deployedTemplateExample : null);
   if (!site) return;
   if (!isRestoringDetailState && !site.illustrative) {

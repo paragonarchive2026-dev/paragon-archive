@@ -11,10 +11,15 @@
 
 # 🪙 Paragon Coins — The Complete Design
 
+## What is ALREADY BUILT (P-098 + P-100)
+- **Withdrawals UI** (P-100): Account coin shop → sell-back form → `paragonTeamCoinWithdrawals.v1` → Team settings desk marks Paid → `paragonArchive.coinDebits.v1` deducts on user device.
+- **SQL backend** (P-100): `supabase/coins-schema.sql` — wallets, ledger, purchase/withdraw tables, approve/spend RPCs. Run via `supabase/SQL-RUN-PACK.md`.
+- **History** shown inside the coin shop popup.
+
 ## What is ALREADY BUILT (P-098)
 - **Balance** in the personal state (`accountProfile.coinBalance`, account-synced; guest = session).
 - **Account tab**: coin stat box + "🪙 Paragon Coins — balance … · buy coins" row → styled shop popup.
-- **Buy flow**: pick a pack (₦500/₦1,000/₦5,000 at the placeholder rate ₦1 = 2 coins) →
+- **Buy flow**: pick a pack (₦500/₦1,000/₦5,000 at the placeholder rate ₦1 = 1 coin (master-spec target; was placeholder 2)) →
   request lands in `paragonTeamCoinRequests.v1` → **Team desk (settings panel) super-admin
   approves** → `paragonArchive.coinCredits.v1` mirror → the user's device credits on next
   Account view with a toast. All real on-device; `pendingBackendSync`.
@@ -48,7 +53,36 @@
 > fairness disclaimers for a skill-based (not luck-based) coin system in Nigeria. Keep
 > everything free-to-play friendly: no user ever needs to pay to enjoy the platform.
 
+## Phase 5 OPay / Moniepoint (P-107)
+- SQL: `coins-master-phase5.sql` — preferred rails `opay`/`moniepoint`, KYC draft, payout rail events.
+- Webhook: `?provider=opay|moniepoint|manual_bank` (Flutterwave **not** required).
+- FE: coin shop shows OPay/Moniepoint pay cards from public config.
+- Team: Phase 5 rails snapshot + record payout.
+- Details: `docs/COINS-PHASES.md`, `supabase/functions/COINS-PHASE5-OPAY-MONIEPOINT.md`.
+
+## Phase 4 compete / leaderboard (P-104)
+- SQL: competition create/join/settle, leaderboard settle, creator prizes, financial cases, risk flags, pause.
+- Edge: `competition-settle`.
+- Team: Finance desk snapshot + emergency pause.
+- Free play unchanged; staked paths gated by flags.
+
+## Phase 3 provider path (P-103)
+- SQL: `coins-master-phase3.sql` — matches, webhook inbox, provider settings, `paragon_sql_health`.
+- Edge: `coin-payment-webhook`, `coin-reconcile` (secrets only in Supabase).
+- Team desk: **Probe SQL health now** confirms live objects from *your* browser.
+- Auto-match only when exactly one open intent shares the paid naira amount; else needs_review.
+
+## Phase 2 authority (P-102)
+- SQL: `supabase/coins-master-phase2.sql` — `paragon_coin_post_entry`, payment intents, withdrawal lock/settle, admin adjust.
+- FE: registered users only for buy/withdraw; attempts RPCs then falls back to team desk queue.
+- Browser balance = display/cache. No credit on “Request” click alone.
+
+## Real-money gate (P-101)
+- Server flag `paragon_feature_flags.real_money_enabled` defaults **false**.
+- Purchases/withdrawals/compete stay disabled until the owner flips flags after provider + compliance.
+- UI must never claim bank money moved while the flag is off.
+
 ## Still needed from the owner (CTA)
 - The real ₦→coin rate, entry fees, prize amounts, withdrawal fee, payment channels
-  (transfer/OPay/Paystack free tier?), and reward schedule — then the placeholder numbers
+  (**OPay / Moniepoint preferred**; Paystack optional; Flutterwave not required), and reward schedule — then the placeholder numbers
   are replaced everywhere in one pass.

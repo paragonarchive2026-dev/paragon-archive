@@ -1,0 +1,60 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: guide.html
+  EXPECTED PROJECT PATH: /sites/file-converter/guide.html
+  ROLE: Honest capability map for Paragon Files.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Files — Guide</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Files">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-files.png" alt="">
+        <span class="brand-name">Paragon Files</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link">Convert</a>
+      <a href="guide.html" class="nav-link active">Guide</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page" style="max-width:720px">
+    <h1 class="page-title">What works here</h1>
+    <div class="panel">
+      <h2 class="panel-title">Shipped in this browser build</h2>
+      <ul>
+        <li class="list-item">Raster images: PNG / JPEG / WebP convert + resize + batch ZIP</li>
+        <li class="list-item">CSV ↔ JSON ↔ TSV ↔ YAML-lite</li>
+        <li class="list-item">Markdown → simple HTML; HTML → MD-ish text</li>
+        <li class="list-item">Text download / open plain files</li>
+        <li class="list-item">ZIP pack (STORE) + list entries from simple ZIPs</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">Skill roadmap (not faked)</h2>
+      <p class="muted">The skill also covers pandoc documents, PDF merge/split (pypdf), audio via ffmpeg, HEIC (pillow-heif), Excel/Parquet. Those need native engines or a future WASM pack. We will not show a fake “Convert PDF” button that downloads nonsense.</p>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">Not faked in v1</h2>
+      <ul>
+        <li class="list-item">Server-side conversion</li>
+        <li class="list-item">DRM / password-protected Office unlock</li>
+        <li class="list-item">Guaranteed deflate ZIP unpack of every archive</li>
+      </ul>
+    </div>
+  </main>
+  <footer class="footer"><p><a href="app.html">Convert</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script>document.getElementById("themeToggle")?.addEventListener("click", ParagonSiteKit.toggleTheme);</script>
+</body>
+</html>

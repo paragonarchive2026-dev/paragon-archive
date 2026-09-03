@@ -6,6 +6,9 @@
         zero ad code loads until the owner sets the approved publisher ID here AND the
         production domain is live. Reserved slots show an honest "reserved" label only —
         no fake ads, ever (P-009).
+  P-106: impression + intentional engagement clicks feed achievement counters (ad views /
+         ad clicks). Clicks never invent revenue; they train the habit and open a clear
+         support message until AdSense is live.
   RESTORE-LOAD NOTE: Keep under /ads/. Load from paragon-archive.html after app.js.
 */
 
@@ -15,11 +18,10 @@
 
   const CONFIG = {
     publisherId: ADSENSE_PUBLISHER_ID,
-    // Slot IDs are created in the AdSense dashboard after approval; map slot purpose → id.
     slots: {
-      websitesList: "", // below the website catalogue grid
-      updatesFeed: "", // inside the Updates feed (every 10 items, max 1 per view)
-      detailFooter: ""  // under a website detail page
+      websitesList: "",
+      updatesFeed: "",
+      detailFooter: ""
     },
     enabled() { return Boolean(this.publisherId); }
   };
@@ -36,22 +38,82 @@
     return true;
   }
 
+  function recordImpression(purpose) {
+    try { window.ParagonArchiveAdsBridge?.onImpression?.(purpose); } catch (_) { /* app not ready */ }
+  }
+
+  function recordEngagementClick(purpose, live) {
+    try { window.ParagonArchiveAdsBridge?.onEngage?.(purpose, { live: Boolean(live) }); } catch (_) { /* app not ready */ }
+  }
+
+  function wireReservedEngagement(placeholder, purpose) {
+    if (placeholder.dataset.paragonAdClickWired) return;
+    placeholder.dataset.paragonAdClickWired = "1";
+    placeholder.setAttribute("role", "button");
+    placeholder.tabIndex = 0;
+    placeholder.style.cursor = "pointer";
+    const fire = (event) => {
+      event?.preventDefault?.();
+      recordEngagementClick(purpose, false);
+      try {
+        window.showToast?.(
+          "Thanks for supporting Paragon — when Google approves ads, taps here open real sponsors. You still earn ad-engagement achievements.",
+          "success"
+        );
+      } catch (_) { /* ignore */ }
+    };
+    placeholder.addEventListener("click", fire);
+    placeholder.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") fire(event);
+    });
+  }
+
+  function wireLiveClick(placeholder, purpose) {
+    if (placeholder.dataset.paragonAdClickWired) return;
+    placeholder.dataset.paragonAdClickWired = "1";
+    placeholder.addEventListener("click", () => recordEngagementClick(purpose, true), true);
+  }
+
+  function observeImpression(placeholder, purpose) {
+    if (placeholder.dataset.paragonAdSeen) return;
+    const mark = () => {
+      if (placeholder.dataset.paragonAdSeen) return;
+      placeholder.dataset.paragonAdSeen = "1";
+      recordImpression(purpose);
+    };
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting && entry.intersectionRatio >= 0.4)) {
+          mark();
+          observer.disconnect();
+        }
+      }, { threshold: [0.4] });
+      observer.observe(placeholder);
+    } else {
+      mark();
+    }
+  }
+
   /* renderAdSlots(target): fills every [data-paragon-ad] placeholder.
-     - Dormant: shows the honest reserved label (styled by .paragon-ad-slot in style.css).
-     - Live: mounts the AdSense library once and fills ins.adsbygoogle blocks. */
+     - Dormant: honest reserved label + optional engagement click for achievements.
+     - Live: mounts AdSense and counts real impressions/clicks via bridge. */
   function renderAdSlots(scope = document) {
     const placeholders = scope.querySelectorAll?.("[data-paragon-ad]") || [];
     placeholders.forEach(placeholder => {
-      if (placeholder.dataset.paragonAdFilled) return;
-      const purpose = placeholder.dataset.paragonAd;
-      if (!CONFIG.enabled() || !CONFIG.slots[purpose]) {
-        placeholder.innerHTML = '<span class="paragon-ad-slot">Ad space · reserved — ads appear only after Google approves Paragon Archive</span>';
-        placeholder.dataset.paragonAdFilled = "reserved";
-        return;
+      const purpose = placeholder.dataset.paragonAd || "unknown";
+      if (!placeholder.dataset.paragonAdFilled) {
+        if (!CONFIG.enabled() || !CONFIG.slots[purpose]) {
+          placeholder.innerHTML = '<span class="paragon-ad-slot">Ad space · reserved — tap to support Paragon · live ads after Google approval</span>';
+          placeholder.dataset.paragonAdFilled = "reserved";
+        } else {
+          placeholder.innerHTML = `<ins class="adsbygoogle paragon-ad-live" style="display:block" data-ad-client="${CONFIG.publisherId}" data-ad-slot="${CONFIG.slots[purpose]}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
+          placeholder.dataset.paragonAdFilled = "live";
+          try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (error) { /* library not ready */ }
+        }
       }
-      placeholder.innerHTML = `<ins class="adsbygoogle paragon-ad-live" style="display:block" data-ad-client="${CONFIG.publisherId}" data-ad-slot="${CONFIG.slots[purpose]}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
-      placeholder.dataset.paragonAdFilled = "live";
-      try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (error) { /* library not ready — retried on next render */ }
+      observeImpression(placeholder, purpose);
+      if (placeholder.dataset.paragonAdFilled === "reserved") wireReservedEngagement(placeholder, purpose);
+      else wireLiveClick(placeholder, purpose);
     });
     if (CONFIG.enabled()) mountLibrary();
   }

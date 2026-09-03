@@ -1,0 +1,47 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: budget.html
+  EXPECTED PROJECT PATH: /sites/personal-shopper/budget.html
+  ROLE: Budget cap for Paragon Shopper.
+  RESTORE-LOAD NOTE: In-project product site.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Shopper — Budget</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="stylesheet" href="../_shared/site-kit.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Shop">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-shop.png" alt="">
+        <span class="brand-name">Paragon Shopper</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="app.html" class="nav-link">Lists</a>
+      <a href="budget.html" class="nav-link active">Budget</a>
+    </nav>
+    <div class="header-actions"><button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">◐</button></div>
+  </header>
+  <main class="page" style="max-width:560px">
+    <h1 class="page-title">Budget cap</h1>
+    <p class="page-sub">Soft limit for wish + comparing items. Bought items count as spent.</p>
+    <div id="msg" class="notice" hidden></div>
+    <div class="panel">
+      <div class="field"><label for="budgetCap">Cap amount</label><input id="budgetCap" type="number" min="0" step="0.01" value="0"></div>
+      <div class="field"><label for="budgetCur">Currency</label><input id="budgetCur" value="NGN" maxlength="3"></div>
+      <button type="button" class="btn btn-primary" id="saveBudget">Save budget</button>
+    </div>
+    <div class="panel" id="budgetSummary"></div>
+  </main>
+  <footer class="footer"><p><a href="app.html">Lists</a></p></footer>
+  <script src="../_shared/site-kit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
