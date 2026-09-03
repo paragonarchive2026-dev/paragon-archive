@@ -497,6 +497,9 @@ Use the applicable subset for each change:
 | D-207 | 2026-09-03 | Nine in-project product sites under /sites/ with shared quiz-family kit; personal-shopper maps to Paragon Shop; meal-planner is a Recipe companion tool. | P-098 next-turn plan + D-191 build-here. | Confirmed |
 | D-208 | 2026-09-03 | Catalogue siteUrls for the eight live products point at /sites/… with honest buildProgress 55–80 (not 100 until owner demo). | Site Build Kit acceptance checklist. | Confirmed |
 | D-209 | 2026-09-03 | Unfinished-preview fixture LIVE_SITES expanded to include the eight newly opened products. | Preserve P-009 honesty for remaining concept previews. | Confirmed |
+| D-210 | 2026-09-03 | Coins backend SQL (wallets/ledger/RPCs) is multi-device source of truth; localStorage remains offline-first fallback. | Owner asked for all SQL to run ASAP. | Confirmed |
+| D-211 | 2026-09-03 | Coin withdrawals = manual team naira payout + debit mirror/SQL complete RPC — no automated bank API. | Free-tier / Nigeria bank-transfer logistics. | Confirmed |
+| D-212 | 2026-09-03 | Product sites deepen with local engines even when skills describe React/API; free build law holds. | Site Build Kit + D-191. | Confirmed |
 | D-205 | 2026-08-26 | PARAGON COINS CORE: balance in personal state, Account coin stat + styled shop popup (₦500/₦1,000/₦5,000 packs at placeholder ₦1=2), buy requests -> Team settings panel (super-admin approve/reject) -> paragonArchive.coinCredits.v1 mirror -> user's device credits with a toast; addCoins/spendCoins helpers + history. Full economics + games/quiz integration rules + the owner's ChatGPT heads-up prompt recorded in docs/COIN-SYSTEM.md (creator-quiz no-win rule, bet-only leaderboards, weekly top-10 rewards, withdrawal flow). | Owner's P-098 coin order. | Confirmed |
 | D-204 | 2026-08-26 | SITE SPECS FROM OWNER SKILLS: all 9 uploaded skill files (recipe-creator, meal-planner, file-converter, invoice-generator, flashcard-generator, personal-shopper, photo-editor, resume-maker, travel-assistant) merged into docs/site-specs/<slug>.md — verbatim use/never-use rules + the FREE adaptation law (vanilla HTML/CSS/JS + localStorage engines replacing the skills' full-stack/API/React architecture; adapters ready for free APIs). Websites build in-project under /sites/<slug>/ in the quiz layout family. | Owner's P-098 skill uploads. | Confirmed |
 | D-203 | 2026-08-26 | RxLife Network + Pharmapaedia added to the catalogue as honest Deployed-family Paragon products (0% build, preview route, no fake progress; AI Brain rows added). | Owner's P-098 order. | Confirmed |
@@ -2591,3 +2594,13 @@ Use the applicable subset for each change:
 
 **Delivered:** shared kit, 9 site folders + SPEC.md each, catalogue wiring, REALLY_UPDATED, cache v76, P-099 fixture, file tree, EOP v0.93.0, CHANGES, NEXT-AGENT.
 
+### P-100 — 2026-09-03 — Coins master + 9 skill files (upload path flaky); SQL pack + product depth
+
+**Owner intent:** Use 10 uploaded MD files (coins master + 9 product skills), deepen the 9 sites, ship all Supabase SQL to run now.
+
+**Decisions**
+- D-210: Coins backend SQL is the multi-device source of truth; localStorage remains offline-first fallback and same-device team desk loop.
+- D-211: Withdrawals are manual team payouts (no automated bank API in free tier).
+- D-212: Product depth upgrades stay vanilla/local engines per Site Build Kit even when skill files describe React/API stacks.
+
+**Delivered:** coins-schema.sql, SQL-RUN-PACK.md, withdrawals UI, 9 site upgrades, EOP v0.94.0, cache v77.

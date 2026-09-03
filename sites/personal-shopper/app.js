@@ -116,5 +116,19 @@
     });
     renderBudget();
   }
+  document.getElementById("runCompare")?.addEventListener("click", function () {
+      const s = load();
+      const rows = s.items.filter(function (i) { return i.status === "wish" || i.status === "comparing"; })
+        .slice().sort(function (a, b) { return (Number(a.price)||0) - (Number(b.price)||0); });
+      const box = document.getElementById("compareBox");
+      if (!box) return;
+      if (!rows.length) { box.hidden = false; box.textContent = "No wish/comparing items to compare."; return; }
+      const cur = s.currency || "NGN";
+      const cheapest = rows[0];
+      box.hidden = false;
+      box.innerHTML = "<strong>Lowest first</strong><ol style='margin:8px 0 0 18px'>" + rows.slice(0, 8).map(function (i) {
+        return "<li>" + kit.escapeHTML(i.name) + " — " + kit.money(i.price||0, cur) + " · " + kit.escapeHTML(i.list||"") + "</li>";
+      }).join("") + "</ol><div class='muted' style='margin-top:8px'>Cheapest now: <b>" + kit.escapeHTML(cheapest.name) + "</b></div>";
+    });
   stats();
 })();

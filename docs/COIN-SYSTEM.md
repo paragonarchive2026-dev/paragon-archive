@@ -11,6 +11,11 @@
 
 # 🪙 Paragon Coins — The Complete Design
 
+## What is ALREADY BUILT (P-098 + P-100)
+- **Withdrawals UI** (P-100): Account coin shop → sell-back form → `paragonTeamCoinWithdrawals.v1` → Team settings desk marks Paid → `paragonArchive.coinDebits.v1` deducts on user device.
+- **SQL backend** (P-100): `supabase/coins-schema.sql` — wallets, ledger, purchase/withdraw tables, approve/spend RPCs. Run via `supabase/SQL-RUN-PACK.md`.
+- **History** shown inside the coin shop popup.
+
 ## What is ALREADY BUILT (P-098)
 - **Balance** in the personal state (`accountProfile.coinBalance`, account-synced; guest = session).
 - **Account tab**: coin stat box + "🪙 Paragon Coins — balance … · buy coins" row → styled shop popup.

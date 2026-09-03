@@ -5424,3 +5424,25 @@ The Archive now opens eight real same-origin product builds (plus Meal as a Reci
 - Owner demo pass before any `buildProgress → 100`.
 - Badges 21–30; more skills → more specs → more /sites/.
 - Brevo account hold; announcements SQL; production domain.
+
+## v0.94.0 — 2026-09-03 — Coins backend SQL, withdrawals, product-site depth (P-100)
+
+**Request reference:** SOP §11, Prompt P-100  
+**Status:** `[x]` completed
+
+### Context
+Owner re-attached 10 skill/coin master files; Arena upload path did not materialise files on disk again. Build proceeded from in-repo COIN-SYSTEM + site-specs (same source family as the uploads) and delivered the SQL pack the owner asked to run immediately.
+
+### Executed actions
+1. Authored `supabase/coins-schema.sql` (wallets, ledger, purchases, withdrawals, config, RPCs) + `supabase/SQL-RUN-PACK.md`.
+2. Extended Paragon Coins front-end: shop history, withdrawal requests, team Paid desk, debit mirror sync.
+3. Deepened all 9 `/sites/` products (substitutions, Anki export, invoice CSV/share link, resume cover letter, travel entry checks, photo overlay/rotate, meal←recipe import, shopper compare, files job log).
+4. Cache v77; P-100 fixture; governance updated.
+
+### Result
+Owner can run announcements + coins SQL today. Coins buy/withdraw loop is complete on-device; SQL makes it multi-device-ready. Product sites closer to skill fidelity without paid APIs.
+
+### Remaining
+- Owner runs SQL pack; owner economics rates replace placeholders.
+- When full skill MD files land on disk/GitHub, merge any extra rules still missing.
+- Badges 21–30; Brevo hold.

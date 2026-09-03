@@ -12,6 +12,27 @@
   function def() { return { recipes: [], cooks: 0, ideas: 0 }; }
   function load() { return Object.assign(def(), kit.storageGet(K, def())); }
   function save(s) { kit.storageSet(K, s); }
+  
+  const SUB_MAP = {
+    buttermilk: ["1 cup milk + 1 tbsp lemon/vinegar (rest 5 min)", "plain yogurt thinned with water"],
+    butter: ["oil (3/4 amount)", "coconut oil", "vegan margarine"],
+    egg: ["1 tbsp ground flax + 3 tbsp water (vegan binder)", "1/4 cup applesauce (cakes)"],
+    milk: ["oat milk", "soy milk", "coconut milk (richer)"],
+    cream: ["coconut cream", "evaporated milk"],
+    flour: ["1:1 gluten-free blend", "oat flour (denser)"],
+    soy_sauce: ["tamari (gluten-free)", "coconut aminos"],
+    sugar: ["honey (not vegan)", "maple syrup", "date paste"],
+    chicken: ["firm tofu", "chickpeas", "mushrooms"],
+    cheese: ["nutritional yeast", "vegan cheese"]
+  };
+  const TECH = {
+    deglaze: "After searing, add a splash of stock/wine to the hot pan; scrape browned bits — that liquid is flavour.",
+    sear: "Pat protein dry, high heat, don't crowd the pan, leave it until it releases naturally.",
+    saute: "Medium-high heat, small amount of fat, keep food moving for even colour.",
+    simmer: "Gentle bubbles only — aggressive boil toughens proteins and breaks sauces.",
+    roast: "Hot oven, space on the tray, dry surface for browning."
+  };
+
   let timer = null;
   let timerLeft = 0;
 
@@ -197,6 +218,34 @@
       out.innerHTML = ideas.slice(0, 8).map(function (i) {
         return '<div class="card"><div class="card-title">' + kit.escapeHTML(i.t) + '</div><p class="card-desc">' + kit.escapeHTML(i.d) + '</p></div>';
       }).join("");
+    });
+  }
+
+
+  if (document.getElementById("runSub")) {
+    document.getElementById("runSub").addEventListener("click", function () {
+      const q = document.getElementById("subQuery").value.trim().toLowerCase().replace(/\s+/g, "_");
+      const diet = document.getElementById("subDiet").value;
+      const box = document.getElementById("subPanel");
+      const key = Object.keys(SUB_MAP).find(function (k) { return q.indexOf(k) >= 0 || k.indexOf(q.replace(/_/g," ")) >= 0 || q.replace(/_/g," ").indexOf(k.replace(/_/g," ")) >= 0; });
+      if (!key) {
+        // technique?
+        const tkey = Object.keys(TECH).find(function (k) { return document.getElementById("subQuery").value.toLowerCase().indexOf(k) >= 0; });
+        if (tkey) { box.innerHTML = "<strong>Technique — " + kit.escapeHTML(tkey) + "</strong><br>" + kit.escapeHTML(TECH[tkey]); return; }
+        box.innerHTML = "No local substitute row for that item yet. Try: buttermilk, butter, egg, milk, flour, soy sauce, chicken, cheese — or a technique word like sear / deglaze.";
+        return;
+      }
+      let opts = SUB_MAP[key].slice();
+      if (diet === "vegan" || diet === "dairy-free") {
+        opts = opts.filter(function (o) { return !/honey|milk \+|yogurt|evaporated milk/i.test(o) || /oat|soy|coconut|flax|vegan|chickpea|tofu|mushroom|nutritional/i.test(o); });
+      }
+      if (diet === "gluten-free") {
+        opts = opts.filter(function (o) { return !/flour(?!.*gluten-free)/i.test(o) || /gluten-free|oat|tamari|aminos/i.test(o); });
+        if (key === "flour") opts = ["1:1 gluten-free blend", "oat flour (denser, certified GF if needed)"];
+        if (key === "soy_sauce") opts = ["tamari (gluten-free)", "coconut aminos"];
+      }
+      box.innerHTML = "<strong>Instead of " + kit.escapeHTML(key.replace(/_/g," ")) + "</strong><ul style='margin:8px 0 0 18px'>" +
+        opts.map(function (o) { return "<li>" + kit.escapeHTML(o) + "</li>"; }).join("") + "</ul>";
     });
   }
 

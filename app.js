@@ -2939,14 +2939,28 @@ function coinBalance() { return Math.max(0, Math.round(Number(accountProfile.coi
 /* P-098 — approved coin credits from the Team desk land here (same-device loop). */
 function syncApprovedCoinCredits() {
   try {
+    const who = authUser?.email || "Guest (this device)";
     const credits = JSON.parse(window.localStorage.getItem("paragonArchive.coinCredits.v1") || "[]");
-    const mine = credits.filter(credit => credit.for === (authUser?.email || "Guest (this device)") && !credit.claimed);
-    if (!mine.length) return;
-    let total = 0;
-    mine.forEach(credit => { total += Number(credit.coins) || 0; credit.claimed = true; });
-    window.localStorage.setItem("paragonArchive.coinCredits.v1", JSON.stringify(credits));
-    addCoins(total, "Purchase approved by the Paragon Team");
-    showToast(`🪙 ${total.toLocaleString()} coins added — purchase approved!`);
+    const mine = credits.filter(credit => credit.for === who && !credit.claimed);
+    if (mine.length) {
+      let total = 0;
+      mine.forEach(credit => { total += Number(credit.coins) || 0; credit.claimed = true; });
+      window.localStorage.setItem("paragonArchive.coinCredits.v1", JSON.stringify(credits));
+      addCoins(total, "Purchase approved by the Paragon Team");
+      showToast(`🪙 ${total.toLocaleString()} coins added — purchase approved!`);
+    }
+    const debits = JSON.parse(window.localStorage.getItem("paragonArchive.coinDebits.v1") || "[]");
+    const myDebits = debits.filter(d => d.for === who && !d.claimed);
+    if (myDebits.length) {
+      let total = 0;
+      myDebits.forEach(d => {
+        const n = Number(d.coins) || 0;
+        if (n > 0 && spendCoins(n, d.reason || "Withdrawal payout")) total += n;
+        d.claimed = true;
+      });
+      window.localStorage.setItem("paragonArchive.coinDebits.v1", JSON.stringify(debits));
+      if (total) showToast(`🏦 ${total.toLocaleString()} coins withdrawn after team payout.`);
+    }
   } catch (error) { /* blocked */ }
 }
 function addCoins(amount, reason) {
@@ -2978,26 +2992,72 @@ window.requestCoinPurchase = function(nairaAmount) {
     showToast(`Request sent — ${coins.toLocaleString()} coins await super-admin approval. pendingBackendSync`);
   } catch (error) { showToast("The request could not be saved on this device.", "warning"); }
 };
+window.requestCoinWithdrawal = function() {
+  if (!hasPersonalSession()) { requirePersonalSession("request a coin withdrawal"); return; }
+  const bal = coinBalance();
+  if (bal < 1000) { showToast("Minimum withdrawal is 1,000 coins (placeholder — owner sets the real minimum).", "warning"); return; }
+  const coinsEl = document.getElementById("coin-withdraw-amount");
+  const bankEl = document.getElementById("coin-withdraw-bank");
+  const coins = Math.round(Number(coinsEl?.value) || 0);
+  const bank = String(bankEl?.value || "").trim();
+  if (coins < 1000) { showToast("Enter at least 1,000 coins.", "warning"); return; }
+  if (coins > bal) { showToast("You do not have that many coins.", "warning"); return; }
+  if (bank.length < 8) { showToast("Add bank/account details for the team payout (min 8 characters).", "warning"); return; }
+  /* Placeholder sell rate: ₦0.40 per coin (spread vs buy). Owner replaces via config. */
+  const naira = Math.round(coins * 0.4);
+  try {
+    const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinWithdrawals.v1") || "[]");
+    list.push({
+      id: "wd-" + Date.now().toString(36),
+      user: authUser?.email || "Guest (this device)",
+      displayName: accountProfile.displayName || "Guest",
+      coins, naira, bank, status: "pending", createdAt: new Date().toISOString()
+    });
+    window.localStorage.setItem("paragonTeamCoinWithdrawals.v1", JSON.stringify(list));
+    showToast(`Withdrawal request filed — ${coins.toLocaleString()} coins / ~₦${naira.toLocaleString()} (team pays manually). pendingBackendSync`);
+    document.getElementById("coin-shop-overlay")?.remove();
+    document.body.classList.remove("popup-lock");
+  } catch (error) { showToast("Could not save the withdrawal request on this device.", "warning"); }
+};
 window.openCoinShop = function() {
   if (typeof document.createElement !== "function") return;
+  syncApprovedCoinCredits();
   document.getElementById("coin-shop-overlay")?.remove();
+  const history = (accountProfile.coinHistory || []).slice(0, 8).map(entry => {
+    const sign = Number(entry.amount) >= 0 ? "+" : "";
+    const when = entry.at ? new Date(entry.at).toLocaleString() : "";
+    return `<li><b>${sign}${Number(entry.amount).toLocaleString()}</b> · ${String(entry.reason || "").replace(/[<>]/g, "")} <small>${when}</small></li>`;
+  }).join("") || "<li><small>No movements yet — balance starts at real zero.</small></li>";
   const overlay = document.createElement("div");
   overlay.id = "coin-shop-overlay";
   overlay.className = "utility-overlay active install-overlay";
   overlay.innerHTML = `
-    <div class="install-popup-card" style="width:min(500px,94vw);" role="dialog" aria-modal="true">
-      <header><h2>🪙 Paragon Coins</h2><p>Coins power game bets, quiz entry fees and creator prizes. Balance: <b>${coinBalance().toLocaleString()} coins</b></p></header>
+    <div class="install-popup-card" style="width:min(560px,96vw);max-height:90vh;overflow:auto;" role="dialog" aria-modal="true">
+      <header><h2>🪙 Paragon Coins</h2><p>Free-to-play always stays free. Coins are optional for bets, quiz entry fees and prizes. Balance: <b>${coinBalance().toLocaleString()} coins</b></p></header>
       <div class="install-perm-list">
         ${[[500, 1000], [1000, 2000], [5000, 10000]].map(([naira, coins]) => `
-          <label class="install-perm-row" style="cursor:pointer" onclick="requestCoinPurchase(${naira}); document.getElementById('coin-shop-overlay').remove();">
-            <div><b>₦${naira.toLocaleString()}</b><small>≈ ${coins.toLocaleString()} coins — request goes to the Team desk for approval (pay only after approval, from the team's payment details).</small></div>
+          <label class="install-perm-row" style="cursor:pointer" onclick="requestCoinPurchase(${naira}); document.getElementById('coin-shop-overlay').remove(); document.body.classList.remove('popup-lock');">
+            <div><b>₦${naira.toLocaleString()}</b><small>≈ ${coins.toLocaleString()} coins — Team desk approves after you pay using the team&apos;s payment details.</small></div>
             <span class="primary-action" style="pointer-events:none;">Request</span>
           </label>`).join("")}
+      </div>
+      <div style="margin:14px 0 8px;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+        <b style="display:block;margin-bottom:8px;">Sell coins back (manual payout)</b>
+        <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Coins to sell (min 1000)</label>
+        <input id="coin-withdraw-amount" type="number" min="1000" step="100" value="1000" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.25);color:inherit;">
+        <label style="display:block;font-size:12px;opacity:.8;margin-bottom:4px;">Bank / wallet details for payout</label>
+        <textarea id="coin-withdraw-bank" rows="2" placeholder="Bank name · account name · account number" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.25);color:inherit;"></textarea>
+        <button type="button" class="secondary-action" onclick="requestCoinWithdrawal()">Request withdrawal</button>
+        <small class="install-popup-note" style="display:block;margin-top:8px;">Placeholder sell rate ₦0.40/coin (buy is ₦0.50). Owner sets final rates after economics pass. Team verifies then pays naira offline.</small>
+      </div>
+      <div style="margin:8px 0 12px;">
+        <b style="display:block;margin-bottom:6px;">Recent history</b>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.55;opacity:.92;">${history}</ul>
       </div>
       <div class="install-popup-actions">
         <button type="button" class="secondary-action" onclick="document.getElementById('coin-shop-overlay').remove(); document.body.classList.remove('popup-lock')">Close</button>
       </div>
-      <small class="install-popup-note">Free-to-play always stays free — coins are only for betting, entry fees and prizes. Withdrawals/selling coins back to Paragon are handled by the team (docs/COIN-SYSTEM.md).</small>
+      <small class="install-popup-note">SQL backend: supabase/coins-schema.sql · design: docs/COIN-SYSTEM.md · run pack: supabase/SQL-RUN-PACK.md</small>
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");

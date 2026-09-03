@@ -188,6 +188,59 @@
       save(s);
       window.print();
     });
+    // Shareable query template (skill Approach A — URL params)
+    if (!document.getElementById("exportCsv")) {
+      const actions = document.querySelector(".actions");
+      if (actions) {
+        const b1 = document.createElement("button");
+        b1.type = "button"; b1.className = "btn btn-outline"; b1.id = "exportCsv"; b1.textContent = "Export CSV";
+        const b2 = document.createElement("button");
+        b2.type = "button"; b2.className = "btn btn-outline"; b2.id = "copyLink"; b2.textContent = "Copy fill-link";
+        actions.appendChild(b1); actions.appendChild(b2);
+      }
+    }
+    document.getElementById("exportCsv")?.addEventListener("click", function () {
+      const s = load();
+      const rows = [["number","date","client","status","total","currency"]];
+      s.invoices.forEach(function (inv) {
+        const t = totals(inv);
+        rows.push([inv.number, inv.date, inv.client, inv.status, String(t.total), inv.currency || "USD"]);
+      });
+      kit.downloadText("paragon-invoices.csv", kit.toCSV(rows), "text/csv;charset=utf-8");
+      kit.showPanel(document.getElementById("msg"), "CSV downloaded.", "good");
+    });
+    document.getElementById("copyLink")?.addEventListener("click", function () {
+      const inv = currentFromForm();
+      const params = new URLSearchParams({
+        number: inv.number || "",
+        client: inv.client || "",
+        date: inv.date || "",
+        currency: inv.currency || "USD",
+        tax: String(inv.taxPct || 0),
+        lines: (inv.lines || []).map(function (l) { return [l.desc, l.qty, l.price].join(":"); }).join("|")
+      });
+      const url = location.origin + location.pathname.replace(/app\.html.*/, "app.html") + "?" + params.toString();
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(function () {
+        kit.showPanel(document.getElementById("msg"), "Fill-link copied — open it to preload this invoice.", "good");
+      }).catch(function () { kit.showPanel(document.getElementById("msg"), url, "warn"); });
+      else kit.showPanel(document.getElementById("msg"), url, "warn");
+    });
+    // hydrate from URL params if present
+    try {
+      const q = new URLSearchParams(location.search);
+      if (q.get("client") || q.get("number")) {
+        const lines = String(q.get("lines") || "").split("|").filter(Boolean).map(function (chunk) {
+          const p = chunk.split(":");
+          return { desc: p[0] || "", qty: Number(p[1]) || 1, price: Number(p[2]) || 0 };
+        });
+        fillForm({
+          id: "", number: q.get("number") || "", date: q.get("date") || new Date().toISOString().slice(0,10),
+          client: q.get("client") || "", email: "", notes: "", taxPct: Number(q.get("tax")) || 0,
+          currency: q.get("currency") || "USD", status: "draft",
+          lines: lines.length ? lines : [{ desc: "", qty: 1, price: 0 }]
+        });
+      }
+    } catch (e) { /* ignore */ }
     fillForm({ id: "", number: "", date: new Date().toISOString().slice(0, 10), client: "", email: "", notes: "", taxPct: 0, currency: "USD", status: "draft", lines: [{ desc: "", qty: 1, price: 0 }] });
     renderList();
   }

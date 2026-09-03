@@ -92,6 +92,21 @@
       fill({ id: "", title: "", dest: "", start: "", end: "", budget: 0, currency: "NGN", days: [], notes: "" });
     });
     list();
+    document.getElementById("entryCheck")?.addEventListener("click", function () {
+      const c = (document.getElementById("entryCountry").value || "").toLowerCase();
+      const box = document.getElementById("entryOut");
+      const common = ["Valid passport (6+ months recommended)", "Return/onward ticket plan", "Proof of funds / hotel booking notes", "Travel insurance (recommended — not sold here)"];
+      let extra = ["Confirm visa requirements on the official government site for YOUR nationality (this app does not fetch live visa APIs)."];
+      if (/schengen|france|germany|italy|spain|netherlands/.test(c)) extra = extra.concat(["Schengen visa or visa-exempt status", "ETIAS (when in force for exempt travellers)", "Travel medical insurance often required for visa apps"]);
+      if (/uk|united kingdom|britain/.test(c)) extra = extra.concat(["UK visa or ETA if required for your passport", "Accommodation address for landing card / ETA"]);
+      if (/usa|united states|america/.test(c)) extra = extra.concat(["ESTA or non-immigrant visa as applicable", "Address of first night stay"]);
+      if (/nigeria|lagos|abuja/.test(c)) extra = extra.concat(["Yellow fever card if arriving from endemic countries", "NIN/passport checks for domestic connections as needed"]);
+      if (/uae|dubai|emirates/.test(c)) extra = extra.concat(["Visa on arrival / eVisa depending on nationality"]);
+      box.innerHTML = "<strong>Planning checklist (not legal advice)</strong><ul style='margin:8px 0 0 18px'>" +
+        common.concat(extra).map(function (x) { return "<li>" + kit.escapeHTML(x) + "</li>"; }).join("") + "</ul>";
+      const notes = document.getElementById("tripNotes");
+      if (notes && !notes.value) notes.value = common.concat(extra).map(function (x) { return "☐ " + x; }).join("\n");
+    });
   }
 
   function renderPack() {

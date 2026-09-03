@@ -139,5 +139,25 @@
     });
     renderShop();
   }
+  document.getElementById("importRecipes")?.addEventListener("click", function () {
+      try {
+        const raw = JSON.parse(localStorage.getItem("paragonRecipeCreator.v1") || "{}");
+        const titles = (raw.recipes || []).map(function (r) { return r.title; }).filter(Boolean);
+        if (!titles.length) {
+          kit.showPanel(document.getElementById("msg"), "No recipes saved in Paragon Recipe on this device yet.", "warn");
+          return;
+        }
+        // Fill empty dinner slots first
+        const week = readWeek();
+        let i = 0;
+        DAYS.forEach(function (d) {
+          if (!week[d].dinner && titles[i]) { week[d].dinner = titles[i] + " (recipe)"; i++; }
+        });
+        const s = load(); s.week = week; save(s); renderGrid(); stats();
+        kit.showPanel(document.getElementById("msg"), "Filled empty dinners from your cookbook (" + i + ").", "good");
+      } catch (e) {
+        kit.showPanel(document.getElementById("msg"), "Could not read Paragon Recipe data.", "bad");
+      }
+    });
   stats();
 })();

@@ -2,35 +2,33 @@
   PARAGON ARCHIVE — EXPORT IDENTITY
   REAL FILE NAME: CHANGES.md
   EXPECTED PROJECT PATH: /docs/CHANGES.md
-  ROLE: The per-turn changed-files list the owner uses to update GitHub/SPCK (P-098).
-        Every turn ends with this file rewritten to the CURRENT turn's delta.
-  RESTORE-LOAD NOTE: When updating GitHub: upload every file listed under "Changed/Added"
-                     and DELETE every file under "Deleted". Vercel/Netlify redeploy automatically.
+  ROLE: Per-turn changed-files list (P-098/P-100).
 -->
 
-# 📦 Changed files — P-099 (2026-09-03) — upload these to GitHub/SPCK
+# 📦 Changed files — P-100 (2026-09-03)
 
 ## Changed
-- `data/catalogue-expansion.js` — live siteUrls for Files, Resume, Photo, Flash + merge fields
-- `data/catalogue-expansion-45-100.js` — live siteUrls for Invoice, Shop, Recipe, Travel + previewOnly clear
-- `app.js` — REALLY_UPDATED includes the eight newly opened products
-- `service-worker.js` — cache **v76**
-- `tests/suite-ux.test.js` — LIVE_SITES expanded + P-099 fixture; cache pins → v76
-- `tests/suite-core.test.js` — cache pin → v76
-- `paragon-file-tree.html` — regenerated (314 files)
-- `docs/SOP.md`, `docs/EOP.md`, `docs/NEXT-AGENT.md`, `docs/CHANGES.md` — governance
+- `app.js` — coin shop history + withdrawal requests + debit sync
+- `team/desk.html` — withdrawal approvals panel
+- `team/team-pages.js` — withdrawal list/bind + debit mirror
+- `sites/_shared/site-kit.js` — CSV + print helpers
+- `sites/recipe-creator/*` — substitutions + technique engine
+- `sites/invoice-generator/app.js` — CSV export + URL fill-link
+- `sites/flashcard-generator/*` — Anki TSV + study guide export
+- `sites/resume-maker/*` — cover letter + template style
+- `sites/travel-assistant/*` — entry checklist helper
+- `sites/photo-editor/*` — text overlay, rotate, flip
+- `sites/meal-planner/*` — pull titles from Paragon Recipe
+- `sites/personal-shopper/*` — price compare
+- `sites/file-converter/app.js` — job log
+- `docs/COIN-SYSTEM.md`, `docs/SOP.md`, `docs/EOP.md`, `docs/NEXT-AGENT.md`
+- `service-worker.js` — cache **v77**
+- `tests/suite-ux.test.js`, `tests/suite-core.test.js` — v77 + P-100 fixture
+- `paragon-file-tree.html` — regenerated
 
 ## Added
-- `sites/_shared/site-kit.css` · `sites/_shared/site-kit.js`
-- `sites/invoice-generator/` (index, app, settings, app.js, SPEC.md)
-- `sites/resume-maker/` (index, app, preview, app.js, SPEC.md)
-- `sites/recipe-creator/` (index, app, ideas, app.js, SPEC.md)
-- `sites/flashcard-generator/` (index, app, study, app.js, SPEC.md)
-- `sites/file-converter/` (index, app, guide, app.js, SPEC.md)
-- `sites/travel-assistant/` (index, app, pack, app.js, SPEC.md)
-- `sites/meal-planner/` (index, app, shop, app.js, SPEC.md)
-- `sites/photo-editor/` (index, app, app.js, SPEC.md)
-- `sites/personal-shopper/` (index, app, budget, app.js, SPEC.md)
+- `supabase/coins-schema.sql` — full coins backend (RUN THIS)
+- `supabase/SQL-RUN-PACK.md` — owner run order for all SQL
 
 ## Deleted
-- (none this turn)
+- (none)

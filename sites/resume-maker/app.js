@@ -25,13 +25,15 @@
       experience: document.getElementById("experience").value,
       education: document.getElementById("education").value,
       skills: document.getElementById("skills").value.trim(),
+      coverLetter: document.getElementById("coverLetter") ? document.getElementById("coverLetter").value.trim() : "",
+      templateStyle: document.getElementById("templateStyle") ? document.getElementById("templateStyle").value : "classic",
       updatedAt: new Date().toISOString()
     };
   }
 
   function fillForm(r) {
     if (!r || !document.getElementById("fullName")) return;
-    ["fullName","headline","email","phone","location","links","summary","experience","education","skills"].forEach(function (k) {
+    ["fullName","headline","email","phone","location","links","summary","experience","education","skills","coverLetter","templateStyle"].forEach(function (k) {
       const el = document.getElementById(k);
       if (el) el.value = r[k] || "";
     });
@@ -88,7 +90,9 @@
       (r.summary ? "<h2>Summary</h2><p>" + kit.escapeHTML(r.summary) + "</p>" : "") +
       (r.experience ? "<h2>Experience</h2>" + block(r.experience) : "") +
       (r.education ? "<h2>Education</h2>" + block(r.education) : "") +
-      (skills.length ? "<h2>Skills</h2><p>" + skills.map(kit.escapeHTML).join(" · ") + "</p>" : "");
+      (skills.length ? "<h2>Skills</h2><p>" + skills.map(kit.escapeHTML).join(" · ") + "</p>" : "") +
+      (r.coverLetter ? "<h2>Cover letter</h2><p style=\"white-space:pre-wrap\">" + kit.escapeHTML(r.coverLetter) + "</p>" : "");
+    sheet.dataset.template = r.templateStyle || "classic";
   }
 
   document.getElementById("themeToggle")?.addEventListener("click", kit.toggleTheme);

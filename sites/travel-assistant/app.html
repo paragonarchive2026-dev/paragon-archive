@@ -52,6 +52,9 @@
         </div>
         <div class="field"><label for="tripDays">Itinerary (one day/line)</label><textarea id="tripDays" rows="6" placeholder="Day 1: Arrive, check-in&#10;Day 2: Museum + dinner"></textarea></div>
         <div class="field"><label for="tripNotes">Notes / entry checklist</label><textarea id="tripNotes" rows="3" placeholder="Visa? vaccines? ETIAS?"></textarea></div>
+        <div class="field"><label for="entryCountry">Entry helper country</label><input id="entryCountry" placeholder="e.g. Schengen, UK, USA, Nigeria"></div>
+        <button type="button" class="btn btn-outline btn-sm" id="entryCheck" style="margin-bottom:12px">Build entry checklist</button>
+        <div id="entryOut" class="muted" style="margin-bottom:12px"></div>
         <div class="actions">
           <button type="button" class="btn btn-primary" id="saveTrip">Save trip</button>
           <button type="button" class="btn btn-secondary" id="newTrip">Clear</button>

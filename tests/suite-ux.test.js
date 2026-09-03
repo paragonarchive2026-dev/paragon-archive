@@ -1669,7 +1669,7 @@ for (const icon of ["habits","travel","weather","wardrobe","journal","tutor","qu
 // P-097 — the owner cancelled the take-away export (websites are built HERE now); the quiz stays in-project.
 assert2(fs2.existsSync(path2.join(root2, "paragon-quiz/index.html")), "In-project Paragon Quiz must stay (P-097 build-here decision)");
 assert2(navJs.includes("ParagonTeamPrompt"), "Dialog-law prompt helper missing (P-096)");
-assert2(sw.includes("paragon-archive-v76"), "Cache must be v73 (P-096)");
+assert2(sw.includes("paragon-archive-v77"), "Cache must be v73 (P-096)");
 console.log("PASS: P-096 — hub killer-guard fix, cross-scope fix, instant 5 s splash at original position, intent-trained AI, team A-to-Z feed control, construction desk, roadmap milestones, phone push client, guest hero v2, footer auto-continue, icon chips, 100/100 icons, quiz export");
 })();
 
@@ -1738,7 +1738,7 @@ assert3(app.includes("profile-header-tools") && app.includes("profile-name-edito
 assert3(!fs3.existsSync(path3.join(root3, "supabase/community-schema.sql")), "community-schema.sql must stay removed (executed live 2026-08-18)");
 assert3(!fs3.existsSync(path3.join(root3, "exports")), "exports/ take-away cancelled by owner (P-097 build-here decision)");
 assert3(read3("supabase/schema.sql").includes("EXECUTED LIVE"), "schema.sql must be labelled the executed archive reference (P-097)");
-assert3(sw.includes("paragon-archive-v76"), "Cache must be v74 (P-097)");
+assert3(sw.includes("paragon-archive-v77"), "Cache must be v74 (P-097)");
 console.log("PASS: P-097 — consolidated 30-panel desk with role law + two-way role sync, maintenance lockdowns (platform + per-site), preview window manager, install/permissions popup + share-install, auto day/night, 10 achievement badges, icon-facaded cards, honest review counts, profile editor popup, waste swept");
 })();
 
@@ -1799,6 +1799,28 @@ for (const url of [
   assert4(exp.includes(url), `Catalogue missing siteUrl ${url}`);
 }
 assert4(app.includes("Paragon Invoice") && app.includes("Paragon Resume") && app.includes("REALLY_UPDATED"), "REALLY_UPDATED must list newly shipped products (P-099)");
-assert4(sw.includes("paragon-archive-v76"), "Cache must be v76 (P-099)");
-console.log("PASS: P-099 — nine in-project product sites under /sites/, shared kit, catalogue siteUrls, honest local engines, cache v76");
+assert4(sw.includes("paragon-archive-v77"), "Cache must be v76 (P-099)");
+console.log("PASS: P-099 — nine in-project product sites under /sites/, shared kit, catalogue siteUrls, honest local engines, cache v77");
+})();
+
+/* ================= FIXTURE: P-100 — coins SQL + withdrawals + product depth ================= */
+(function () {
+const fs5 = require("fs");
+const path5 = require("path");
+const root5 = path5.resolve(__dirname, "..");
+function assert5(c, m) { if (!c) throw new Error(m); }
+const read5 = p => fs5.readFileSync(path5.join(root5, p), "utf8");
+assert5(fs5.existsSync(path5.join(root5, "supabase/coins-schema.sql")), "coins-schema.sql missing");
+assert5(fs5.existsSync(path5.join(root5, "supabase/SQL-RUN-PACK.md")), "SQL-RUN-PACK.md missing");
+const coinsSql = read5("supabase/coins-schema.sql");
+assert5(coinsSql.includes("paragon_coin_wallets") && coinsSql.includes("paragon_coin_approve_purchase") && coinsSql.includes("paragon_coin_complete_withdrawal"), "coins SQL incomplete");
+const app = read5("app.js");
+assert5(app.includes("requestCoinWithdrawal") && app.includes("paragonArchive.coinDebits.v1") && app.includes("paragonTeamCoinWithdrawals.v1"), "withdrawal front-end missing");
+assert5(read5("team/desk.html").includes("coin-withdrawals-list"), "team withdrawals panel missing");
+assert5(read5("team/team-pages.js").includes("bindCoinWithdrawals"), "team withdrawals binder missing");
+assert5(read5("sites/recipe-creator/app.js").includes("SUB_MAP"), "recipe substitutions missing");
+assert5(read5("sites/flashcard-generator/app.js").includes("exportAnki") || read5("sites/flashcard-generator/app.html").includes("exportAnki"), "flash Anki export missing");
+assert5(read5("sites/invoice-generator/app.js").includes("exportCsv") || read5("sites/invoice-generator/app.js").includes("Export CSV"), "invoice CSV missing");
+assert5(read5("service-worker.js").includes("paragon-archive-v77"), "cache must be v77");
+console.log("PASS: P-100 — coins SQL pack, withdrawals desk, product depth upgrades, cache v77");
 })();

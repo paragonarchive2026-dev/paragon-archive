@@ -59,6 +59,15 @@
       </div>
       <div>
         <div class="panel">
+          <h2 class="panel-title">Substitutions (local engine)</h2>
+          <div class="field"><label for="subQuery">I don't have…</label><input id="subQuery" placeholder="buttermilk, butter, egg…"></div>
+          <div class="field"><label for="subDiet">Make it…</label>
+            <select id="subDiet"><option value="">Any swap</option><option value="dairy-free">Dairy-free</option><option value="vegan">Vegan</option><option value="gluten-free">Gluten-free</option></select>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" id="runSub">Suggest substitutes</button>
+          <div id="subPanel" class="muted" style="margin-top:10px">Local pantry knowledge only — not medical advice.</div>
+        </div>
+        <div class="panel">
           <h2 class="panel-title">Scale & cook</h2>
           <div class="field"><label for="scaleTo">Scale to servings</label><input id="scaleTo" type="number" min="1" value="4"></div>
           <button type="button" class="btn btn-outline btn-sm" id="applyScale">Apply scale to preview</button>

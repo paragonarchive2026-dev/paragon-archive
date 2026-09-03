@@ -42,7 +42,21 @@
     w = Math.max(1, Math.round(w * scale));
     h = Math.max(1, Math.round(h * scale));
     canvas.width = w; canvas.height = h;
-    ctx.drawImage(source, 0, 0, w, h);
+    const rot = Number(document.getElementById("rotate")?.value || 0);
+    const flip = document.getElementById("flipH")?.value === "1";
+    if (rot === 90 || rot === 270) { canvas.width = h; canvas.height = w; }
+    else { canvas.width = w; canvas.height = h; }
+    ctx.save();
+    if (rot || flip) {
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(rot * Math.PI / 180);
+      if (flip) ctx.scale(-1, 1);
+      ctx.drawImage(source, -w / 2, -h / 2, w, h);
+    } else {
+      ctx.drawImage(source, 0, 0, w, h);
+    }
+    ctx.restore();
+    w = canvas.width; h = canvas.height;
     const imgData = ctx.getImageData(0, 0, w, h);
     const d = imgData.data;
     const b = Number(document.getElementById("bright").value) || 0;
@@ -69,6 +83,17 @@
       d[i + 2] = Math.max(0, Math.min(255, bch));
     }
     ctx.putImageData(imgData, 0, 0);
+    const text = (document.getElementById("overlayText") && document.getElementById("overlayText").value || "").trim();
+    if (text) {
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      ctx.fillRect(0, h - 42, w, 42);
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold " + Math.max(14, Math.round(w / 28)) + "px system-ui,sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(text, w / 2, h - 14, w - 24);
+      ctx.restore();
+    }
   }
 
   function bumpEdit() {
@@ -86,7 +111,7 @@
     img.onerror = function () { kit.showPanel(document.getElementById("msg"), "Could not decode image.", "bad"); };
     img.src = URL.createObjectURL(f);
   });
-  ["bright", "contrast", "filter", "maxSide"].forEach(function (id) {
+  ["bright", "contrast", "filter", "maxSide", "overlayText", "rotate", "flipH"].forEach(function (id) {
     document.getElementById(id).addEventListener("input", function () {
       document.getElementById("brightV").textContent = document.getElementById("bright").value;
       document.getElementById("contrastV").textContent = document.getElementById("contrast").value;

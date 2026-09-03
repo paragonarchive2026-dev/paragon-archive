@@ -4616,8 +4616,11 @@ if (paragonTeamPage() === "settings.html") {
   var STORE_KEY = "paragonTeamSettings.v1";
   var DEFAULTS = { sessionIdleMinutes: 29, sessionWarnSeconds: 60, maintenanceMode: false, registrationOpen: true, reviewsOpen: true };
   var COIN_KEY = "paragonTeamCoinRequests.v1";
+  var COIN_WD_KEY = "paragonTeamCoinWithdrawals.v1";
   function readCoinRequests() { return readJSON(COIN_KEY, []); }
   function writeCoinRequests(list) { writeJSON(COIN_KEY, list); }
+  function readCoinWithdrawals() { return readJSON(COIN_WD_KEY, []); }
+  function writeCoinWithdrawals(list) { writeJSON(COIN_WD_KEY, list); }
   function renderCoinRequests() {
     var host = document.getElementById("coin-requests-list");
     if (!host) return;
@@ -4633,6 +4636,23 @@ if (paragonTeamPage() === "settings.html") {
         '</div>' +
       '</article>';
     }).join("") : '<p class="team-site-sub">No coin purchase requests yet — real zero.</p>';
+  }
+  function renderCoinWithdrawals() {
+    var host = document.getElementById("coin-withdrawals-list");
+    if (!host) return;
+    var list = readCoinWithdrawals().sort(function (a, b) { return Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0); });
+    host.innerHTML = list.length ? list.map(function (request) {
+      return '<article class="team-site-row ' + (request.status === "paid" ? "st-live" : request.status === "rejected" ? "st-archived" : "st-review") + '">' +
+        '<div class="team-site-copy">' +
+          '<div class="team-site-title"><strong>' + escapeHTML(request.displayName || request.user) + '</strong><span class="team-site-badge ' + (request.status === "paid" ? "st-live" : "st-review") + '">' + (request.status === "paid" ? "✅ PAID" : request.status === "rejected" ? "❌ REJECTED" : "🟡 PENDING") + '</span><span class="team-site-cat">' + Number(request.coins || 0).toLocaleString() + ' coins → ~₦' + Number(request.naira || 0).toLocaleString() + '</span></div>' +
+          '<div class="team-site-sub">' + escapeHTML(request.user || "—") + ' · ' + escapeHTML(request.createdAt || "—") + '</div>' +
+          '<div class="team-site-sub">Payout details: ' + escapeHTML(request.bank || "—") + '</div>' +
+        '</div>' +
+        '<div class="team-site-actions">' +
+          (request.status === "pending" ? '<button type="button" class="team-mini-link" data-wdact="paid" data-id="' + request.id + '">Mark paid (deduct coins)</button><button type="button" class="team-mini-link danger" data-wdact="reject" data-id="' + request.id + '">Reject</button>' : "") +
+        '</div>' +
+      '</article>';
+    }).join("") : '<p class="team-site-sub">No withdrawal requests yet — real zero.</p>';
   }
   function bindCoinRequests() {
     var host = document.getElementById("coin-requests-list");
@@ -4664,6 +4684,37 @@ if (paragonTeamPage() === "settings.html") {
       }
     });
     renderCoinRequests();
+  }
+  function bindCoinWithdrawals() {
+    var host = document.getElementById("coin-withdrawals-list");
+    if (!host) return;
+    host.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-wdact]");
+      if (!button) return;
+      var list = readCoinWithdrawals();
+      var request = list.filter(function (entry) { return entry.id === button.dataset.id; })[0];
+      if (!request) return;
+      if (button.dataset.wdact === "paid") {
+        window.ParagonTeamConfirm({ icon: "🏦", title: "Confirm naira payout", lines: ["Mark " + Number(request.coins).toLocaleString() + " coins withdrawn for " + (request.displayName || request.user) + " after you have sent ~₦" + Number(request.naira || 0).toLocaleString() + ".", "Coins will be deducted on the user device via the debit mirror."], confirmLabel: "Mark paid" }).then(function (confirmed) {
+          if (!confirmed.ok) return;
+          request.status = "paid";
+          request.paidAt = new Date().toISOString();
+          writeCoinWithdrawals(list);
+          var debits = readJSON("paragonArchive.coinDebits.v1", []);
+          debits.push({ for: request.user, coins: request.coins, at: request.paidAt, id: request.id, reason: "Withdrawal payout" });
+          writeJSON("paragonArchive.coinDebits.v1", debits);
+          renderCoinWithdrawals();
+          showToast("Marked paid — user balance deducts when their device syncs.");
+        });
+      }
+      if (button.dataset.wdact === "reject") {
+        request.status = "rejected";
+        writeCoinWithdrawals(list);
+        renderCoinWithdrawals();
+        showToast("Withdrawal rejected.");
+      }
+    });
+    renderCoinWithdrawals();
   }
 
   var FLAGS = [
@@ -4768,6 +4819,7 @@ if (paragonTeamPage() === "settings.html") {
   if (typeof document !== "undefined" && document.addEventListener) {
     document.addEventListener("DOMContentLoaded", function () {
     bindCoinRequests();
+    bindCoinWithdrawals();
       if (!document.getElementById("set-flags")) return;
       var settings = readSettings();
       document.getElementById("set-idle").value = settings.sessionIdleMinutes;

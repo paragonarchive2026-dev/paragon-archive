@@ -146,6 +146,24 @@
       kit.showPanel(document.getElementById("msg"), "Card added to “" + deck.name + "”.", "good");
     });
     listDecks();
+    document.getElementById("exportAnki")?.addEventListener("click", function () {
+      const s = load();
+      const deck = s.decks.find(function (d) { return d.id === s.selectedId; }) || s.decks[s.decks.length - 1];
+      if (!deck || !(deck.cards || []).length) { kit.showPanel(document.getElementById("msg"), "Select a deck with cards first.", "bad"); return; }
+      const tsv = deck.cards.map(function (c) { return (c.front || "").replace(/\t/g," ") + "\t" + (c.back || "").replace(/\t/g," "); }).join("\n");
+      kit.downloadText((deck.name || "deck").replace(/\s+/g,"_") + ".tsv", tsv, "text/tab-separated-values;charset=utf-8");
+      kit.showPanel(document.getElementById("msg"), "Anki-friendly TSV downloaded (Import → Tab).", "good");
+    });
+    document.getElementById("exportGuide")?.addEventListener("click", function () {
+      const s = load();
+      const deck = s.decks.find(function (d) { return d.id === s.selectedId; }) || s.decks[s.decks.length - 1];
+      if (!deck || !(deck.cards || []).length) { kit.showPanel(document.getElementById("msg"), "Select a deck with cards first.", "bad"); return; }
+      const text = "# " + deck.name + " — study guide\n\n" + deck.cards.map(function (c, i) {
+        return (i+1) + ". " + (c.front || "") + "\n   → " + (c.back || "");
+      }).join("\n\n");
+      kit.downloadText((deck.name || "guide").replace(/\s+/g,"_") + "-guide.txt", text, "text/plain;charset=utf-8");
+      kit.showPanel(document.getElementById("msg"), "Study guide downloaded.", "good");
+    });
   }
 
   if (document.getElementById("startStudy")) {

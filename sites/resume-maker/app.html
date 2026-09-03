@@ -61,6 +61,17 @@
       <h2 class="panel-title">Skills</h2>
       <div class="field"><label for="skills">Skills (comma-separated)</label><input id="skills"></div>
     </div>
+    <div class="panel">
+      <h2 class="panel-title">Cover letter (optional)</h2>
+      <div class="field"><label for="coverLetter">Letter body</label><textarea id="coverLetter" rows="6" placeholder="Dear Hiring Manager,…"></textarea></div>
+      <div class="field"><label for="templateStyle">Template style</label>
+        <select id="templateStyle">
+          <option value="classic">Classic</option>
+          <option value="modern">Modern</option>
+          <option value="compact">Compact</option>
+        </select>
+      </div>
+    </div>
     <div class="actions">
       <button type="button" class="btn btn-primary" id="saveResume">Save resume</button>
       <a class="btn btn-secondary" href="preview.html">Open preview</a>

@@ -97,7 +97,8 @@
 
   applyTheme();
 
-  global.ParagonSiteKit = {
+  /* extended below */
+global.ParagonSiteKit = {
     storageGet: storageGet,
     storageSet: storageSet,
     escapeHTML: escapeHTML,

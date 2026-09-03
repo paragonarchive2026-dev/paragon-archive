@@ -1021,10 +1021,15 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   <div class="team-page-head">
     <h1 class="team-page-title">⚙️ SETTINGS <span class="team-role-chip">🔒 Super Admin only</span></h1>
 
-  <!-- P-098 — super-admin coin purchase approvals -->
+  <!-- P-098/P-100 — super-admin coin purchase + withdrawal approvals -->
   <section class="team-dash-section" id="coin-requests-section">
     <h2 class="team-dash-heading">🪙 COIN PURCHASE REQUESTS (super-admin)</h2>
     <div id="coin-requests-list" class="team-site-list"></div>
+  </section>
+  <section class="team-dash-section" id="coin-withdrawals-section">
+    <h2 class="team-dash-heading">🏦 COIN WITHDRAWAL REQUESTS (super-admin)</h2>
+    <p class="team-site-sub">Pay naira offline, then mark Paid — coins are deducted via the credit mirror path on the user device / SQL RPC when backend is live.</p>
+    <div id="coin-withdrawals-list" class="team-site-list"></div>
   </section>
   </div>
 

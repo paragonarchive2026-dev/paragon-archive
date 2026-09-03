@@ -9,7 +9,7 @@
   "use strict";
   const K = "paragonFileConverter.v1";
   const kit = window.ParagonSiteKit;
-  function def() { return { jobs: 0, bytes: 0, saved: 0 }; }
+  function def() { return { jobs: 0, bytes: 0, saved: 0, jobLog: [] }; }
   function load() { return Object.assign(def(), kit.storageGet(K, def())); }
   function save(s) { kit.storageSet(K, s); }
   function stats() {
@@ -66,6 +66,7 @@
           s.jobs = (s.jobs || 0) + 1;
           s.bytes = (s.bytes || 0) + f.size + blob.size;
           s.saved = (s.saved || 0) + 1;
+          s.jobLog = [{ at: new Date().toISOString(), name: f.name, out: ext, kb: Math.round(blob.size/1024) }, ...(s.jobLog||[])].slice(0, 20);
           save(s); stats();
           kit.showPanel(document.getElementById("msg"), "Downloaded " + ext.toUpperCase() + " (" + Math.round(blob.size / 1024) + " KB).", "good");
         }, type, q);

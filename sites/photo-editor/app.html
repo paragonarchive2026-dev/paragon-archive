@@ -50,6 +50,15 @@
           </select>
         </div>
         <div class="field"><label for="maxSide">Max export side (px)</label><input id="maxSide" type="number" min="0" value="1600"></div>
+        <div class="field"><label for="overlayText">Text overlay</label><input id="overlayText" placeholder="Optional caption"></div>
+        <div class="field-row">
+          <div class="field"><label for="rotate">Rotate</label>
+            <select id="rotate"><option value="0">0°</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select>
+          </div>
+          <div class="field"><label for="flipH">Flip</label>
+            <select id="flipH"><option value="0">None</option><option value="1">Horizontal</option></select>
+          </div>
+        </div>
         <div class="actions">
           <button type="button" class="btn btn-secondary" id="resetPhoto">Reset adjustments</button>
           <button type="button" class="btn btn-primary" id="exportPhoto">Download JPG</button>

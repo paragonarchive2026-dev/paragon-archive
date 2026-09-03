@@ -8,7 +8,7 @@
 
 # 🤝 NEXT-AGENT HANDOFF BRIEF — READ THIS FIRST
 
-**Last updated:** 2026-09-03 (EOP v0.93.0, prompt P-099)
+**Last updated:** 2026-09-03 (EOP v0.94.0, prompt P-100)
 **You are:** the owner's dedicated build agent for **Paragon Archive**, a large multi-product front-end platform.
 
 ## 1. WHO THE OWNER IS & HOW TO WORK WITH THEM
@@ -30,7 +30,7 @@
 - **P-001 preserve-first:** never destroy owner-approved work; extend it.
 - **P-014:** every new HTML/CSS/JS/SQL file starts with the `PARAGON ARCHIVE — EXPORT IDENTITY` comment header (REAL FILE NAME / EXPECTED PROJECT PATH / ROLE / RESTORE-LOAD NOTE).
 - **P-015:** responsive at all resolutions.
-- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v76**) AND the assertion in `tests/archive-hub.test.js`.
+- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v77**) AND the assertion in `tests/archive-hub.test.js`.
 - **NO `window.alert/prompt/confirm` anywhere** — use inline panels or `ParagonTeamConfirm` (in `team/nav.js`).
 - **Canonical entry = `paragon-archive.html`. NEVER create a root index.html.**
 - Progress % must be milestone-derived (D-116) or labelled "team-set".
@@ -130,3 +130,10 @@ Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop (shopper). Meal Plann
 
 **Standing gotchas:** never fake buildProgress 100; meal-planner has no separate catalogue row (pairs with Recipe); personal-shopper is NOT a checkout storefront; site logos must keep Archive detail links; cache bump on shell changes; no alert/prompt/confirm; regenerate paragon-file-tree.html when structure changes.
 
+## 7f. WHERE WE STOPPED — after P-100 / EOP v0.94.0 (2026-09-03)
+
+**Shipped:** `supabase/coins-schema.sql` + `SQL-RUN-PACK.md` (owner should run announcements + coins SQL now). Coin shop: history + withdrawals. Team desk: withdrawal Paid flow + debit mirror. Nine product sites deepened (subs, Anki, invoice CSV/link, resume cover letter, travel entry checks, photo overlay/rotate, meal←recipe, shopper compare, files job log). Cache v77.
+
+**Upload note:** Arena still failed to materialise the 10 MD attachments on disk this session; build used in-repo COIN-SYSTEM + site-specs. If owner pushes skills to `docs/skills/`, merge any remaining verbatim rules next turn.
+
+**Next:** owner runs SQL; owner sets real ₦ rates; badges 21–30; optional Supabase client wiring for coin RPCs; deepen any site owner prioritises after demo.
