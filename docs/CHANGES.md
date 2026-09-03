@@ -8,23 +8,19 @@
                      and DELETE every file under "Deleted". Vercel/Netlify redeploy automatically.
 -->
 
-# 📦 Changed files — P-098 (2026-08-26) — upload these to GitHub/SPCK
+# 📦 Changed files — owner Q&A turn (2026-09-03) — GitHub ZIP download guide
 
 ## Changed
-- `app.js` — coin core + shop + credit sync, true-fullscreen maximize, badge art 11–20, coin stat/row
-- `style.css` — full-bleed maximize, badge/badge sizing (see P-098 block)
-- `ai/paragon-archive-ai.js` — ROUTE_KEYWORDS keyword layer (user words -> website)
-- `team/team-pages.js` — desk View-link fixes (ticket/user/member profiles), coin-requests desk module
-- `team/desk.html` — settings panel gains the 🪙 Coin Requests section
-- `data/catalogue-expansion-45-100.js` — RxLife Network + Pharmapaedia honest Deployed entries
-- `docs/SOP.md`, `docs/EOP.md`, `docs/NEXT-AGENT.md` — governance
-- `tests/suite-ux.test.js` — P-098 fixture
-- `service-worker.js` — cache v75
+- `docs/DEPLOYMENT-GUIDE.md` — new section 3b: how to download the whole project as a ZIP
+  directly from GitHub (Code → Download ZIP, the direct `archive/refs/heads/<branch>.zip`
+  link, SPCK/phone notes) + the honest size answer (~6.5 MB content / 283 files; the
+  biggest single files are the consolidated code files by design; GitHub per-file limit is
+  100 MB so nothing is close).
 
 ## Added
-- `docs/site-specs/` — 9 build specs from the uploaded skills (file-converter, flashcard-generator, invoice-generator, meal-planner, personal-shopper, photo-editor, recipe-creator, resume-maker, travel-assistant)
-- `docs/DEPLOYMENT-GUIDE.md` · `docs/COIN-SYSTEM.md` · `docs/CHANGES.md`
-- `assets/achievement-badges/` — badges 11–20 (10 new PNGs)
+- (none this turn — the standalone download helper `paragon-archive.zip` was produced
+  OUTSIDE the project folder at the workspace root as a one-off convenience; it is NOT a
+  project file and does not need uploading to GitHub)
 
 ## Deleted
 - (none this turn)

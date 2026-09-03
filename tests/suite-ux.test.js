@@ -1653,7 +1653,7 @@ for (const icon of ["habits","travel","weather","wardrobe","journal","tutor","qu
 // P-097 — the owner cancelled the take-away export (websites are built HERE now); the quiz stays in-project.
 assert2(fs2.existsSync(path2.join(root2, "paragon-quiz/index.html")), "In-project Paragon Quiz must stay (P-097 build-here decision)");
 assert2(navJs.includes("ParagonTeamPrompt"), "Dialog-law prompt helper missing (P-096)");
-assert2(sw.includes("paragon-archive-v75"), "Cache must be v73 (P-096)");
+assert2(sw.includes("paragon-archive-v77"), "Cache must be v77 (P-100 cache bump)");
 console.log("PASS: P-096 — hub killer-guard fix, cross-scope fix, instant 5 s splash at original position, intent-trained AI, team A-to-Z feed control, construction desk, roadmap milestones, phone push client, guest hero v2, footer auto-continue, icon chips, 100/100 icons, quiz export");
 })();
 
@@ -1722,6 +1722,146 @@ assert3(app.includes("profile-header-tools") && app.includes("profile-name-edito
 assert3(!fs3.existsSync(path3.join(root3, "supabase/community-schema.sql")), "community-schema.sql must stay removed (executed live 2026-08-18)");
 assert3(!fs3.existsSync(path3.join(root3, "exports")), "exports/ take-away cancelled by owner (P-097 build-here decision)");
 assert3(read3("supabase/schema.sql").includes("EXECUTED LIVE"), "schema.sql must be labelled the executed archive reference (P-097)");
-assert3(sw.includes("paragon-archive-v75"), "Cache must be v74 (P-097)");
+assert3(sw.includes("paragon-archive-v77"), "Cache must be v77 (P-100 cache bump)");
 console.log("PASS: P-097 — consolidated 30-panel desk with role law + two-way role sync, maintenance lockdowns (platform + per-site), preview window manager, install/permissions popup + share-install, auto day/night, 10 achievement badges, icon-facaded cards, honest review counts, profile editor popup, waste swept");
+})();
+
+/* ================= FIXTURE: P-099 — Stage 5 leaderboards (engine, weekly ranking, anti-farming, revenue-funded pool, settlement) ================= */
+(function () {
+const fs5 = require("fs");
+const path5 = require("path");
+const vm5 = require("vm");
+const root5 = path5.resolve(__dirname, "..");
+function assert5(value, message) { if (!value) throw new Error(message); }
+let passed5 = 0;
+function check5(value, label) { assert5(value, label); passed5 += 1; console.log("  ✅ " + label); }
+
+function makeLBContext(seed = {}) {
+  const storage = {};
+  Object.keys(seed).forEach(key => { storage[key] = JSON.stringify(seed[key]); });
+  const localStorage = {
+    getItem: key => (key in storage ? storage[key] : null),
+    setItem: (key, value) => { storage[key] = String(value); },
+    removeItem: key => { delete storage[key]; }
+  };
+  const context = { console, localStorage, window: null };
+  context.window = context;
+  vm5.createContext(context);
+  return { context, storage };
+}
+
+console.log("🧪 P-099 — Stage 5 leaderboards fixture");
+
+/* ---------- 1. Source wiring + honesty shell ---------- */
+const engineSource = fs5.readFileSync(path5.join(root5, "paragon-leaderboards.js"), "utf8");
+check5(engineSource.includes("PARAGON ARCHIVE — EXPORT IDENTITY"), "paragon-leaderboards.js carries the identity header");
+check5(!/window\.(alert|prompt|confirm)\s*\(/.test(engineSource), "leaderboard engine has no browser dialogs");
+const archiveHtml5 = fs5.readFileSync(path5.join(root5, "paragon-archive.html"), "utf8");
+check5(archiveHtml5.includes("src=\"paragon-leaderboards.js\"") && archiveHtml5.indexOf('src="paragon-leaderboards.js"') < archiveHtml5.indexOf('src="app.js"'), "Archive loads paragon-leaderboards.js BEFORE app.js");
+const app5 = fs5.readFileSync(path5.join(root5, "app.js"), "utf8");
+check5(app5.includes("openCoinLeaderboard = function") && app5.includes("lbRulesBlock") && app5.includes("Coins Leaderboard — weekly top 3 + ranks 4–10 rewards"), "app.js exposes the public leaderboard popup + Account settings row");
+check5(app5.includes('kind === "weekly-leaderboard-reward"'), "reward credits are kind-aware in the credit sync (P-099)");
+check5(!/[←→↗]/.test(app5), "P-099 app.js additions respect the no-textual-arrows law");
+const sw5 = fs5.readFileSync(path5.join(root5, "service-worker.js"), "utf8");
+check5(sw5.includes("\"./paragon-leaderboards.js\"") && sw5.includes("paragon-archive-v77"), "service worker precaches the engine at cache v77");
+const css5 = fs5.readFileSync(path5.join(root5, "style.css"), "utf8");
+check5(css5.includes(".lb-list") && css5.includes(".lb-week-chip") && css5.includes(".lb-dist-pill"), "leaderboard popup styles are present");
+
+/* ---------- 2. Engine: weekly periods (Monday start, D-013 convention) ---------- */
+const env5 = makeLBContext({});
+vm5.runInContext(engineSource, env5.context);
+const LB5 = env5.context.ParagonLeaderboards;
+check5(!!LB5 && LB5.STORES.entries === "paragonLeaderboardEntries.v1", "engine exposes the shared stores");
+const wed = new Date(2026, 7, 5, 12, 0, 0); /* Wed 2026-08-05 */
+check5(LB5.weekKeyFor(wed) === "2026-08-03" && LB5.periodLabel("2026-08-03") === "2026-08-03 → 2026-08-09", "weekly periods run Monday to Sunday");
+const mon = new Date(2026, 7, 3, 0, 0, 0);
+check5(LB5.periodBounds("2026-08-03").end.getTime() === new Date(2026, 7, 10).getTime(), "period end is the next Monday (exclusive)");
+
+/* ---------- 3. Eligibility + anti-farming ---------- */
+const guest5 = LB5.recordResult({ player: "Guest (this device)", mode: "bet", gameType: "quiz", stakeCoins: 5, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+check5(guest5.code === "guest", "guest play earns nothing (rejected: guest)");
+const free5 = LB5.recordResult({ player: "a@x.com", mode: "free", gameType: "quiz", perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+check5(free5.code === "free-play", "free play earns nothing (rejected: free-play)");
+const login5 = LB5.recordResult({ player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 0, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+check5(login5.code === "below-min-stake", "a login without a real stake earns nothing (below-min-stake)");
+const self5 = LB5.recordResult({ player: "creator@x.com", creatorFor: "creator@x.com", mode: "bet", gameType: "quiz", stakeCoins: 5, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+check5(self5.code === "creator-self-play", "creator can NEVER earn points from their own quiz (creator-self-play)");
+const impossible5 = LB5.recordResult({ player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 5, perf: { score: 12, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+check5(impossible5.code === "impossible-result", "impossible scores are rejected");
+
+/* stake size never scales points: same perf, stake 1 vs stake 1000 */
+const small5 = LB5.recordResult({ id: "small", player: "a@x.com", displayName: "Ace", mode: "bet", gameType: "quiz", stakeCoins: 1, feeCoins: 10, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 30, 0));
+const big5 = LB5.recordResult({ id: "big", player: "b@x.com", displayName: "Bee", mode: "bet", gameType: "quiz", stakeCoins: 1000, feeCoins: 10, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 31, 0));
+check5(small5.ok && big5.ok && small5.entry.points === 90 && big5.entry.points === 90, "1 coin staked ≠ 1 point — performance-only scoring (90 pts both)");
+
+/* duplicate signature rejected */
+const dup5 = LB5.recordResult({ id: "big2", player: "b@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1000, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 31, 30));
+check5(dup5.code === "duplicate", "duplicate identical results are rejected");
+
+/* ---------- 4. Weekly ranking ---------- */
+LB5.recordResult({ id: "a2", player: "a@x.com", displayName: "Ace", mode: "bet", gameType: "quiz", stakeCoins: 2, feeCoins: 10, perf: { score: 8, total: 10 } }, new Date(2026, 7, 4, 11, 0, 0));
+const rows5 = LB5.liveStandings("2026-08-03");
+check5(rows5.length === 2 && rows5[0].player === "a@x.com" && rows5[0].points === 170 && rows5[1].points === 90, "weekly ranking ranks by total points descending");
+const tieEnv = makeLBContext({});
+vm5.runInContext(engineSource, tieEnv.context);
+const T5 = tieEnv.context.ParagonLeaderboards;
+T5.recordResult({ id: "t1", player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+T5.recordResult({ id: "t2", player: "b@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 1, 0));
+const tieRows5 = T5.liveStandings("2026-08-03");
+check5(tieRows5[0].rank === 1 && tieRows5[1].rank === 1, "equal points share the same rank (1,1)");
+
+/* ---------- 5. Revenue-funded reward pool (30% of realized fees) + distribution ---------- */
+env5.context.ParagonLeaderboards.recordRealizedFee({ id: "fee1", feeCoins: 3000, realizedAt: new Date(2026, 7, 4, 12, 0, 0) });
+const pool5 = LB5.poolCoins("2026-08-03");
+check5(pool5 === 900, "pool = 30% of realized competition fees (3000 → 900)");
+const emptyPoolEnv = makeLBContext({});
+vm5.runInContext(engineSource, emptyPoolEnv.context);
+check5(emptyPoolEnv.context.ParagonLeaderboards.poolCoins("2026-08-03") === 0, "no realized fees = honest 0 pool (never invented)");
+const prizes5 = LB5.prizeRows("2026-08-03");
+const sum5 = prizes5.reduce((total, row) => total + row.coins, 0);
+check5(prizes5.length === 10 && prizes5[0].pct === 30 && prizes5[1].pct === 20 && prizes5[2].pct === 15 && prizes5[8].pct === 2 && prizes5[9].pct === 4, "distribution = top 3 big shares + ranks 4–10 (spec §12 table)");
+check5(sum5 === pool5, "prize table pays the ENTIRE pool (remainder to rank 1)");
+check5(LB5.DISTRIBUTION_SPEC === "30/20/15/10/7/5/4/3/2/4", "engine distribution spec string matches the master build spec");
+
+/* ---------- 6. Settlement state machine (§12.1) ---------- */
+const early5 = LB5.closePeriod("2026-08-03", "Super Admin", new Date(2026, 7, 5, 12, 0, 0));
+check5(early5.code === "period-active", "a live week cannot be closed early (period-active)");
+const closed5 = LB5.closePeriod("2026-08-03", "Super Admin", new Date(2026, 7, 10, 12, 0, 0));
+check5(closed5.ok && LB5.periodState("2026-08-03").state === "closed", "week close freezes results after the period ends");
+check5(LB5.standingsForView("2026-08-03").rows.length === 2, "frozen view keeps the closing snapshot");
+/* A result timestamped INSIDE an already-frozen week is rejected (frozen = frozen). */
+const frozenEnv5 = makeLBContext({ "paragonTeamLeaderboardOps.v1": { "2026-08-03": { state: "closed", frozen: [], frozenIds: [] } } });
+vm5.runInContext(engineSource, frozenEnv5.context);
+const late5 = frozenEnv5.context.ParagonLeaderboards.recordResult({ id: "late", player: "c@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1, perf: { score: 10, total: 10 } }, new Date(2026, 7, 5, 13, 0, 0));
+check5(late5.code === "period-closed", "results cannot change a frozen week (period-closed)");
+const revoked5 = LB5.setEntryEligibility("2026-08-03", "big", false, "Super Admin", "flagged review");
+check5(revoked5.ok && revoked5.status === "disqualified" && revoked5.state === "review", "anti-abuse review can disqualify an entry (period reopens as review)");
+const final5 = LB5.finalizePeriod("2026-08-03", "Super Admin");
+check5(final5.ok && final5.rows.every(row => row.player !== "b@x.com") && LB5.periodState("2026-08-03").state === "final", "final ranking excludes disqualified players only after review");
+LB5.recordRealizedFee({ id: "fee2", feeCoins: 0, realizedAt: new Date(2026, 7, 5, 12, 0, 0) });
+const prizesStep5 = LB5.computePrizes("2026-08-03", "Super Admin");
+check5(prizesStep5.ok && prizesStep5.poolCoins === 900 && LB5.periodState("2026-08-03").state === "prizes", "prize calculation runs after the final ranking");
+const credit5 = LB5.issueCredits("2026-08-03", "Super Admin");
+check5(credit5.ok && credit5.issued.length === 1 && credit5.issued[0].coins === 270 && credit5.issued[0].player === "a@x.com", "rank 1 receives the 30% share; disqualified rank 2 receives nothing");
+check5(LB5.periodState("2026-08-03").state === "credited", "settlement ends in the credited state");
+const mirrors5 = env5.storage["paragonArchive.coinCredits.v1"] ? JSON.parse(env5.storage["paragonArchive.coinCredits.v1"]) : [];
+check5(mirrors5.length === 1 && mirrors5[0].kind === "weekly-leaderboard-reward" && mirrors5[0].period === "2026-08-03" && mirrors5[0].coins === 270, "reward credits ride the coin-credit mirror with the reward kind");
+check5(LB5.issueCredits("2026-08-03", "Super Admin").code === "already-credited", "credits are idempotent (no double payment)");
+check5(LB5.auditLog().length >= 10 && LB5.auditLog().some(row => row.action === "period-closed") && LB5.auditLog().some(row => row.action === "reward-credited"), "every settlement step is audited");
+
+/* ---------- 7. A review decision AFTER finalization reopens the week (stale ranking can never pay) ---------- */
+const reopenEnv = makeLBContext({});
+vm5.runInContext(engineSource, reopenEnv.context);
+const R5 = reopenEnv.context.ParagonLeaderboards;
+R5.recordResult({ id: "r1", player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1, feeCoins: 500, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+R5.recordResult({ id: "r2", player: "b@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1, feeCoins: 500, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 1, 0));
+R5.recordRealizedFee({ id: "fee-r", feeCoins: 1000, realizedAt: new Date(2026, 7, 4, 10, 2, 0) });
+R5.closePeriod("2026-08-03", "team", new Date(2026, 7, 10, 12, 0, 0));
+R5.finalizePeriod("2026-08-03", "team");
+R5.computePrizes("2026-08-03", "team");
+const reopen5 = R5.setEntryEligibility("2026-08-03", "r1", false, "team", "late flag found");
+check5(reopen5.ok && R5.periodState("2026-08-03").state === "review" && !R5.periodState("2026-08-03").final && !R5.periodState("2026-08-03").prizes, "a post-finalization review decision reopens the week and clears stale prizes (nothing auto-pays)");
+
+console.log(`\nPASS: ${passed5} checks — P-099 Stage 5 leaderboards (weekly ranking, top-3 + ranks 4–10, revenue-funded pool, anti-farming, settlement)`);
+
 })();

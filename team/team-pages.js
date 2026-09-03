@@ -4765,9 +4765,285 @@ if (paragonTeamPage() === "settings.html") {
     });
   }
 
+  /* ============ P-099 — Stage 5: weekly leaderboard & reward settlement (super-admin) ============
+     Engine: ../paragon-leaderboards.js (window.ParagonLeaderboards). This desk drives the spec
+     §12.1 settlement flow per week: close -> freeze -> anti-abuse review -> eligibility ->
+     final ranking -> prize calculation -> reward ledger entries -> credit (approval -> mirror). */
+  var LB = (typeof window !== "undefined") ? window.ParagonLeaderboards : null;
+  var lbFocusKey = LB ? LB.currentWeekKey() : "";
+  var lbNoteEntry = "";
+  var lbNoteText = "";
+  var lbActorLabel = "Super Admin (this device)";
+  function lbEngine() { return window.ParagonLeaderboards || null; }
+  function lbShortLabel(key) {
+    var engine = lbEngine(); if (!engine) return key;
+    var bounds = engine.periodBounds(key);
+    var last = new Date(bounds.end.getTime()); last.setDate(last.getDate() - 1);
+    return key.slice(5).replace("-", "/") + "…" + String(last.getDate()).padStart(2, "0") + "/" + String(last.getMonth() + 1).padStart(2, "0");
+  }
+  function lbStateBadge(state) {
+    var text = { running: "RUNNING", closed: "CLOSED / FROZEN", review: "ANTI-ABUSE REVIEW", final: "FINAL RANKING", prizes: "PRIZES CALCULATED", credited: "CREDITED" }[state] || state;
+    var kind = { running: "st-live", closed: "st-scheduled", review: "st-review", final: "st-live", prizes: "st-scheduled", credited: "st-live" }[state] || "st-review";
+    return '<span class="team-site-badge ' + kind + '">' + escapeHTML(text) + "</span>";
+  }
+  function lbFlagChips(flags) {
+    return (flags || []).map(function (flag) {
+      var label = flag === "rapid-fire" ? "RAPID-FIRE" : flag === "repeated-opponent" ? "REPEATED OPPONENT" : flag;
+      return '<span class="lb-flag-chip">🚩 ' + escapeHTML(String(label).toUpperCase()) + "</span>";
+    }).join("");
+  }
+  function lbDeskRows(entries) {
+    var map = {}; var order = [];
+    (entries || []).forEach(function (entry) {
+      var row = map[entry.player];
+      if (!row) { row = map[entry.player] = { player: entry.player, displayName: entry.displayName || entry.player, points: 0, plays: 0, disqualified: 0, flags: [] }; order.push(row); }
+      if (entry.status === "disqualified") row.disqualified += 1;
+      else row.points += Number(entry.points) || 0;
+      row.plays += 1;
+      (entry.flags || []).forEach(function (flag) { if (row.flags.indexOf(flag) === -1) row.flags.push(flag); });
+    });
+    order.sort(function (a, b) { return b.points - a.points || a.plays - b.plays; });
+    return order;
+  }
+  function renderLBPeriodPicker() {
+    var host = document.getElementById("lb-period-row");
+    var engine = lbEngine();
+    if (!host || !engine) return;
+    var keys = engine.recentPeriodKeys(new Date(), 3);
+    if (keys.indexOf(lbFocusKey) === -1) lbFocusKey = keys[0];
+    var state = engine.periodState(lbFocusKey);
+    var bounds = engine.periodBounds(lbFocusKey);
+    var endNote = state.state === "running" && new Date() < bounds.end ? " — closes automatically after the period ends (team closes it here)" : "";
+    host.innerHTML =
+      '<div class="team-site-copy" style="flex:1;min-width:220px">' +
+        '<div class="team-site-title"><strong>🏆 ' + escapeHTML(engine.periodLabel(lbFocusKey)) + '</strong> ' + lbStateBadge(state.state) + "</div>" +
+        '<div class="team-site-sub">Period weeks (Monday start): ' +
+          keys.map(function (key) {
+            var active = key === lbFocusKey;
+            return '<button type="button" class="team-mini-link' + (active ? " lb-week-chip active" : "") + '" data-lbact="focus" data-key="' + key + '"' + (active ? ' style="border-color:var(--accent);color:var(--accent)"' : "") + ">" + lbShortLabel(key) + "</button>";
+          }).join(" ") +
+          endNote + "</div>" +
+      "</div>";
+  }
+  function renderLBStandings() {
+    var host = document.getElementById("lb-standings");
+    var engine = lbEngine();
+    if (!host || !engine) return;
+    var state = engine.periodState(lbFocusKey);
+    var entries = engine.entriesFor(lbFocusKey).slice().sort(function (a, b) { return (b.points - a.points) || (a.recordedAt < b.recordedAt ? -1 : 1); });
+    var reviewable = state.state === "closed" || state.state === "review" || state.state === "final";
+    var view = engine.standingsForView(lbFocusKey);
+    var rankMap = {};
+    (view.rows || []).forEach(function (row) { rankMap[row.player] = row.rank; });
+    var html = "";
+    if (!entries.length) {
+      html += '<p class="team-site-sub">No eligible bet results for this period yet — real zero. Points appear only when the competition stage records eligible staked results.</p>';
+    } else {
+      html += lbDeskRows(entries).map(function (row) {
+        var disq = row.disqualified > 0;
+        return '<article class="team-site-row ' + (disq ? "st-archived" : "st-live") + '">' +
+          '<div class="team-site-copy">' +
+            '<div class="team-site-title"><strong>' + (rankMap[row.player] ? "#" + rankMap[row.player] + " " : "") + escapeHTML(row.displayName || row.player) + "</strong>" +
+              (disq ? '<span class="team-site-badge st-archived">' + row.disqualified + " DISQUALIFIED</span>" : '<span class="team-site-badge st-live">ELIGIBLE</span>') +
+              lbFlagChips(row.flags) +
+            "</div>" +
+            '<div class="team-site-sub">' + escapeHTML(row.player) + " · " + row.points + " pts · " + row.plays + " play" + (row.plays === 1 ? "" : "s") + "</div>" +
+          "</div></article>";
+      }).join("");
+      html += '<div class="team-site-sub" style="margin-top:6px">' + entries.length + " result record(s) this period" + (reviewable ? " — review each flagged result below before finalizing." : "") + "</div>";
+    }
+    if (reviewable) {
+      html += '<div class="team-dash-sectitle" style="margin:14px 0 6px;">🔎 Result-level anti-abuse review (flags are advisory — YOUR decision is what counts)</div>';
+      html += entries.map(function (entry) {
+        var disq = entry.status === "disqualified";
+        var open = lbNoteEntry === entry.id;
+        return '<article class="team-site-row ' + (disq ? "st-archived" : entry.flags && entry.flags.length ? "st-review" : "") + '">' +
+          '<div class="team-site-copy">' +
+            '<div class="team-site-title"><strong>' + escapeHTML(entry.displayName || entry.player) + " · " + escapeHTML(entry.gameType) + "</strong>" +
+              (disq ? '<span class="team-site-badge st-archived">DISQUALIFIED</span>' : '<span class="team-site-badge st-live">ACTIVE</span>') +
+              lbFlagChips(entry.flags) + "</div>" +
+            '<div class="team-site-sub"><code>' + escapeHTML(entry.id) + "</code> · " + entry.points + " pts · score " + entry.perf.score + "/" + entry.perf.total + " · stake " + entry.stakeCoins + " coin · " + escapeHTML(entry.recordedAt || "") + (entry.reviewNote ? " · note: " + escapeHTML(entry.reviewNote) : "") + "</div>" +
+            (open ? '<input type="text" class="lb-note-input" data-lbnote="' + entry.id + '" maxlength="200" placeholder="Reason for this review decision (recorded in the audit trail)" value="' + escapeHTML(lbNoteText) + '">' : "") +
+          "</div>" +
+          '<div class="team-site-actions">' +
+            (disq
+              ? '<button type="button" class="team-mini-link" data-lbact="restore" data-eid="' + entry.id + '">Restore eligibility</button>'
+              : '<button type="button" class="team-mini-link danger" data-lbact="disqualify" data-eid="' + entry.id + '">Disqualify</button>') +
+            (open && !disq ? '<button type="button" class="team-mini-link" data-lbact="disq-save" data-eid="' + entry.id + '">Save decision</button>' : "") +
+            (open && disq ? '<button type="button" class="team-mini-link" data-lbact="restore-save" data-eid="' + entry.id + '">Save restore</button>' : "") +
+          "</div></article>";
+      }).join("");
+    }
+    host.innerHTML = html;
+  }
+  function renderLBPool() {
+    var host = document.getElementById("lb-pool-box");
+    var engine = lbEngine();
+    if (!host || !engine) return;
+    var state = engine.periodState(lbFocusKey);
+    var fees = engine.feeTotal(lbFocusKey);
+    var pool = engine.poolCoins(lbFocusKey);
+    var html = "";
+    if (state.state !== "running") {
+      if (state.poolCoins > 0 && state.prizes && state.prizes.length) {
+        html = '<div class="lb-pool-grid">' +
+          '<div class="lb-pool-stat"><b>' + Number(state.poolCoins).toLocaleString() + " coins</b><small>reward pool = 30% of realized fees</small></div>" +
+          '<div class="lb-pool-stat"><b>' + Number(fees).toLocaleString() + " coins</b><small>eligible realized competition-fee revenue</small></div></div>" +
+          '<div class="lb-dist">' + state.prizes.map(function (p) { return '<span class="lb-dist-pill"><b>#' + p.rank + "</b> · " + p.pct + "% · " + Number(p.coins).toLocaleString() + " coins</span>"; }).join("") + "</div>";
+      } else {
+        html = '<div class="lb-pool-zero-note">Pool = 0 coins — realized fees this period: ' + Number(fees).toLocaleString() + ' coins × 30%. The pool is funded ONLY by real realized competition-fee revenue; an unfunded pool pays nothing (no invented prizes).</div>';
+      }
+    } else {
+      html = '<div class="lb-pool-zero-note">Running period — realized fees so far: ' + Number(fees).toLocaleString() + " coins → current 30% pool: " + Number(pool).toLocaleString() + " coins (final pool locks when the week closes and prizes are calculated).</div>";
+    }
+    host.innerHTML = html;
+  }
+  function renderLBActions() {
+    var host = document.getElementById("lb-actions");
+    var engine = lbEngine();
+    if (!host || !engine) return;
+    var state = engine.periodState(lbFocusKey);
+    var now = new Date();
+    var canClose = state.state === "running" && now >= engine.periodBounds(lbFocusKey).end;
+    var buttons = [];
+    if (state.state === "running") {
+      buttons.push(canClose
+        ? '<button type="button" class="primary-action" data-lbact="close">⏹ Close week &amp; freeze results</button>'
+        : '<button type="button" class="secondary-action" disabled title="The period must end before results freeze">⏹ Close week &amp; freeze results (period still live)</button>');
+    }
+    if (state.state === "closed" || state.state === "review") {
+      buttons.push('<button type="button" class="primary-action" data-lbact="finalize">✅ Finalize final ranking (after review)</button>');
+    }
+    if (state.state === "final") {
+      buttons.push('<button type="button" class="primary-action" data-lbact="prizes">💰 Calculate prizes from realized fees</button>');
+    }
+    if (state.state === "prizes") {
+      buttons.push((state.poolCoins > 0)
+        ? '<button type="button" class="primary-action" data-lbact="credit">🪙 Approve &amp; credit weekly rewards</button>'
+        : '<button type="button" class="secondary-action" disabled title="Unfunded pool">🪙 Approve &amp; credit (pool is 0 — nothing to pay)</button>');
+    }
+    if (state.state === "credited" && state.issued) {
+      buttons.push('<span class="team-site-badge st-live">✅ ' + state.issued.length + " reward(s) credited through the coin-credit mirror</span>");
+    }
+    host.innerHTML = buttons.length ? '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">' + buttons.join("") + "</div>" : "";
+  }
+  function renderLBAudit() {
+    var host = document.getElementById("lb-audit");
+    var engine = lbEngine();
+    if (!host || !engine) return;
+    var rows = engine.auditLog().filter(function (row) {
+      return row.periodKey === lbFocusKey || row.action === "result-rejected" || row.action === "fee-realized";
+    }).slice(0, 25);
+    host.innerHTML = rows.length ? rows.map(function (row) {
+      return '<article class="team-site-row"><div class="team-site-copy">' +
+        '<div class="team-site-title"><strong>' + escapeHTML(row.action) + "</strong><span class=\"team-site-cat\">" + escapeHTML(row.at || "") + "</span></div>" +
+        '<div class="team-site-sub">' + escapeHTML(row.actor || "") + (row.detail ? " · " + escapeHTML(row.detail) : "") + "</div>" +
+      "</div></article>";
+    }).join("") : '<p class="team-site-sub">No leaderboard audit entries yet — every settlement step is recorded here.</p>';
+  }
+  function renderLeaderboardSettlement() {
+    var engine = lbEngine();
+    var host = document.getElementById("lb-settlement-section");
+    if (!engine || !host) return;
+    renderLBPeriodPicker();
+    renderLBStandings();
+    renderLBPool();
+    renderLBActions();
+    renderLBAudit();
+  }
+  function bindLeaderboardSettlement() {
+    var engine = lbEngine();
+    var host = document.getElementById("lb-settlement-section");
+    if (!engine || !host) return;
+    host.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-lbact]");
+      if (!button) return;
+      var act = button.dataset.lbact;
+      var key = button.dataset.key || lbFocusKey;
+      var eid = button.dataset.eid || "";
+      var actor = lbActorLabel;
+      if (act === "focus") {
+        lbFocusKey = key; lbNoteEntry = ""; lbNoteText = "";
+        renderLeaderboardSettlement();
+        return;
+      }
+      if (act === "close") {
+        window.ParagonTeamConfirm({ icon: "🏆", title: "Close week " + key + "?", lines: ["Results freeze now and the anti-abuse review opens. Late results can no longer change this week's ranking."], confirmLabel: "Close & freeze" }).then(function (confirmed) {
+          if (!confirmed.ok) return;
+          var result = engine.closePeriod(key, actor);
+          if (!result.ok) { showToast(result.code === "period-active" ? "This week is still live — it ends " + engine.periodLabel(key) + "." : "Close failed: " + result.code); return; }
+          showToast("Week closed — results frozen for review.");
+          renderLeaderboardSettlement();
+        });
+        return;
+      }
+      if (act === "disqualify") {
+        lbNoteEntry = eid; lbNoteText = "";
+        renderLBStandings();
+        return;
+      }
+      if (act === "restore") {
+        var resultRestore = engine.setEntryEligibility(key, eid, true, actor, "Restored by review");
+        showToast(resultRestore.ok ? "Eligibility restored." : "Restore failed: " + resultRestore.code);
+        renderLeaderboardSettlement();
+        return;
+      }
+      if (act === "disq-save") {
+        var resultDisq = engine.setEntryEligibility(key, eid, false, actor, lbNoteText || "Disqualified by super-admin review");
+        showToast(resultDisq.ok ? "Result disqualified — it cannot reach the final ranking or any reward." : "Decision failed: " + resultDisq.code);
+        lbNoteEntry = ""; lbNoteText = "";
+        renderLeaderboardSettlement();
+        return;
+      }
+      if (act === "restore-save") {
+        var resultRestoreSave = engine.setEntryEligibility(key, eid, true, actor, lbNoteText || "Restored by super-admin review");
+        showToast(resultRestoreSave.ok ? "Eligibility restored." : "Restore failed: " + resultRestoreSave.code);
+        lbNoteEntry = ""; lbNoteText = "";
+        renderLeaderboardSettlement();
+        return;
+      }
+      if (act === "finalize") {
+        var resultFinal = engine.finalizePeriod(key, actor);
+        showToast(resultFinal.ok ? "Final ranking locked (" + resultFinal.rows.length + " ranked)." : "Finalize failed: " + resultFinal.code);
+        renderLeaderboardSettlement();
+        return;
+      }
+      if (act === "prizes") {
+        var resultPrizes = engine.computePrizes(key, actor);
+        if (!resultPrizes.ok) { showToast("Prize calculation failed: " + resultPrizes.code); renderLeaderboardSettlement(); return; }
+        showToast(resultPrizes.poolCoins > 0 ? "Prizes calculated from a " + resultPrizes.poolCoins + "-coin funded pool." : "Pool is 0 coins — nothing can be paid this week.");
+        renderLeaderboardSettlement();
+        return;
+      }
+      if (act === "credit") {
+        var stateNow = engine.periodState(key);
+        window.ParagonTeamConfirm({
+          icon: "🪙", title: "Approve & credit weekly rewards?",
+          lines: ["Credit the calculated top-10 reward coins through the same approval → credit-mirror flow as coin purchases. Each winner's device claims them on next Account view.", "Pool: " + Number(stateNow.poolCoins || 0).toLocaleString() + " coins."],
+          confirmLabel: "Approve & credit"
+        }).then(function (confirmed) {
+          if (!confirmed.ok) return;
+          var resultCredit = engine.issueCredits(key, actor);
+          if (!resultCredit.ok) { showToast("Credit failed: " + resultCredit.code); renderLeaderboardSettlement(); return; }
+          showToast("🏆 " + resultCredit.issued.length + " reward(s) credited — winners sync on their next Account view.");
+          renderLeaderboardSettlement();
+        });
+        return;
+      }
+    });
+    host.addEventListener("input", function (event) {
+      var note = event.target.closest("[data-lbnote]");
+      if (!note) return;
+      lbNoteText = note.value;
+      lbNoteEntry = note.dataset.lbnote;
+    });
+    renderLeaderboardSettlement();
+  }
+
   if (typeof document !== "undefined" && document.addEventListener) {
     document.addEventListener("DOMContentLoaded", function () {
     bindCoinRequests();
+    bindLeaderboardSettlement();
       if (!document.getElementById("set-flags")) return;
       var settings = readSettings();
       document.getElementById("set-idle").value = settings.sessionIdleMinutes;
@@ -6020,3 +6296,503 @@ if (paragonTeamPage() === "websites.html") {
 
 }
 
+
+/* ================= PAGE MODULE: finance-*.js (Stage 7 — runs only on the routed finance desk panels) ================= */
+if (["finance.html", "finance-payments.html", "finance-withdrawals.html", "finance-risk.html", "finance-audit.html", "finance-reports.html", "finance-emergency.html"].indexOf(paragonTeamPage()) !== -1) {
+(function () {
+  "use strict";
+
+  function element(id) { return document.getElementById(id); }
+  function readJSON(key, fallback) {
+    try { return JSON.parse(window.localStorage.getItem(key) || "null") || fallback; }
+    catch (error) { return fallback; }
+  }
+  function writeJSON(key, value) {
+    try { window.localStorage.setItem(key, JSON.stringify(value)); } catch (error) { /* blocked */ }
+  }
+  function escapeHTML(value) {
+    return String(value == null ? "" : value).replace(/[&<>'"]/g, function (character) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character];
+    });
+  }
+  function when(iso) {
+    var date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return "—";
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) + " " + date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+  function naira(n) { return "₦" + Number(n || 0).toLocaleString(); }
+  function coins(n) { return Number(n || 0).toLocaleString(); }
+  function activeRole() {
+    var P = window.ParagonTeamPermissions;
+    return P && P.getRole ? P.getRole() : "super-admin";
+  }
+  function roleAllowed(action) {
+    var P = window.ParagonTeamPermissions;
+    if (!P || !P.can) return true;
+    return P.can(activeRole(), action) === true;
+  }
+  var toastHandle = null;
+  function showToast(text) {
+    var toast = document.getElementById("dash-toast");
+    if (!toast) return;
+    toast.textContent = text;
+    toast.hidden = false;
+    if (toastHandle) window.clearTimeout(toastHandle);
+    toastHandle = window.setTimeout(function () { toast.hidden = true; }, 3600);
+  }
+  function fmtNaira(value) { return Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+  /* ---------------- Dashboard (finance.html) ---------------- */
+  function statCard(icon, value, label, note) {
+    return '<article class="team-stat-card"><span class="team-stat-icon">' + icon + '</span><strong>' + value + '</strong><span>' + label + '</span><small>' + (note || "") + '</small></article>';
+  }
+
+  function renderFinanceDashboard() {
+    var W = window.ParagonWallets;
+    if (!W) return;
+    var banner = element("fin-paused-banner");
+    var ctrl = W.controls();
+    if (banner) banner.innerHTML = ctrl.paused ? '<div class="fin-paused">🛑 FINANCIAL PAUSE IS ON — new purchases, withdrawals and payout approvals are stopped (' + escapeHTML(ctrl.pausedReason || "no reason given") + " · " + escapeHTML(ctrl.pausedBy || "team") + "). Free platform functionality keeps running.</div>" : "";
+
+    var requests = W.allRequests();
+    var paid = requests.filter(function (r) { return r.state === "PAID"; });
+    var pending = requests.filter(function (r) { return ["LOCKED", "PAYOUT_PENDING", "PROVIDER_SUBMITTED", "PROVIDER_CONFIRMED", "RETRYING", "UNKNOWN", "RECONCILIATION"].indexOf(r.state) !== -1; });
+    var failed = requests.filter(function (r) { return r.state === "FAILED"; });
+    var unlocked = requests.filter(function (r) { return r.state === "COINS_UNLOCKED"; });
+    var paidNaira = paid.reduce(function (sum, r) { return sum + (Number(r.naira) || 0); }, 0);
+    var lockedCoinsOut = pending.reduce(function (sum, r) { return sum + (Number(r.lockedCoins) || 0); }, 0);
+    var claims = W.allClaims();
+    var claimedNaira = claims.filter(function (c) { return c.state !== "DUPLICATE" && c.state !== "REJECTED"; }).reduce(function (sum, c) { return sum + (Number(c.amountNaira) || 0); }, 0);
+    var pausedCoins = requests.filter(function (r) { return r.state === "LOCKED"; }).reduce(function (sum, r) { return sum + (Number(r.lockedCoins) || 0); }, 0);
+    var cases = W.allCases();
+    var openCases = cases.filter(function (c) { return c.state === "OPEN" || c.state === "REVIEW"; }).length;
+    var grid = element("fin-stat-grid");
+    if (grid) grid.innerHTML =
+      statCard("💸", naira(paidNaira), "Paid out (device)", paid.length + " paid withdrawal(s) — real records") +
+      statCard("🟡", pending.length + " · " + coins(lockedCoinsOut), "Pending withdrawals", lockedCoinsOut + " coins locked across " + pending.length + " open request(s)") +
+      statCard("🪙", naira(claimedNaira), "Claims awaiting verification", claims.length + " payment claim(s) recorded") +
+      statCard("🚩", String(openCases), "Open risk cases", cases.length + " total case(s) on this device") +
+      statCard("♻️", String(unlocked.length), "Coins returned", unlocked.length + " failed withdrawal(s) fully refunded") +
+      statCard("📊", "real zeros", "Reserve coverage", "Liability vs reserve metrics activate with the server ledger — nothing is invented here");
+    if (grid) grid.insertAdjacentHTML("beforeend", '<p class="fin-stat-note">Stage 7 dashboard: every number above is computed from real device stores. Server ledger totals, provider balances and reward-reserve coverage arrive at backend activation (supabase/finance-schema.sql).</p>');
+
+    var ledgerHost = element("fin-ledger");
+    if (ledgerHost) {
+      var rows = W.ledger();
+      ledgerHost.innerHTML = rows.length ? rows.slice(0, 60).map(function (row) {
+        return '<article class="team-site-row"><div class="team-site-copy"><div class="team-site-title"><strong>' + escapeHTML(row.type) + '</strong><span class="team-site-cat">' + escapeHTML(row.user) + "</span>" + (row.amount ? '<span class="team-site-cat">' + (row.amount > 0 ? "+" : "−") + Math.abs(row.amount).toLocaleString() + " coins</span>" : "") + '</div><div class="team-site-sub">' + escapeHTML(row.reason || "") + " · " + escapeHTML(row.ref || "") + " · " + when(row.at) + '</div></div></article>';
+      }).join("") : '<p class="team-site-sub">No typed ledger events yet — the ledger fills with real purchase credits, withdrawal locks/refunds and rewards on this device.</p>';
+    }
+  }
+
+  /* ---------------- Payment Reconciliation (finance-payments.html) ---------------- */
+  function renderPayments() {
+    var W = window.ParagonWallets;
+    var search = element("pay-search"); var filter = element("pay-filter");
+    if (!W || !search) return;
+    var term = (search.value || "").toLowerCase().trim();
+    var filterState = filter.value;
+    var claims = W.allClaims().filter(function (c) {
+      if (filterState !== "all" && c.state !== filterState) return false;
+      if (term && (String(c.providerTxn).toLowerCase().indexOf(term) === -1) && (String(c.user).toLowerCase().indexOf(term) === -1) && (String(c.amountNaira).indexOf(term) === -1) && (String(c.requestId || "").toLowerCase().indexOf(term) === -1)) return false;
+      return true;
+    });
+    var host = element("pay-claims");
+    if (!host) return;
+    if (!claims.length) {
+      host.innerHTML = '<div class="empty-state" style="padding:26px"><div class="empty-icon">🔎</div><h3>No payment claims' + (term ? " matching “" + escapeHTML(term) + "”" : " yet") + '</h3><p>Claims appear when a user buys coins and submits their bank transfer reference. Honest zero until then.</p></div>';
+      return;
+    }
+    var canConfirm = roleAllowed("Confirm Payment Claims");
+    host.innerHTML = claims.map(function (c) {
+      var badge = c.state === "DUPLICATE" ? '<span class="team-site-badge st-archived">⛔ DUPLICATE — one credit only</span>'
+        : c.state === "CONFIRMED" ? '<span class="team-site-badge st-live">✅ Confirmed</span>'
+        : c.state === "REJECTED" ? '<span class="team-site-badge st-archived">❌ Rejected</span>'
+        : c.state === "MISMATCH" ? '<span class="team-site-badge st-archived">⚠️ Mismatch</span>'
+        : c.state === "PENDING_VERIFICATION" ? '<span class="team-site-badge st-scheduled">🟡 Verifying</span>'
+        : c.state === "MANUAL_REVIEW" ? '<span class="team-site-badge st-review">🔵 Manual review</span>'
+        : '<span class="team-site-badge st-scheduled">🟢 Claimed</span>';
+      return '<article class="team-site-row ' + (c.state === "CONFIRMED" ? "fin-paid-row" : "") + '">' +
+        '<div class="team-site-copy">' +
+          '<div class="team-site-title"><strong>' + naira(c.amountNaira) + '</strong>' + badge + '<span class="team-site-cat">' + escapeHTML(c.providerTxn) + "</span></div>" +
+          '<div class="team-site-sub">' + escapeHTML(c.displayName || c.user) + " · " + escapeHTML(c.user) + " · " + escapeHTML(c.senderBank || "bank: —") + " · claim " + escapeHTML(c.id) + '</div>' +
+          (c.duplicateOf ? '<div class="team-site-sub">Duplicate of ' + escapeHTML(c.duplicateOf) + " — never crediting twice.</div>" : "") +
+          (c.note ? '<div class="team-site-sub">Note: ' + escapeHTML(c.note) + "</div>" : "") +
+          '<div class="team-site-sub">' + when(c.createdAt) + "</div>" +
+        "</div>" +
+        '<div class="team-site-actions">' +
+          (canConfirm && c.state === "CLAIMED" ? '<button type="button" class="team-mini-link" data-claimact="PENDING_VERIFICATION" data-id="' + c.id + '">Start verification</button>' : "") +
+          (canConfirm && (c.state === "CLAIMED" || c.state === "PENDING_VERIFICATION" || c.state === "MANUAL_REVIEW" || c.state === "MISMATCH") ? '<button type="button" class="team-mini-link" data-claimact="CONFIRMED" data-id="' + c.id + '">✅ Confirm (verified)</button>' : "") +
+          (canConfirm && (c.state === "CLAIMED" || c.state === "PENDING_VERIFICATION") ? '<button type="button" class="team-mini-link" data-claimact="MANUAL_REVIEW" data-id="' + c.id + '">Manual review</button>' : "") +
+          (canConfirm && (c.state === "CLAIMED" || c.state === "PENDING_VERIFICATION") ? '<button type="button" class="team-mini-link" data-claimact="MISMATCH" data-id="' + c.id + '">⚠️ Mismatch</button>' : "") +
+          (canConfirm && c.state !== "REJECTED" && c.state !== "DUPLICATE" && c.state !== "CONFIRMED" ? '<button type="button" class="team-mini-link danger" data-claimact="REJECTED" data-id="' + c.id + '">Reject</button>' : "") +
+        "</div>" +
+      "</article>";
+    }).join("");
+    if (!canConfirm) host.insertAdjacentHTML("beforeend", '<p class="team-site-sub">Your role (' + escapeHTML(activeRole()) + ') can review claims; confirmation is reserved for roles with the Confirm Payment Claims permission.</p>');
+  }
+  function bindPayments() {
+    var host = element("pay-claims");
+    if (!host) return;
+    host.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-claimact]");
+      if (!button) return;
+      var W = window.ParagonWallets;
+      if (!W) return;
+      var id = button.dataset.id;
+      var to = button.dataset.claimact;
+      var note = to === "MISMATCH" ? "Details do not match the transfer reference sent by the user." : to === "MANUAL_REVIEW" ? "Sent for manual review." : to === "REJECTED" ? "Rejected — refund path follows the payment terms." : "";
+      var action = to === "CONFIRMED" ? "Confirm this payment claim" : to === "REJECTED" ? "Reject this claim" : "Update claim state";
+      window.ParagonTeamConfirm({
+        icon: "🔎", title: action, confirmLabel: action,
+        lines: ["Claim " + id, "State change: " + to + (note ? " — " + note : ""), "Confirming means the team verified this transfer with its bank records. The coins credit through Settings → Coin Requests (one credit per claim)."]
+      }).then(function (result) {
+        if (!result.ok) return;
+        var verdict = W.claimState(id, activeRole() + " (role preview)", to, { note: note });
+        if (!verdict.ok) { showToast("Not allowed: " + verdict.code); return; }
+        showToast("Claim " + (to === "CONFIRMED" ? "confirmed — credit it in Coin Requests now." : to + "."));
+        renderPayments();
+      });
+    });
+  }
+  function buildPayFilter() {
+    var filter = element("pay-filter");
+    if (!filter) return;
+    var options = { all: "All states", CLAIMED: "🟢 Claimed", PENDING_VERIFICATION: "🟡 Verifying", MANUAL_REVIEW: "🔵 Manual review", CONFIRMED: "✅ Confirmed", MISMATCH: "⚠️ Mismatch", REJECTED: "❌ Rejected", DUPLICATE: "⛔ Duplicate" };
+    filter.innerHTML = Object.keys(options).map(function (k) { return '<option value="' + k + '">' + options[k] + "</option>"; }).join("");
+    filter.addEventListener("change", renderPayments);
+  }
+
+  /* ---------------- Withdrawal Desk (finance-withdrawals.html) ---------------- */
+  var WD_ACTION_LABELS = {
+    PAYOUT_PENDING: "🟢 Release for payout", PROVIDER_SUBMITTED: "📤 Submit to provider", PROVIDER_CONFIRMED: "🔵 Mark provider-confirmed", PAID: "✅ Mark paid", UNKNOWN: "❔ Report status unknown", RECONCILIATION: "🔄 Enter reconciliation", RETRYING: "🔄 Mark retry", FAILED: "❌ Mark failed", COINS_UNLOCKED: "♻️ Return coins to user", CANCEL: "✖️ Cancel & return coins"
+  };
+  function wdActionButtons(W, w) {
+    var allowed = (W.EDGES[w.state] || []).slice();
+    var out = "";
+    if (w.state === "LOCKED" && allowed.indexOf("PAYOUT_PENDING") !== -1) out += '<button type="button" class="team-mini-link" data-wdact="PAYOUT_PENDING" data-id="' + w.id + '">' + WD_ACTION_LABELS.PAYOUT_PENDING + "</button>";
+    if (allowed.indexOf("PROVIDER_SUBMITTED") !== -1) out += '<button type="button" class="team-mini-link" data-wdact="PROVIDER_SUBMITTED" data-id="' + w.id + '">' + WD_ACTION_LABELS.PROVIDER_SUBMITTED + "</button>";
+    if (allowed.indexOf("PROVIDER_CONFIRMED") !== -1) out += '<button type="button" class="team-mini-link" data-wdact="PROVIDER_CONFIRMED" data-id="' + w.id + '">' + WD_ACTION_LABELS.PROVIDER_CONFIRMED + "</button>";
+    if (allowed.indexOf("PAID") !== -1) out += '<button type="button" class="team-mini-link" data-wdact="PAID" data-id="' + w.id + '">' + WD_ACTION_LABELS.PAID + "</button>";
+    if (allowed.indexOf("UNKNOWN") !== -1) out += '<button type="button" class="team-mini-link" data-wdact="UNKNOWN" data-id="' + w.id + '">' + WD_ACTION_LABELS.UNKNOWN + "</button>";
+    if (allowed.indexOf("RECONCILIATION") !== -1) out += '<button type="button" class="team-mini-link" data-wdact="RECONCILIATION" data-id="' + w.id + '">' + WD_ACTION_LABELS.RECONCILIATION + "</button>";
+    if (allowed.indexOf("RETRYING") !== -1) out += '<button type="button" class="team-mini-link" data-wdact="RETRYING" data-id="' + w.id + '">' + WD_ACTION_LABELS.RETRYING + "</button>";
+    if (allowed.indexOf("FAILED") !== -1) out += '<button type="button" class="team-mini-link danger" data-wdact="FAILED" data-id="' + w.id + '">' + WD_ACTION_LABELS.FAILED + "</button>";
+    if (allowed.indexOf("COINS_UNLOCKED") !== -1) out += '<button type="button" class="team-mini-link" data-wdact="COINS_UNLOCKED" data-id="' + w.id + '">' + WD_ACTION_LABELS.COINS_UNLOCKED + "</button>";
+    return out;
+  }
+  function renderWithdrawalDesk() {
+    var W = window.ParagonWallets;
+    var host = element("wd-queue"); var grid = element("wd-stat-grid");
+    if (!W || !host) return;
+    var requests = W.allRequests();
+    var open = requests.filter(function (r) { return ["LOCKED", "PAYOUT_PENDING", "PROVIDER_SUBMITTED", "PROVIDER_CONFIRMED", "UNKNOWN", "RECONCILIATION", "RETRYING"].indexOf(r.state) !== -1; });
+    var paid = requests.filter(function (r) { return r.state === "PAID"; });
+    var returned = requests.filter(function (r) { return r.state === "COINS_UNLOCKED"; });
+    if (grid) grid.innerHTML =
+      statCard("🟡", String(open.length), "Open withdrawals", open.reduce(function (s, r) { return s + (Number(r.lockedCoins) || 0); }, 0) + " coins locked") +
+      statCard("✅", naira(paid.reduce(function (s, r) { return s + (Number(r.naira) || 0); }, 0)), "Paid out", paid.length + " paid · provider refs unique by law") +
+      statCard("♻️", String(returned.length), "Coins returned", "Every failure refunds — never traps funds");
+    var list = open.concat(requests.filter(function (r) { return r.state === "FAILED" || r.state === "COINS_UNLOCKED"; })).concat(paid);
+    if (!requests.length) {
+      host.innerHTML = '<div class="empty-state" style="padding:26px"><div class="empty-icon">💸</div><h3>No withdrawal requests yet</h3><p>When a member requests a withdrawal their coins lock and this queue fills. Real zero today.</p></div>';
+      return;
+    }
+    var canRun = roleAllowed("Run Withdrawal Desk");
+    host.innerHTML = list.map(function (w) {
+      var badge = w.state === "PAID" ? '<span class="team-site-badge st-live">✅ PAID</span>' : w.state === "COINS_UNLOCKED" ? '<span class="team-site-badge st-archived">♻️ Coins returned</span>' : w.state === "FAILED" ? '<span class="team-site-badge st-archived">❌ FAILED</span>' : '<span class="team-site-badge st-scheduled">' + escapeHTML(w.state) + "</span>";
+      return '<article class="team-site-row ' + (w.state === "PAID" ? "fin-paid-row" : "") + '">' +
+        '<div class="team-site-copy">' +
+          '<div class="team-site-title"><strong>' + naira(w.naira) + '</strong>' + badge + '<span class="team-site-cat">' + escapeHTML(w.correlationId || w.id) + "</span>" +
+          (w.flags && w.flags.length ? '<span class="team-site-badge st-review">flags: ' + w.flags.join(", ") + "</span>" : "") + "</div>" +
+          '<div class="team-site-sub">' + escapeHTML(w.displayName || w.user) + " · " + escapeHTML(w.user) + "</div>" +
+          '<div class="team-site-sub">' + coins(w.lockedCoins) + " coins locked (incl. " + w.feeCoins + " fee) → pay " + naira(w.naira) + " to " + escapeHTML((w.payout && (w.payout.bank + " " + w.payout.accountNumber + " " + (w.payout.accountName || ""))) || "") + "</div>" +
+          '<div class="team-site-sub">Requested ' + when(w.createdAt) + (w.failReason ? " · Reason: " + escapeHTML(w.failReason) : "") + (w.payoutRef ? " · Payout ref: " + escapeHTML(w.payoutRef) + (w.provider ? " via " + escapeHTML(w.provider) : "") : "") + "</div>" +
+          '<details class="lb-details"><summary>Timeline (' + (w.timeline || []).length + ")</summary><ul class='lb-rules'>" + (w.timeline || []).map(function (t) { return "<li><b>" + escapeHTML(t.state) + "</b> — " + when(t.at) + " · " + escapeHTML(t.by || "") + (t.note ? " · " + escapeHTML(t.note) : "") + "</li>"; }).join("") + "</ul></details>" +
+        "</div>" +
+        '<div class="team-site-actions">' + (canRun ? wdActionButtons(W, w) : "") + "</div>" +
+      "</article>";
+    }).join("");
+    if (!canRun) host.insertAdjacentHTML("beforeend", '<p class="team-site-sub">Your role (' + escapeHTML(activeRole()) + ') can view this desk; running payouts requires the Run Withdrawal Desk permission (super-admin/admin).</p>');
+  }
+  function bindWithdrawalDesk() {
+    var host = element("wd-queue");
+    if (!host) return;
+    host.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-wdact]");
+      if (!button) return;
+      var W = window.ParagonWallets;
+      if (!W) return;
+      var id = button.dataset.id; var to = button.dataset.wdact;
+      var row = W.findRequest(id); if (!row) return;
+      var hasRef = !!(row.payoutRef);
+      var needsRef = to === "PROVIDER_SUBMITTED" || (to === "PAID" && !hasRef);
+      var options = {
+        icon: "💸", title: WD_ACTION_LABELS[to], confirmLabel: WD_ACTION_LABELS[to],
+        lines: ["Withdrawal " + row.correlationId + " (" + naira(row.naira) + " to " + escapeHTML((row.payout || {}).masked || "") + ")", "Move: " + row.state + " → " + to + "."]
+      };
+      if (to === "PROVIDER_SUBMITTED") {
+        options.lines.push("Enter the provider payout reference — it becomes the single proof of payout and can never be reused (no double payouts).");
+        options.field = { label: "Provider", type: "select", value: "bank", required: true, options: [{ value: "bank", label: "Bank transfer" }, { value: "opay", label: "OPay" }, { value: "paystack", label: "Paystack" }, { value: "flutterwave", label: "Flutterwave" }, { value: "manual", label: "Manual (recorded only)" }] };
+      }
+      if (needsRef) {
+        options.requireReason = true;
+        options.reasonLabel = to === "PROVIDER_SUBMITTED" ? "Provider payout reference (unique) *" : "Payout reference *";
+      } else {
+        options.requireReason = true;
+        options.reasonLabel = "Note for the audit log *";
+      }
+      if (to === "FAILED") options.lines.push("The request then moves to COINS_UNLOCKED and its locked coins return to the user's balance.");
+      window.ParagonTeamConfirm(options).then(function (result) {
+        if (!result.ok) return;
+        var meta = { reason: result.reason, provider: result.value || (row.provider || "") };
+        if (needsRef) meta.payoutRef = result.reason;
+        var verdict = W.deskTransition(id, activeRole() + " (role preview)", to, meta);
+        if (!verdict.ok) { showToast("Blocked: " + (verdict.message || verdict.code)); return; }
+        showToast(to + " — " + row.correlationId + " updated.");
+        renderWithdrawalDesk();
+      });
+    });
+  }
+
+  /* ---------------- Risk & Fraud (finance-risk.html) ---------------- */
+  function renderRisk() {
+    var W = window.ParagonWallets;
+    var host = element("risk-cases"); var stats = element("risk-stats");
+    if (!W || !host) return;
+    var cases = W.allCases();
+    var open = cases.filter(function (c) { return c.state === "OPEN" || c.state === "REVIEW"; });
+    if (stats) stats.innerHTML = statCard("🚩", String(open.length), "Open cases", "OPEN or REVIEW") + statCard("✅", String(cases.filter(function (c) { return c.state === "RESOLVED"; }).length), "Resolved", "resolved on this device") + statCard("🗄️", String(cases.filter(function (c) { return c.state === "CLOSED"; }).length), "Closed", "closed without action");
+    if (!cases.length) {
+      host.innerHTML = '<div class="empty-state" style="padding:26px"><div class="empty-icon">🚩</div><h3>No risk cases yet</h3><p>Cases are opened by the team or by engine signals (withdrawal bursts, large withdrawals, duplicate payment claims). Advisory only — never automatic guilt.</p></div>';
+      return;
+    }
+    var canResolve = roleAllowed("Resolve Risk & Fraud Cases");
+    host.innerHTML = cases.map(function (c) {
+      return '<article class="team-site-row">' +
+        '<div class="team-site-copy"><div class="team-site-title"><strong>' + escapeHTML(c.id) + "</strong>" +
+        '<span class="team-site-badge ' + (c.state === "OPEN" ? "st-review" : c.state === "REVIEW" ? "st-scheduled" : c.state === "RESOLVED" ? "st-live" : "st-archived") + '">' + escapeHTML(c.state) + "</span>" +
+        '<span class="team-site-cat">' + escapeHTML(c.type) + "</span></div>" +
+        '<div class="team-site-sub">' + escapeHTML(c.displayName || c.user || "No user") + (c.user ? " · " + escapeHTML(c.user) : "") + "</div>" +
+        (c.reason ? '<div class="team-site-sub">' + escapeHTML(c.reason) + "</div>" : "") +
+        (c.linkedRefs && c.linkedRefs.length ? '<div class="team-site-sub">Linked: ' + c.linkedRefs.map(escapeHTML).join(", ") + "</div>" : "") +
+        "</div>" +
+        '<div class="team-site-actions">' + (canResolve && c.state === "OPEN" ? '<button type="button" class="team-mini-link" data-riskact="REVIEW" data-id="' + c.id + '">Start review</button>' : "") +
+        (canResolve && c.state === "REVIEW" ? '<button type="button" class="team-mini-link" data-riskact="RESOLVED" data-id="' + c.id + '">Resolve</button>' : "") +
+        (canResolve && (c.state === "OPEN" || c.state === "REVIEW") ? '<button type="button" class="team-mini-link danger" data-riskact="CLOSED" data-id="' + c.id + '">Close (no action)</button>' : "") +
+        "</div></article>";
+    }).join("");
+  }
+  function bindRisk() {
+    var host = element("risk-cases"); var openBtn = element("risk-open-btn");
+    if (!host) return;
+    host.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-riskact]");
+      if (!button) return;
+      var W = window.ParagonWallets;
+      if (!W) return;
+      var id = button.dataset.id; var to = button.dataset.riskact;
+      window.ParagonTeamConfirm({ icon: "🚩", title: "Case " + to, confirmLabel: "Case → " + to, requireReason: true, reasonLabel: "Note for the audit log *", lines: ["Case " + id, "State change: → " + to + ".", "Risk cases never freeze funds automatically — any freeze is a separate, explicit, audited decision."] }).then(function (result) {
+        if (!result.ok) return;
+        var verdict = W.riskCaseState(id, activeRole() + " (role preview)", to, { note: result.reason });
+        if (!verdict.ok) { showToast("Not allowed: " + verdict.code); return; }
+        showToast("Case " + id + " → " + to + ".");
+        renderRisk();
+      });
+    });
+    if (openBtn) openBtn.addEventListener("click", function () {
+      var W = window.ParagonWallets;
+      if (!W || !roleAllowed("Resolve Risk & Fraud Cases")) { showToast("🔐 Your role cannot open risk cases."); return; }
+      var user = String(element("risk-user").value || "").trim();
+      var type = element("risk-type").value;
+      var reason = String(element("risk-reason").value || "").trim();
+      if (!user || !reason) { showToast("Enter the account and what was observed."); return; }
+      var verdict = W.openRiskCase({ user: user, displayName: user, type: type, reason: reason, actor: activeRole() + " (role preview)" });
+      if (!verdict.ok) { showToast("Could not open: " + verdict.code); return; }
+      element("risk-user").value = ""; element("risk-reason").value = "";
+      showToast("Case " + verdict.case.id + " opened.");
+      renderRisk();
+    });
+  }
+
+  /* ---------------- Audit Log (finance-audit.html) ---------------- */
+  function renderAudit() {
+    var W = window.ParagonWallets;
+    var search = element("audit-search");
+    if (!W || !search) return;
+    var term = (search.value || "").toLowerCase().trim();
+    var rows = W.financeAudit().filter(function (row) {
+      if (!term) return true;
+      return String(row.action).toLowerCase().indexOf(term) !== -1 || String(row.actor).toLowerCase().indexOf(term) !== -1 || String(row.ref || "").toLowerCase().indexOf(term) !== -1 || String(row.detail || "").toLowerCase().indexOf(term) !== -1;
+    });
+    var host = element("audit-rows");
+    if (!host) return;
+    host.innerHTML = rows.length ? rows.slice(0, 200).map(function (row) {
+      return '<div class="audit-list-item"><code>' + when(row.at) + '</code><div class="audit-what"><b>' + escapeHTML(row.action) + "</b> — " + escapeHTML(row.detail || "") + ' <small>· ' + escapeHTML(row.actor) + (row.ref ? " · " + escapeHTML(row.ref) : "") + "</small></div></div>";
+    }).join("") : '<p class="team-site-sub">No finance audit rows yet — the log is append-only by design and fills with real actions (requests, claims, payouts, emergency controls).</p>';
+  }
+  function exportAudit() {
+    var W = window.ParagonWallets;
+    var term = (element("audit-search").value || "").toLowerCase().trim();
+    var rows = W.financeAudit().filter(function (row) {
+      if (!term) return true;
+      return String(row.action).toLowerCase().indexOf(term) !== -1 || String(row.actor).toLowerCase().indexOf(term) !== -1 || String(row.detail || "").toLowerCase().indexOf(term) !== -1;
+    });
+    var csv = "\uFEFFat,actor,action,detail,ref\n" + rows.map(function (row) { return [row.at, row.actor, row.action, (row.detail || "").replace(/,/g, ";"), (row.ref || "").replace(/,/g, ";")].join(","); }).join("\n");
+    downloadText("paragon-finance-audit.csv", csv);
+  }
+
+  /* ---------------- Financial Reports (finance-reports.html) ---------------- */
+  function inRange(iso, mode) {
+    if (mode === "all") return true;
+    var days = mode === "7d" ? 7 : 30;
+    return Date.now() - Date.parse(iso || 0) < days * 86400000;
+  }
+  function renderReports() {
+    var W = window.ParagonWallets;
+    var host = element("rep-report");
+    var mode = element("rep-period") ? element("rep-period").value : "all";
+    if (!W || !host) return;
+    var requests = W.allRequests().filter(function (r) { return inRange(r.createdAt, mode); });
+    var claims = W.allClaims().filter(function (c) { return inRange(c.createdAt, mode); });
+    var ledgerRows = W.ledger().filter(function (l) { return inRange(l.at, mode); });
+    var paidNaira = requests.filter(function (r) { return r.state === "PAID"; }).reduce(function (s, r) { return s + Number(r.naira || 0); }, 0);
+    var failedNaira = requests.filter(function (r) { return r.state === "FAILED" || r.state === "COINS_UNLOCKED"; }).reduce(function (s, r) { return s + Number(r.naira || 0); }, 0);
+    var pendingNaira = requests.filter(function (r) { return ["LOCKED", "PAYOUT_PENDING", "PROVIDER_SUBMITTED", "PROVIDER_CONFIRMED"].indexOf(r.state) !== -1; }).reduce(function (s, r) { return s + Number(r.naira || 0); }, 0);
+    var feeCoins = requests.reduce(function (s, r) { return s + Number(r.feeCoins || 0); }, 0);
+    var claimNaira = claims.filter(function (c) { return c.state === "CONFIRMED" || c.state === "PENDING_VERIFICATION"; }).reduce(function (s, c) { return s + Number(c.amountNaira || 0); }, 0);
+    var credits = ledgerRows.filter(function (l) { return l.amount > 0; }).reduce(function (s, l) { return s + l.amount; }, 0);
+    var debits = ledgerRows.filter(function (l) { return l.amount < 0; }).reduce(function (s, l) { return s + Math.abs(l.amount); }, 0);
+    var byState = {};
+    requests.forEach(function (r) { byState[r.state] = (byState[r.state] || 0) + 1; });
+    host.innerHTML =
+      '<section class="team-dash-section"><h2 class="team-dash-heading">WITHDRAWAL SUMMARY (' + escapeHTML(mode) + ")</h2>" +
+      '<table class="rep-table"><tbody>' +
+      "<tr><td>Requests</td><td><b>" + requests.length + "</b></td></tr>" +
+      "<tr><td>Paid out (naira)</td><td><b>" + naira(paidNaira) + "</b></td></tr>" +
+      "<tr><td>Pending (naira)</td><td><b>" + naira(pendingNaira) + "</b> — coins locked until resolved</td></tr>" +
+      "<tr><td>Failed / returned (naira)</td><td><b>" + naira(failedNaira) + "</b></td></tr>" +
+      "<tr><td>Withdrawal fees collected</td><td><b>" + coins(feeCoins) + " coins</b> — tracked separately, never profit (spec §22.1)</td></tr>" +
+      "<tr><td>States</td><td>" + Object.keys(byState).map(function (s) { return escapeHTML(s) + ": " + byState[s]; }).join(" · ") + "</td></tr>" +
+      "</tbody></table></section>" +
+      '<section class="team-dash-section"><h2 class="team-dash-heading">PAYMENTS &amp; TYPED LEDGER (' + escapeHTML(mode) + ")</h2>" +
+      '<table class="rep-table"><tbody>' +
+      "<tr><td>Payment claims</td><td><b>" + claims.length + "</b> · " + naira(claimNaira) + " confirmed/pending</td></tr>" +
+      "<tr><td>Ledger events</td><td><b>" + ledgerRows.length + "</b></td></tr>" +
+      "<tr><td>Credits (coins)</td><td><b>" + coins(credits) + "</b></td></tr>" +
+      "<tr><td>Debits (coins)</td><td><b>" + coins(debits) + "</b></td></tr>" +
+      "<tr><td>Balance delta</td><td><b>" + coins(credits - debits) + "</b> coins — every withdrawal lock/fee/refund and approved credit is typed (§15–§16)</td></tr>" +
+      "</tbody></table></section>" +
+      '<section class="team-dash-section"><h2 class="team-dash-heading">LIABILITY &amp; RESERVE</h2>' +
+      '<p class="team-site-sub">Device-layer liability = coins owed to users that are locked or pending payout: <b>' + coins(pendingNaira * (window.ParagonWallets ? window.ParagonWallets.effectiveConfig().nairaRate : 2)) + " coins ≈ " + naira(pendingNaira) + "</b>. Reserve-coverage ratios, escrow balances and payout-provider accounts are server-side metrics that arrive at backend activation (supabase/finance-schema.sql) — nothing is invented meanwhile.</p></section>";
+  }
+  function exportReports() {
+    var W = window.ParagonWallets;
+    var mode = element("rep-period") ? element("rep-period").value : "all";
+    var requests = W.allRequests().filter(function (r) { return inRange(r.createdAt, mode); });
+    var claims = W.allClaims().filter(function (c) { return inRange(c.createdAt, mode); });
+    var lines = ["\uFEFFtype,id,user,naira,coins,feeCoins,state,ref,createdAt"];
+    requests.forEach(function (r) { lines.push(["withdrawal", r.id, r.user, r.naira, r.coins, r.feeCoins, r.state, r.payoutRef || "", r.createdAt].join(",")); });
+    claims.forEach(function (c) { lines.push(["claim", c.id, c.user, c.amountNaira, c.coins, 0, c.state, c.providerTxn, c.createdAt].join(",")); });
+    downloadText("paragon-finance-report.csv", lines.join("\n"));
+  }
+  function downloadText(name, text) {
+    try {
+      var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      window.setTimeout(function () { URL.revokeObjectURL(link.href); link.remove(); }, 400);
+    } catch (error) { showToast("Export could not run in this browser."); }
+  }
+
+  /* ---------------- Emergency Controls (finance-emergency.html) ---------------- */
+  function renderEmergency() {
+    var W = window.ParagonWallets;
+    if (!W) return;
+    var pauseSection = element("em-pause-section");
+    if (pauseSection) {
+      var ctrl = W.controls();
+      pauseSection.innerHTML = '<h2 class="team-dash-heading">⏸️ FINANCIAL PAUSE</h2>' +
+        (ctrl.paused ? '<div class="fin-paused">PAUSE IS ACTIVE — new purchases, withdrawals and payout approvals are stopped' + (ctrl.pausedSince ? " since " + when(ctrl.pausedSince) : "") + " by " + escapeHTML(ctrl.pausedBy || "team") + (ctrl.pausedReason ? " · “" + escapeHTML(ctrl.pausedReason) + "”" : "") + '.</div>' : '<p class="team-site-sub">Pause is OFF — normal financial operations run (device layer).</p>') +
+        '<div class="team-site-actions" style="margin-top:10px">' +
+        (ctrl.paused
+          ? '<button type="button" class="team-mini-link" id="em-pause-toggle" data-next="off">▶️ Resume financial operations</button>'
+          : '<button type="button" class="team-mini-link danger" id="em-pause-toggle" data-next="on">⏸️ Pause financial operations</button>') +
+        "</div>";
+      var toggle = element("em-pause-toggle");
+      if (toggle) toggle.addEventListener("click", function () {
+        if (!roleAllowed("Use Emergency Financial Controls")) { showToast("🔐 Super Admin only."); return; }
+        var nextOn = toggle.dataset.next === "on";
+        window.ParagonTeamConfirm({
+          icon: nextOn ? "⏸️" : "▶️", title: nextOn ? "Pause financial operations" : "Resume financial operations",
+          confirmLabel: nextOn ? "⏸️ Pause now" : "▶️ Resume now", danger: nextOn,
+          requireReason: true, reasonLabel: nextOn ? "Reason for the pause *" : "Reason for resuming *",
+          lines: nextOn ? ["NEW purchases, withdrawals and payout approvals stop immediately; unlocks and reversals stay available.", "Free platform functionality (browse, play free games, community) keeps running.", "The public Archive shows an honest paused notice."] : ["Financial operations reopen for new requests."]
+        }).then(function (result) {
+          if (!result.ok) return;
+          W.setFinancialPause(activeRole() + " (role preview)", nextOn, result.reason);
+          showToast(nextOn ? "Financial pause is ON — public surfaces updated." : "Financial pause lifted.");
+          renderEmergency();
+        });
+      });
+    }
+    var switchHost = element("em-switches");
+    if (!switchHost) return;
+    var games = window.ParagonGames && window.ParagonGames.KILL_SWITCHABLE ? window.ParagonGames.KILL_SWITCHABLE : ["quiz", "chess", "word", "memory"];
+    var current = W.controls().killSwitches || {};
+    switchHost.innerHTML = games.map(function (game) {
+      var state = current[game] || {};
+      var on = state.killed === true;
+      return '<div class="kill-switch ' + (on ? "on" : "") + '">' +
+        '<div><b>🎮 ' + escapeHTML(game) + (on ? " · KILLED" : "") + "</b>" +
+        '<small>' + (on ? "Paid play stopped " + when(state.since) + " · " + escapeHTML(state.reason || "") : "Running normally — free play always stays free") + "</small></div>" +
+        '<button type="button" class="team-mini-link ' + (on ? "" : "danger fin-toggle-on") + '" data-killswitch="' + escapeHTML(game) + '" data-next="' + (on ? "off" : "on") + '">' + (on ? "▶️ Restore paid play" : "🛑 Kill paid play") + "</button>" +
+        "</div>";
+    }).join("");
+    switchHost.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-killswitch]");
+      if (!button) return;
+      if (!roleAllowed("Use Emergency Financial Controls")) { showToast("🔐 Super Admin only."); return; }
+      var game = button.dataset.killswitch; var nextOn = button.dataset.next === "on";
+      window.ParagonTeamConfirm({ icon: "🎮", title: nextOn ? "Kill " + game + " paid play" : "Restore " + game + " paid play", confirmLabel: nextOn ? "Kill now" : "Restore now", danger: nextOn, requireReason: true, reasonLabel: "Reason *", lines: ["Future paid game engines must consult ParagonWallets.gameKillState(\"" + game + "\") before accepting a stake/entry.", "Free play is never blocked by a kill switch."] }).then(function (result) {
+        if (!result.ok) return;
+        W.setGameKillSwitch(activeRole() + " (role preview)", game, nextOn, result.reason);
+        showToast(game + (nextOn ? " kill switch ON." : " restored."));
+        renderEmergency();
+      });
+    });
+  }
+
+  /* ---------------- Page bootstrap ---------------- */
+  document.addEventListener("DOMContentLoaded", function () {
+    var page = paragonTeamPage();
+    if (page === "finance.html") renderFinanceDashboard();
+    if (page === "finance-payments.html") { buildPayFilter(); renderPayments(); bindPayments(); }
+    if (page === "finance-withdrawals.html") { renderWithdrawalDesk(); bindWithdrawalDesk(); }
+    if (page === "finance-risk.html") { renderRisk(); bindRisk(); }
+    if (page === "finance-audit.html") {
+      renderAudit();
+      element("audit-search").addEventListener("input", renderAudit);
+      element("audit-export").addEventListener("click", exportAudit);
+    }
+    if (page === "finance-reports.html") {
+      renderReports();
+      element("rep-period").addEventListener("change", renderReports);
+      element("rep-export").addEventListener("click", exportReports);
+    }
+    if (page === "finance-emergency.html") renderEmergency();
+    if (page === "finance-payments.html" || page === "finance-withdrawals.html") {
+      window.setInterval(function () {
+        if (page === "finance-payments.html") renderPayments();
+        if (page === "finance-withdrawals.html") renderWithdrawalDesk();
+      }, 8000);
+    }
+  });
+
+  window.ParagonFinance = { renderDashboard: renderFinanceDashboard, renderPayments: renderPayments, renderWithdrawalDesk: renderWithdrawalDesk, renderRisk: renderRisk, renderAudit: renderAudit, renderReports: renderReports, renderEmergency: renderEmergency };
+})();
+
+}

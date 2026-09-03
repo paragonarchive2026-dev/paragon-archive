@@ -6,7 +6,7 @@
   RESTORE/LOAD NOTE: Keep at project root so its scope covers all path-based Paragon assets.
 */
 
-const CACHE_NAME = "paragon-archive-v75";
+const CACHE_NAME = "paragon-archive-v77";
 const APP_SHELL = [
   "./paragon-archive.html",
   "./paragon-archive-hub.html",
@@ -19,6 +19,8 @@ const APP_SHELL = [
   "./ads/adsense.js",
   "./privacy.js",
   "./vendor/qrcode.min.js",
+  "./paragon-leaderboards.js",
+  "./paragon-wallets.js",
   "./manifest.webmanifest",
   "./config/supabase.js",
   "./auth/supabase-auth.js",

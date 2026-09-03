@@ -5392,3 +5392,57 @@ One calm desk, honest numbers everywhere, maintenance that means it, previews th
 
 ### Result
 The owner's skill library is now a buildable spec library, the coin economy has a real working core, and the deployment path to a live HTTPS domain is a documented 15-minute job.
+
+## v0.93.0 — 2026-09-03 — Stage 5 Leaderboards: weekly ranking, top 3 + ranks 4–10, revenue-funded pool, anti-farming, reward settlement
+
+**Request reference:** SOP §11, Prompt P-099
+**Status:** `[x]` completed
+
+### Executed actions
+1. **STAGE 5 AUDIT (SOP/EOP):** the competitive leaderboard stage had NO existing implementation — D-205 built only the coin core and deferred betting/leaderboards/rewards to product builds (the site-activity weekly Trending ranking is a separate, already-done feature). So Stage 5 was built in full with real-zero honesty until the betting stage lands.
+2. **ENGINE (D-207):** new `paragon-leaderboards.js` — dependency-free `window.ParagonLeaderboards` shared by the Archive app and the Team desk:
+   - Weekly periods Monday–Sunday (D-013 convention); standings with shared ranks for ties.
+   - Eligibility: ONLY eligible BET results earn points; guest/free-play/below-min-stake/creator-self-play/impossible/duplicate results rejected with audited codes; a closed week can never be changed by late results.
+   - Anti-farming: performance-only scoring (quiz accuracy mode; per-game rules configurable; 1 coin ≠ 1 point — stake only proves eligibility); rapid-fire + repeated-opponent advisory flags.
+   - Revenue-funded pool: 30% of eligible REALIZED competition fees (`paragonCompetitionFeeLedger.v1`); zero fees = honest ₦0 pool; prizes table pays exactly the spec distribution (30/20/15/10/7/5/4/3/2/4), remainder to #1 so the whole pool pays.
+   - Settlement state machine per spec §12.1: running → close & freeze → review (explicit super-admin disqualify/restore with notes; any post-finalization decision reopens the week and clears stale prizes) → final ranking → prize calculation → credit through the SAME `paragonArchive.coinCredits.v1` approval → mirror flow (`kind: "weekly-leaderboard-reward"`), idempotent, fully audited.
+3. **PUBLIC UI:** Account → "🏆 Coins Leaderboard — weekly top 3 + ranks 4–10 rewards" popup (live standings, your-row, week chips, state badge, pool/distribution, eligibility + anti-farming + settlement explainers) + a leaderboard button inside the coin-shop popup; credit sync is now kind-aware (reward toast, not "purchase approved").
+4. **TEAM DESK:** settings panel gains "🏆 WEEKLY LEADERBOARD & REWARD SETTLEMENT (super-admin)" — period picker, standings + per-result review queue with flag chips, inline disqualify note, close/freeze/finalize/calculate/approve-credit action row (disabled honestly when the period is live or the pool is unfunded), and the audit trail; engine loaded on desk.html before team-pages.js.
+5. **BACKEND PREPARED:** `supabase/leaderboards-schema.sql` (idempotent): leaderboard periods/entries/realized fees/rewards/append-only audit/economic settings + RLS + team membership gate + public `paragon_leaderboard_standings()` RPC. Runs ONCE when the betting stage lands — added to SOP §13 B.
+6. **MORE:** cache v75→v76 with the engine precached; docs/COIN-SYSTEM.md, SOP (D-207 + P-099 + CTA), CHANGES.md, tree, NEXT-AGENT refreshed; engine + app/team code syntax-checked.
+7. Suites 3/3 green with two new P-099 fixtures (38 public/engine checks + 25 desk/SQL checks = 63 new checks); css/styles appended under a marked P-099 block.
+
+### Validation
+- [x] Engine full lifecycle simulated in Node (week 2026-08-03): stakes 1 vs 1000 → identical points; free/guest/creator-self-play/impossible/duplicate all rejected; 3000 realized fees → 900 pool; prize rows sum exactly 900 with spec percentages; close before period end refused; close after end freezes; late results rejected; review/disqualify → final excludes the player; prizes → credit writes ONE kind-tagged mirror (270 coins to rank 1; disqualified rank 2 gets nothing); second credit refused; 14 audit rows.
+- [x] Frozen-week guard + post-finalization reopen semantics exercised and locked by fixtures.
+- [x] No textual arrows added to app.js/paragon-archive.html; no window.alert/prompt/confirm anywhere new; identity headers on all new files; PWA shell precaches the engine.
+
+### Result
+Stage 5 — Leaderboards is complete as a real, honest, regression-locked system: weekly ranking, top 3 + ranks 4–10 rewards, a revenue-funded pool that never invents money, enforced anti-farming rules, and a reviewed, audited settlement flow — with the backend SQL ready for the moment betting lands. Standings and pools truthfully show real zero until eligible bet results and realized competition fees exist.
+
+## v0.94.0 — 2026-09-03 — Stages 6+7 Finance: withdrawals (₦10,000 fee rule, limits, payout state machine, dup protection, reconciliation) + Team finance desks; Stage 8 tests
+
+**Request reference:** SOP §11, Prompts P-100 (Stages 6+7+8 delivered as one wave)
+**Status:** `[x]` completed
+
+### Executed actions
+1. **STAGE 6/7 AUDIT (SOP/EOP/COIN-SYSTEM):** the withdrawal/finance stages had NO existing implementation — the coin core (D-205) and leaderboard stage (D-207) explicitly deferred withdrawals, payment matching and finance desks. The master-spec §§14–61 flow was re-read before building (balance types, typed ledger, purchases/matching/duplicate protection/idempotency/races, withdrawal fee + limits + payout machine + payout-account law, team-role law, desk integration panels).
+2. **ENGINE (D-208):** new `paragon-wallets.js` — dependency-free `window.ParagonWallets` shared by the Archive app and the Team desk:
+   - ₦10,000 rule: fee 0 below ₦10,000, 50 coins at/above — tracked separately, never profit; rate placeholder ₦1 = 2 coins.
+   - Rolling limits 2/24 h + 5/7 days (configurable); requests lock real coins; every failure/cancel refunds through FAILED → COINS_UNLOCKED.
+   - Full payout state machine (REQUESTED…PAID incl. RETRYING/UNKNOWN/RECONCILIATION); a provider payout reference binds once and can never be reused; a row that failed/unlocked can never later be marked paid — a delayed provider response never causes a second payout.
+   - Payment claims: one credit per provider transfer (duplicate auto-flag, 5/24 h anti-spam); typed append-only ledger with idempotency keys + reconciliation math; risk cases; payout accounts (user-owned, changes → verification hold); financial pause + per-game kill switches; append-only audit; correlation IDs on every request.
+3. **PUBLIC UI (Archive, Account):** 💸 "Withdraw coins" row → popup with balance ≈ naira, amount chips (₦2k/5k/10k/20k), live fee + coins-needed summary (fee rule explainer), payout-account fields, rolling-limit usage, full history with honest state badges + cancel & unlock, automatic refund/paid claiming on every Account view; the buy-coins flow now records payment claims (transfer reference, sender, bank) and refuses duplicate references.
+4. **TEAM DESKS (Stage 7):** seven finance panels in the consolidated desk (Financial Dashboard with paused banner + ledger; Payment Reconciliation with claim lifecycle; Withdrawal Desk with per-state action rows, unique-ref capture and timelines; Risk & Fraud Cases with open/review/resolve/close; append-only Audit Log with search + CSV; Financial Reports with period filters + liability/reserve honesty + CSV; Emergency Controls = super-admin financial pause + per-game kill switches) — page law in permissions.js (sa/admin + analyst views; payouts/emergency = super-admin), permission-matrix rows added, sidebar FINANCE section, router titles added, engine loaded on the desk before team-pages.js.
+5. **BACKEND PREPARED:** `supabase/finance-schema.sql` (idempotent): wallets with negative-balance triggers, typed coin ledger, payout accounts, withdrawals with UNIQUE (provider, provider_transaction_id), payment claims UNIQUE pair, risk cases, append-only audit, finance controls, economic settings. Runs ONLY when the owner activates real-money infrastructure — added to SOP §13 B with the honest activation-gate note.
+6. **MORE:** cache v76→v77 with the wallet engine precached; service-worker/app/desk wiring; P-100 CSS block; docs (SOP D-208 + P-100 + CTAs, COIN-SYSTEM Stages 6+7 section, EOP, CHANGES, tree v0.94.0, NEXT-AGENT) refreshed; syntax-checked all touched JS.
+7. Suites 4/4 green: core, ux, ai-team (unchanged suites; cache assertions advanced v76→v77) + new `tests/suite-finance.test.js` = 107 checks covering fee rule, rolling windows, the payout machine, duplicate payout refs, delayed-response/reconciliation honesty, claims duplication + limits, pause/kill switches, typed ledger + reconciliation, audit, risk cases, account law, race-condition double-submit guard, desk wiring/permission law/SQL, and no-fake-money copy checks.
+
+### Validation
+- [x] Full engine lifecycle simulated in Node: 20,050 coins required for a ₦10,000 request (20,000 + 50 fee); fee-free ₦2,000 path; insufficient balance refused; 3rd same-day request refused; window rolls open after 25 h; weekly 5 max + rollover; LOCKED → PAYOUT_PENDING → PROVIDER_SUBMITTED (ref REQUIRED, reuse blocked) → PROVIDER_CONFIRMED → PAID; UNKNOWN → RECONCILIATION → FAILED → COINS_UNLOCKED; late second PAID impossible; user cancel returns coins; duplicate payment claims flagged; 6th claim refused; pause blocks new requests; kill switches recorded; ledger replays idempotent (one row); reconciliation matches at 25,050 − 20,050 = 5,000 and reports exact differences on mismatch.
+- [x] Double-submit race simulation: the second simultaneous withdrawal is refused once funds are locked — balance never goes negative.
+- [x] Desk law verified by fixtures: 7 panels exist + router titles; PAGE_ACCESS finance roles; sidebar FINANCE section; engine loads before team-pages.js.
+- [x] No textual arrows added to app.js/paragon-archive.html; no window.alert/prompt/confirm anywhere new; identity headers on all new files; no UI or engine copy claims a live payout (pendingBackendSync kept); browser-never-authoritative law restated in the engine header.
+
+### Result
+Stage 6 — Withdrawals and Stage 7 — Team/administration are complete as a real, honest, regression-locked system: requests lock coins on-device, the ₦10,000+ → 50-coin fee rule and rolling limits are enforced and never trap funds, the payout state machine can never double-pay (one unique provider reference per payout, terminal states terminal), payments reconcile through single-credit claims, the typed ledger and audit trail make every move traceable by correlation ID, and the seven finance desks run under the fixed six-role permission law — with the authoritative server layer prepared and gated until the owner activates real-money infrastructure.

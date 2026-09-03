@@ -2326,6 +2326,7 @@ function communityMembershipRecord() {
 
 function renderAccount() {
   syncApprovedCoinCredits?.(); /* P-098 — pick up approved purchases */
+  applyWithdrawalStatuses?.(); /* P-100 — refund failed withdrawals / mark paid ones seen */
   const hero = document.getElementById("account-hero");
   const privateArea = document.getElementById("account-private");
   if (!hero || !privateArea) return;
@@ -2412,6 +2413,8 @@ function renderAccount() {
       ${loggedIn && providerLabel(authUser) === "Email" ? `<div class="row"><button type="button" class="settings-link" onclick="openPasswordUpdate()"><span>🔑 Change Password</span></button></div>` : ""}
       <div class="row"><button type="button" class="settings-link" onclick="openParagonInstall()"><span>📲 Install Paragon Archive &amp; app permissions</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openCoinShop()"><span>🪙 Paragon Coins — balance ${coinBalance().toLocaleString()} · buy coins</span></button></div>
+      <div class="row"><button type="button" class="settings-link" onclick="openCoinWithdrawal()"><span>💸 Withdraw coins — sell back to naira</span></button></div>
+      <div class="row"><button type="button" class="settings-link" onclick="openCoinLeaderboard()"><span>🏆 Coins Leaderboard — weekly top 3 + ranks 4–10 rewards</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="shareParagonApp()"><span>📤 Share Paragon Archive (install link)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openCommunityEntry()"><span>${communityMembershipRecord() ? "👥 Paragon Community · Open the Board" : "👥 Paragon Community"}</span></button></div>
       <div class="row"><a class="settings-link" href="paragon-archive-hub.html"><span><img class="settings-brand-mark" src="assets/brand/logo-mark.png" alt=""> Paragon Archive Hub</span></a></div>
@@ -2936,17 +2939,40 @@ window.openEmailAuth = function(mode = "signin") {
      docs/COIN-SYSTEM.md). No real-money handling anywhere in the front-end.
    ===================================================================== */
 function coinBalance() { return Math.max(0, Math.round(Number(accountProfile.coinBalance || 0))); }
-/* P-098 — approved coin credits from the Team desk land here (same-device loop). */
+/* P-098 — approved coin credits from the Team desk land here (same-device loop).
+   P-099 — weekly-leaderboard-reward credits ride the SAME mirror with a reward message. */
 function syncApprovedCoinCredits() {
   try {
     const credits = JSON.parse(window.localStorage.getItem("paragonArchive.coinCredits.v1") || "[]");
     const mine = credits.filter(credit => credit.for === (authUser?.email || "Guest (this device)") && !credit.claimed);
     if (!mine.length) return;
     let total = 0;
-    mine.forEach(credit => { total += Number(credit.coins) || 0; credit.claimed = true; });
+    let rewards = 0;
+    mine.forEach(credit => {
+      total += Number(credit.coins) || 0;
+      if (credit.kind === "weekly-leaderboard-reward") rewards += Number(credit.coins) || 0;
+      /* P-100 — every credit also lands in the typed finance ledger (one credit per claim). */
+      const ledgerUser = (authUser?.email || "").toString().trim().toLowerCase();
+      if (ledgerUser && window.ParagonWallets) {
+        try {
+          window.ParagonWallets.appendLedger({
+            user: ledgerUser,
+            type: credit.kind === "weekly-leaderboard-reward" ? "LEADERBOARD_REWARD" : "PURCHASE_CREDIT",
+            amount: Number(credit.coins) || 0,
+            refType: "credit",
+            ref: credit.id || "",
+            reason: credit.kind === "weekly-leaderboard-reward" ? "Weekly leaderboard reward" : "Coin purchase approved",
+            idempotencyKey: "credit-" + (credit.id || "")
+          });
+        } catch (error) { /* blocked */ }
+      }
+      credit.claimed = true;
+    });
     window.localStorage.setItem("paragonArchive.coinCredits.v1", JSON.stringify(credits));
-    addCoins(total, "Purchase approved by the Paragon Team");
-    showToast(`🪙 ${total.toLocaleString()} coins added — purchase approved!`);
+    addCoins(total, rewards ? "Weekly leaderboard reward approved by the Paragon Team" : "Purchase approved by the Paragon Team");
+    if (rewards && rewards === total) showToast(`🏆 ${total.toLocaleString()} coins added — weekly leaderboard reward!`);
+    else if (rewards) showToast(`🪙 ${total.toLocaleString()} coins added — purchase approved (incl. ${rewards.toLocaleString()} reward coins)!`);
+    else showToast(`🪙 ${total.toLocaleString()} coins added — purchase approved!`);
   } catch (error) { /* blocked */ }
 }
 function addCoins(amount, reason) {
@@ -2966,42 +2992,433 @@ function spendCoins(amount, reason) {
   persistPersonalState();
   return true;
 }
-window.requestCoinPurchase = function(nairaAmount) {
+
+/* =====================================================================
+   P-100 — STAGE 6/7 WALLET LAYER (engine: paragon-wallets.js).
+   Withdrawal requests, your ₦10,000+ 50-coin fee rule, daily/weekly
+   limits, the payout state machine, duplicate protection, reconciliation
+   claims, the typed finance ledger, and the financial pause the Team desk
+   can switch on. The engine never fabricates funds — the balance here in
+   accountProfile is what is debited/credited, and every move is audited.
+   ===================================================================== */
+let coinShopPack = 0;
+function walletEngine() { return window.ParagonWallets || null; }
+function walletUserEmail() { return (typeof authUser !== "undefined" && authUser && authUser.email) ? String(authUser.email).trim().toLowerCase() : ""; }
+function walletLedger(type, amount, refType, ref, reason, idem) {
+  const engine = walletEngine(); const user = walletUserEmail();
+  if (!engine || !user) return;
+  try { engine.appendLedger({ user: user, type: type, amount: Math.round(Number(amount) || 0), refType: refType || "", ref: ref || "", reason: reason || "", idempotencyKey: idem || "" }); } catch (error) { /* blocked */ }
+}
+function coinRateNow() {
+  const engine = walletEngine();
+  return engine && engine.effectiveConfig ? engine.effectiveConfig().nairaRate : 2;
+}
+function financePausedMessage() {
+  const engine = walletEngine();
+  if (!engine) return "";
+  try {
+    const state = engine.controls();
+    if (state.paused) return state.pausedReason || "Financial operations are temporarily paused by the Paragon Team.";
+  } catch (error) { /* blocked */ }
+  return "";
+}
+window.requestCoinPurchase = function(nairaAmount, senderBank, senderName, providerTxn) {
+  const engine = walletEngine();
   const naira = Math.round(Number(nairaAmount) || 0);
   if (!hasPersonalSession()) { requirePersonalSession("buy Paragon coins"); return; }
+  if (financePausedMessage()) { showToast(`🛑 ${financePausedMessage()}`, "warning"); return; }
   if (naira < 500) { showToast("The smallest coin pack is ₦500.", "warning"); return; }
-  const coins = Math.round(naira * 2); /* honest placeholder rate: ₦1 = 2 coins (owner sets the real rate) */
+  const rate = coinRateNow();
+  const coins = Math.round(naira * rate);
+  const txnRef = String(providerTxn || "").trim();
+  if (txnRef.length < 4) { showToast("Enter the bank transfer reference so the team can match your payment (matching information only).", "warning"); return; }
+  const email = authUser?.email || "Guest (this device)";
+  /* P-100 — a provider transaction reference can only ever be claimed once (§19/§24). */
+  if (engine && engine.recordPaymentClaim) {
+    const verdict = engine.recordPaymentClaim({ user: email, displayName: accountProfile.displayName || "Guest", requestId: "coin-" + Date.now().toString(36) + "-" + Math.floor(Math.random() * 1e6), providerTxn: txnRef, provider: "bank-transfer", amount: naira, senderName: String(senderName || "").trim(), senderBank: String(senderBank || "").trim() });
+    if (!verdict.ok) {
+      const message = verdict.code === "claim-daily-limit" ? verdict.message : verdict.code === "duplicate" ? "This transfer reference was already submitted — one claim per payment." : verdict.message || "The claim could not be recorded.";
+      showToast(message, "warning");
+      return;
+    }
+    if (verdict.duplicate) { showToast("This transfer reference is a duplicate of an earlier claim — one credit per payment only.", "warning"); return; }
+    const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");
+    const requestId = verdict.claim.id;
+    list.push({ id: requestId, user: email, displayName: accountProfile.displayName || "Guest", naira, coins, status: "pending", txnRef: txnRef, senderBank: String(senderBank || "").trim(), senderName: String(senderName || "").trim(), createdAt: new Date().toISOString() });
+    window.localStorage.setItem("paragonTeamCoinRequests.v1", JSON.stringify(list));
+    showToast(`Request sent — ${coins.toLocaleString()} coins await super-admin approval after the team verifies your transfer. pendingBackendSync`);
+    return;
+  }
+  /* engine absent — legacy same-device fallback stays honest */
   try {
     const list = JSON.parse(window.localStorage.getItem("paragonTeamCoinRequests.v1") || "[]");
-    list.push({ id: "coin-" + Date.now().toString(36), user: authUser?.email || "Guest (this device)", displayName: accountProfile.displayName || "Guest", naira, coins, status: "pending", createdAt: new Date().toISOString() });
+    list.push({ id: "coin-" + Date.now().toString(36), user: email, displayName: accountProfile.displayName || "Guest", naira, coins, status: "pending", createdAt: new Date().toISOString() });
     window.localStorage.setItem("paragonTeamCoinRequests.v1", JSON.stringify(list));
     showToast(`Request sent — ${coins.toLocaleString()} coins await super-admin approval. pendingBackendSync`);
   } catch (error) { showToast("The request could not be saved on this device.", "warning"); }
 };
+window.chooseCoinPack = function(naira) {
+  const engine = walletEngine();
+  const rate = coinRateNow();
+  coinShopPack = Number(naira) || 0;
+  const coins = Math.round(coinShopPack * rate);
+  const host = document.getElementById("coin-shop-body");
+  if (!host) return;
+  host.innerHTML = `
+    <div class="shop-claim-form">
+      <div class="shop-summary-row"><b>₦${coinShopPack.toLocaleString()} pack</b><span>≈ ${coins.toLocaleString()} coins at the placeholder rate (₦1 = ${rate} coins)</span></div>
+      <p class="team-site-sub">Pay by bank transfer to the team's account details (they are shared after approval), then enter the matching details so the team can verify. Your transfer reference is matching information only — never proof.</p>
+      <label class="wallet-field"><span>Transfer reference *</span><input id="purchase-txn" maxlength="80" placeholder="e.g. Paragon-378291 (from your bank receipt)"></label>
+      <label class="wallet-field"><span>Sender name on the transfer</span><input id="purchase-sender" maxlength="80" placeholder="e.g. Ada Obi"></label>
+      <label class="wallet-field"><span>Sending bank</span><input id="purchase-bank" maxlength="60" placeholder="e.g. OPay / GTBank / Kuda"></label>
+      <button type="button" class="primary-action" onclick="submitCoinPackRequest()">📨 Send request for approval</button>
+      <button type="button" class="secondary-action" onclick="coinShopPack=0; renderCoinShopPacks()">Back to packs</button>
+    </div>`;
+};
+function renderCoinShopPacks() {
+  const host = document.getElementById("coin-shop-body");
+  if (!host) return;
+  const rate = coinRateNow();
+  const packs = [[500, 1000], [1000, 2000], [5000, 10000], [10000, 20000]].map(([naira, legacy]) => [naira, Math.round(naira * rate)]);
+  host.innerHTML = `
+    <div class="install-perm-list">
+      ${packs.map(([naira, coins]) => `
+        <label class="install-perm-row" style="cursor:pointer" onclick="chooseCoinPack(${naira})">
+          <div><b>₦${naira.toLocaleString()}</b><small>≈ ${coins.toLocaleString()} coins — choose this pack, then submit your transfer details for team approval.</small></div>
+          <span class="primary-action" style="pointer-events:none;">Choose</span>
+        </label>`).join("")}
+    </div>
+    <button type="button" class="secondary-action" style="margin-top:10px" onclick="coinShopPack=0; openCoinWithdrawal()">💸 Instead, withdraw coins to naira</button>`;
+}
+window.submitCoinPackRequest = function() {
+  const txn = document.getElementById("purchase-txn");
+  const sender = document.getElementById("purchase-sender");
+  const bank = document.getElementById("purchase-bank");
+  if (!txn || !coinShopPack) return;
+  window.requestCoinPurchase(coinShopPack, bank ? bank.value : "", sender ? sender.value : "", txn.value);
+  if (!financePausedMessage()) {
+    document.getElementById("coin-shop-overlay")?.remove();
+    document.body.classList.remove("popup-lock");
+    coinShopPack = 0;
+  }
+};
 window.openCoinShop = function() {
   if (typeof document.createElement !== "function") return;
+  const paused = financePausedMessage();
   document.getElementById("coin-shop-overlay")?.remove();
   const overlay = document.createElement("div");
   overlay.id = "coin-shop-overlay";
   overlay.className = "utility-overlay active install-overlay";
   overlay.innerHTML = `
-    <div class="install-popup-card" style="width:min(500px,94vw);" role="dialog" aria-modal="true">
-      <header><h2>🪙 Paragon Coins</h2><p>Coins power game bets, quiz entry fees and creator prizes. Balance: <b>${coinBalance().toLocaleString()} coins</b></p></header>
-      <div class="install-perm-list">
-        ${[[500, 1000], [1000, 2000], [5000, 10000]].map(([naira, coins]) => `
-          <label class="install-perm-row" style="cursor:pointer" onclick="requestCoinPurchase(${naira}); document.getElementById('coin-shop-overlay').remove();">
-            <div><b>₦${naira.toLocaleString()}</b><small>≈ ${coins.toLocaleString()} coins — request goes to the Team desk for approval (pay only after approval, from the team's payment details).</small></div>
-            <span class="primary-action" style="pointer-events:none;">Request</span>
-          </label>`).join("")}
-      </div>
+    <div class="install-popup-card" style="width:min(540px,94vw);" role="dialog" aria-modal="true">
+      <header><h2>🪙 Paragon Coins</h2><p>Coins power game bets, quiz entry fees and creator prizes. Balance: <b>${coinBalance().toLocaleString()} coins</b> · rate ₦1 = ${coinRateNow()} coins (placeholder)</p></header>
+      ${paused ? `<div class="site-maintenance-banner">🛑 Financial operations paused: ${escapeHTML(paused)}</div>` : ""}
+      <div id="coin-shop-body"></div>
       <div class="install-popup-actions">
-        <button type="button" class="secondary-action" onclick="document.getElementById('coin-shop-overlay').remove(); document.body.classList.remove('popup-lock')">Close</button>
+        ${paused ? "" : `<button type="button" class="primary-action" onclick="document.getElementById('coin-shop-overlay').remove(); document.body.classList.remove('popup-lock'); openCoinLeaderboard()">🏆 Weekly leaderboard</button>`}
+        <button type="button" class="secondary-action" onclick="document.getElementById('coin-shop-overlay').remove(); document.body.classList.remove('popup-lock'); coinShopPack=0">Close</button>
       </div>
-      <small class="install-popup-note">Free-to-play always stays free — coins are only for betting, entry fees and prizes. Withdrawals/selling coins back to Paragon are handled by the team (docs/COIN-SYSTEM.md).</small>
+      <small class="install-popup-note">Free-to-play always stays free. One payment = one claim: a transfer reference can never be credited twice. Withdrawals are handled by the team through the payout desk (docs/COIN-SYSTEM.md).</small>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.classList.add("popup-lock");
+  overlay.addEventListener("click", event => { if (event.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); coinShopPack = 0; } });
+  const shopBody = document.getElementById("coin-shop-body");
+  if (shopBody && paused) shopBody.innerHTML = '<div class="site-maintenance-banner" style="margin-top:4px">🛑 Coin purchases are paused right now — your balance and pending requests are safe.</div>';
+  else renderCoinShopPacks();
+};
+
+/* ---------------- Stage 6 — withdrawals (user side) ---------------- */
+let withdrawalNaira = 0;
+function wdBadge(state) {
+  const meta = {
+    LOCKED: ["🟡 Pending — coins locked", "st-scheduled"], REQUESTED: ["🟡 Pending", "st-scheduled"], ELIGIBILITY_CHECK: ["🟡 Eligibility check", "st-scheduled"], RISK_CHECK: ["🟡 Risk check", "st-review"], PAYOUT_PENDING: ["🔵 Awaiting payout", "st-preview"], PROVIDER_SUBMITTED: ["🔵 Payout submitted", "st-preview"], PROVIDER_CONFIRMED: ["🔵 Payout confirmed", "st-preview"], PAID: ["✅ Paid", "st-live"], RETRYING: ["🟠 Retrying payout", "st-review"], UNKNOWN: ["🟠 Payout status unknown — being verified", "st-review"], RECONCILIATION: ["🟠 Reconciliation", "st-review"], FAILED: ["❌ Failed", "st-archived"], COINS_UNLOCKED: ["♻️ Coins returned", "st-archived"]
+  };
+  const m = meta[state] || [state, "st-review"];
+  return `<span class="team-site-badge ${m[1]}">${m[0]}</span>`;
+}
+function wdFeeLabel(naira) {
+  const engine = walletEngine();
+  if (!engine) return "";
+  return Number(naira) >= engine.effectiveConfig().withdrawalFeeThresholdNaira ? ` + ${engine.effectiveConfig().withdrawalFeeCoins}-coin fee (₦10,000+ rule)` : " · no Paragon fee (below ₦10,000)";
+}
+function renderWithdrawalHost() {
+  const engine = walletEngine();
+  const host = document.getElementById("withdrawal-host");
+  if (!host || !engine) return;
+  const user = walletUserEmail();
+  const paused = financePausedMessage();
+  const balance = coinBalance();
+  const rate = coinRateNow();
+  const limits = engine.remainingLimits(user);
+  const account = (engine.payoutAccounts() || []).filter(a => a.user === user)[0] || null;
+  host.innerHTML = `
+    <div class="lb-pool-grid">
+      <div class="lb-pool-stat"><b>${balance.toLocaleString()} coins</b><small>available ≈ ₦${engine.coinsToNaira(balance).toLocaleString()} at ₦1 = ${rate} coins</small></div>
+      <div class="lb-pool-stat"><b>${limits.used24}/${limits.dailyLimit} · ${limits.used7d}/${limits.weeklyLimit}</b><small>withdrawal requests used — rolling 24 h / 7 days</small></div>
+    </div>
+    ${paused ? `<div class="site-maintenance-banner">🛑 ${escapeHTML(paused)} — no new withdrawals until the team reopens them. Your locked coins are safe and return automatically if a request fails.</div>` : ""}
+    ${!paused ? `<section class="lb-block"><h3>💸 Request a withdrawal</h3>
+      <div class="wd-chips">${[2000, 5000, 10000, 20000].map(n => `<button type="button" class="lb-week-chip ${withdrawalNaira === n ? "active" : ""}" onclick="withdrawalNaira=${n}; renderWithdrawalHost()">₦${n.toLocaleString()}</button>`).join("")}</div>
+      <label class="wallet-field"><span>Amount in naira</span><input id="wd-naira" type="number" min="1000" step="500" value="${withdrawalNaira || ""}" placeholder="Minimum ₦1,000" oninput="withdrawalNaira=Math.round(Number(this.value)||0)"></label>
+      <div class="wd-summary" id="wd-summary">Minimum ₦1,000 · your ₦10,000+ rule: the 50-coin fee applies only at ₦10,000 and above.</div>
+      <label class="wallet-field"><span>Bank name</span><input id="wd-bank" maxlength="60" placeholder="e.g. OPay, GTBank, Kuda" value="${account ? escapeHTML(account.bank) : ""}"></label>
+      <label class="wallet-field"><span>Account number</span><input id="wd-account" maxlength="10" inputmode="numeric" placeholder="10-digit account number" value="${account ? escapeHTML(account.accountNumber) : ""}"></label>
+      <label class="wallet-field"><span>Account name</span><input id="wd-name" maxlength="80" placeholder="Name on the account" value="${account ? escapeHTML(account.accountName) : ""}"></label>
+      <p class="team-site-sub" style="margin:4px 0 10px">Payouts go to a verified account in your own name (the team re-verifies before any payout; changing details puts a verification hold on the account).</p>
+      <button type="button" class="primary-action" onclick="submitWithdrawalRequest()">📨 Request withdrawal</button>
+      <p class="team-site-sub">Withdrawals are paid manually by the Paragon Team through the payout desk. Your coins are locked the moment the request is accepted and return automatically if it fails — limits never trap legitimate funds.</p>
+    </section>` : ""}
+    <section class="lb-block"><h3>📜 Your withdrawal history</h3><div id="wd-history" class="team-site-list"></div></section>`;
+  renderWithdrawalHistory();
+  updateWdSummary();
+}
+function updateWdSummary() {
+  const engine = walletEngine();
+  const node = document.getElementById("wd-summary");
+  if (!engine || !node) return;
+  const naira = Math.round(Number(withdrawalNaira) || 0);
+  const cfg = engine.effectiveConfig();
+  const min = Math.max(cfg.minWithdrawalNaira, 0);
+  if (naira < min) { node.innerHTML = `Minimum ₦${min.toLocaleString()} · your ₦${cfg.withdrawalFeeThresholdNaira.toLocaleString()}+ rule: the ${cfg.withdrawalFeeCoins}-coin fee applies only at ₦${cfg.withdrawalFeeThresholdNaira.toLocaleString()} and above.`; return; }
+  const needed = engine.coinsRequiredFor(naira);
+  const fee = engine.withdrawalFeeFor(naira);
+  node.innerHTML = `You will receive <b>₦${naira.toLocaleString()}</b> · ${nairaToCoinsPlaceholder(naira).toLocaleString()} coins + ${fee ? fee + "-coin fee (₦10,000+ rule)" : "no fee (below ₦10,000)"} = <b>${needed.toLocaleString()} coins</b> locked from your balance.`;
+}
+function nairaToCoinsPlaceholder(naira) { const e = walletEngine(); return e ? e.nairaToCoins(naira) : Math.round(naira * 2); }
+function renderWithdrawalHistory() {
+  const engine = walletEngine();
+  const host = document.getElementById("wd-history");
+  if (!host || !engine) return;
+  const user = walletUserEmail();
+  const mine = engine.requestsFor(user).slice().sort((a, b) => Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0));
+  host.innerHTML = mine.length ? mine.map(w => `
+    <article class="team-site-row ${w.state === "PAID" ? "st-live" : (w.state === "FAILED" || w.state === "COINS_UNLOCKED") ? "st-archived" : "st-scheduled"}">
+      <div class="team-site-copy">
+        <div class="team-site-title"><strong>₦${Number(w.naira).toLocaleString()}</strong>${wdBadge(w.state)}<span class="team-site-cat">${escapeHTML(w.correlationId || w.id)}</span></div>
+        <div class="team-site-sub">${w.lockedCoins.toLocaleString()} coins locked (incl. ${w.feeCoins} fee) · ${escapeHTML((w.payout && (w.payout.bank + " " + (w.payout.masked || ""))) || "")} · ${new Date(w.createdAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</div>
+        ${w.failReason ? `<div class="team-site-sub">Reason: ${escapeHTML(w.failReason)}</div>` : ""}
+        ${w.payoutRef ? `<div class="team-site-sub">Payout reference: ${escapeHTML(w.payoutRef)}${w.paidAt ? " · paid " + new Date(w.paidAt).toLocaleString() : ""}</div>` : ""}
+      </div>
+      <div class="team-site-actions">${(w.state === "LOCKED" || w.state === "REQUESTED") ? `<button type="button" class="team-mini-link danger" onclick="cancelWithdrawal('${escapeHTML(w.id)}')">Cancel &amp; unlock coins</button>` : ""}</div>
+    </article>`).join("") : '<p class="team-site-sub">No withdrawal requests yet — real zero. Withdrawals become available as your balance grows.</p>';
+}
+window.submitWithdrawalRequest = function() {
+  const engine = walletEngine();
+  if (!engine) { showToast("Withdrawals are unavailable on this page.", "warning"); return; }
+  const naira = Math.round(Number(document.getElementById("wd-naira")?.value || withdrawalNaira) || 0);
+  const bank = String(document.getElementById("wd-bank")?.value || "").trim();
+  const account = String(document.getElementById("wd-account")?.value || "").replace(/\D/g, "");
+  const name = String(document.getElementById("wd-name")?.value || "").trim();
+  if (!account || account.length < 6) { showToast("Enter a valid account number (6+ digits).", "warning"); return; }
+  if (!bank) { showToast("Enter your bank name.", "warning"); return; }
+  if (!name) { showToast("Enter the account name.", "warning"); return; }
+  const user = walletUserEmail();
+  if (!user) { requirePersonalSession("withdraw coins"); return; }
+  const verdict = engine.requestWithdrawal({ user: user, displayName: accountProfile.displayName || user, naira: naira, availableCoins: coinBalance(), payout: { bank: bank, accountNumber: account, accountName: name } });
+  if (!verdict.ok) { showToast(verdict.message || "Withdrawal not accepted: " + verdict.code, "warning"); renderWithdrawalHost(); return; }
+  /* Lock the real coins now — the request record already exists (two writes stay in sync). */
+  spendCoins(verdict.lockedCoins, `Withdrawal of ₦${verdict.request.naira.toLocaleString()} — coins locked (${verdict.request.correlationId})`);
+  walletLedger("WITHDRAWAL_LOCK", -verdict.request.coins, "withdrawal", verdict.request.id, `₦${naira} redeemed at rate ₦1=${coinRateNow()}`, "wd-lock-" + verdict.request.id);
+  if (verdict.request.feeCoins) walletLedger("WITHDRAWAL_FEE", -verdict.request.feeCoins, "withdrawal", verdict.request.id, "₦10,000+ 50-coin withdrawal fee (spec §22.1)", "wd-fee-" + verdict.request.id);
+  try { engine.savePayoutAccount({ user: user, bank: bank, accountNumber: account, accountName: name }); } catch (error) { /* blocked */ }
+  withdrawalNaira = 0;
+  showToast(`Withdrawal requested — ${verdict.lockedCoins.toLocaleString()} coins locked. The team pays ₦${naira.toLocaleString()} after verification.`);
+  renderWithdrawalHost();
+};
+window.cancelWithdrawal = function(id) {
+  const engine = walletEngine();
+  if (!engine) return;
+  const request = engine.findRequest(id);
+  if (!request) return;
+  showToast("Cancelling this withdrawal returns its locked coins to your balance.");
+  engine.cancelRequest(id, walletUserEmail() || "user", "Cancelled by the account holder");
+  applyWithdrawalStatuses();
+  renderWithdrawalHost();
+};
+/* Claim failed/cancelled refunds + mark paid payouts seen (runs on every Account view). */
+function applyWithdrawalStatuses() {
+  const engine = walletEngine();
+  if (!engine || !hasPersonalSession()) return;
+  const user = walletUserEmail();
+  if (!user) return;
+  let refunded = 0; let paid = 0;
+  try {
+    const list = engine.allRequests();
+    let changed = false;
+    list.forEach(w => {
+      if (w.user !== user) return;
+      if ((w.state === "COINS_UNLOCKED") && !w.refundedOnDevice) {
+        addCoins(w.lockedCoins, `Withdrawal refunded — your ${w.lockedCoins.toLocaleString()} coins are back (${w.correlationId})`);
+        walletLedger("WITHDRAWAL_REVERSAL", w.lockedCoins, "withdrawal", w.id, "Failed/cancelled withdrawal — coins unlocked", "wd-refund-" + w.id);
+        w.refundedOnDevice = true; refunded += w.lockedCoins; changed = true;
+      }
+      if (w.state === "PAID" && !w.paidSeen) {
+        walletLedger("WITHDRAWAL_SETTLED", 0, "withdrawal", w.id, "Paid out by the Paragon Team — " + (w.payoutRef || "manual payout"), "wd-paid-" + w.id);
+        w.paidSeen = true; paid += 1; changed = true;
+      }
+    });
+    if (changed && engine.persistRequests) engine.persistRequests(list);
+  } catch (error) { /* blocked */ }
+  if (refunded) showToast(`♻️ ${refunded.toLocaleString()} coins returned — a withdrawal was refunded.`);
+  if (paid) showToast("✅ Your withdrawal was paid — check your bank.");
+}
+window.openCoinWithdrawal = function() {
+  const engine = walletEngine();
+  if (!engine) { showToast("Withdrawals are unavailable on this page.", "warning"); return; }
+  if (typeof document.createElement !== "function") return;
+  if (!hasPersonalSession()) { requirePersonalSession("withdraw coins"); return; }
+  document.getElementById("coin-withdrawal-overlay")?.remove();
+  applyWithdrawalStatuses();
+  const overlay = document.createElement("div");
+  overlay.id = "coin-withdrawal-overlay";
+  overlay.className = "utility-overlay active install-overlay";
+  overlay.innerHTML = `
+    <div class="install-popup-card lb-card" role="dialog" aria-modal="true" aria-label="Withdraw coins">
+      <header><h2>💸 Paragon Coins — Withdraw to naira</h2><p>Sell coins back to Paragon: the team verifies the request, pays the naira to your bank, and your locked coins close the loop. Balance: <b>${coinBalance().toLocaleString()} coins</b>.</p></header>
+      <div id="withdrawal-host"></div>
+      <div class="install-popup-actions">
+        <button type="button" class="secondary-action" onclick="document.getElementById('coin-withdrawal-overlay').remove(); document.body.classList.remove('popup-lock'); openCoinShop()">🪙 Buy coins</button>
+        <button type="button" class="secondary-action" onclick="document.getElementById('coin-withdrawal-overlay').remove(); document.body.classList.remove('popup-lock')">Close</button>
+      </div>
+      <small class="install-popup-note">Your ₦10,000 rule (docs/COIN-SYSTEM.md): no Paragon fee below ₦10,000; ₦10,000+ carries the 50-coin fee. Withdrawal limits: 2 per rolling 24 h, 5 per rolling 7 days — configurable, never trapping funds: failed requests return their coins automatically. Payouts are manual through the Team payout desk (pendingBackendSync).</small>
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");
   overlay.addEventListener("click", event => { if (event.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); } });
+  renderWithdrawalHost();
+};
+
+/* =====================================================================
+   P-099 — STAGE 5 LEADERBOARDS (public popup): weekly ranking + top 3 +
+   ranks 4-10 revenue-funded rewards. Engine: paragon-leaderboards.js.
+   Honesty: standings are real (eligible bet results only, free play never
+   climbs); the pool is 30% of REALIZED competition fees — zero is zero.
+   ===================================================================== */
+let leaderboardFocusWeek = "";
+function lbEngine() { return window.ParagonLeaderboards || null; }
+function lbCurrentUser() {
+  try {
+    if (typeof authUser !== "undefined" && authUser && authUser.email) return String(authUser.email).trim().toLowerCase();
+    if (typeof accountProfile !== "undefined" && accountProfile && accountProfile.email) return String(accountProfile.email).trim().toLowerCase();
+  } catch (error) { /* blocked */ }
+  return null;
+}
+function lbFriendlyDate(key) {
+  const parts = String(key).split("-").map(Number);
+  const d = new Date(parts[0], parts[1] - 1, parts[2]);
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+function lbShortLabel(key) {
+  const engine = lbEngine();
+  if (!engine) return key;
+  const bounds = engine.periodBounds(key);
+  const last = new Date(bounds.end.getTime());
+  last.setDate(last.getDate() - 1);
+  return `${lbFriendlyDate(key)} – ${lbFriendlyDate(last)}`;
+}
+function lbStateChip(state, isCurrent) {
+  const labels = {
+    running: isCurrent ? "Live this week — results can still change" : "Week ended — awaiting team settlement",
+    closed: "Week closed — results frozen, anti-abuse review open",
+    review: "Anti-abuse review in progress",
+    final: "Final ranking locked",
+    prizes: "Prizes calculated, awaiting super-admin approval",
+    credited: "Rewards approved and credited"
+  };
+  const kind = {
+    running: "st-live", closed: "st-scheduled", review: "st-review",
+    final: "st-live", prizes: "st-scheduled", credited: "st-live"
+  };
+  return `<span class="team-site-badge ${kind[state] || "st-review"}">${labels[state] || escapeHTML(state)}</span>`;
+}
+function lbMedal(rank) { return rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `<span class="lb-rank-num">${rank}</span>`; }
+function lbPoolNaira(coins) { return `≈ ₦${Math.floor((Number(coins) || 0) / 2).toLocaleString()} at the placeholder rate (₦1 = 2 coins)`; }
+function lbRowsMarkup(rows, me, limit) {
+  if (!rows || !rows.length) {
+    return `<div class="lb-empty">No eligible bet results this week yet — real zero. Leaderboard points come ONLY from staked (bet) competition results; free play, logins and purchases never climb.</div>`;
+  }
+  return `<ol class="lb-list">${rows.slice(0, limit || 10).map(row => {
+    const mine = me && row.player === me;
+    return `<li class="lb-row ${mine ? "lb-me" : ""}">
+      <span class="lb-rank">${lbMedal(row.rank)}</span>
+      <span class="lb-who"><b>${escapeHTML(row.displayName || row.player)}</b><small>${escapeHTML(row.player)} · ${row.plays} play${row.plays === 1 ? "" : "s"} · ${Object.keys(row.games || {}).map(game => `${escapeHTML(game)} ×${row.games[game]}`).join(" · ") || "no games"}</small></span>
+      <span class="lb-pts">${Number(row.points).toLocaleString()} <small>pts</small></span>
+    </li>`;
+  }).join("")}</ol>`;
+}
+function lbRulesBlock() {
+  return `<details class="lb-details"><summary>How the weekly leaderboard works — eligibility, anti-farming, rewards</summary>
+    <ul class="lb-rules">
+      <li><b>Bet-only points:</b> only eligible staked competition results earn points (bet games and paid quiz entries). Free play, guest play, logging in, creating an account and buying coins never earn points.</li>
+      <li><b>Performance-based:</b> points come from how well you played (accuracy/performance per game), never from how much you staked — 1 coin is never 1 point.</li>
+      <li><b>Creator rule:</b> a quiz creator can play their own quiz but can never win its prize or earn leaderboard points from it.</li>
+      <li><b>Revenue-funded pool:</b> every week, 30% of eligible realized competition-fee revenue funds the reward pool. No realized fees means a real ₦0 pool — the platform never shows an invented prize.</li>
+      <li><b>Top 3 + ranks 4–10:</b> rank 1 takes 30% of the pool, rank 2 takes 20%, rank 3 takes 15%, then 10%, 7%, 5%, 4%, 3%, 2% and 4% for ranks 4 to 10 — the whole pool is always paid out in full.</li>
+      <li><b>Settlement is reviewed, never automatic:</b> when a week closes, results freeze and the team runs an anti-abuse review (rapid-fire play, repeated opponents, creator self-play and similar flags) before eligibility, the final ranking, prize calculation and crediting. Rewards are paid by the team through the same approval flow as coin purchases.</li>
+    </ul></details>`;
+}
+function renderCoinLeaderboard() {
+  const engine = lbEngine();
+  if (!engine) { showToast("Leaderboards are unavailable on this page.", "warning"); return; }
+  const host = document.getElementById("coin-leaderboard-host");
+  if (!host) return;
+  const weeks = engine.recentPeriodKeys(new Date(), 3);
+  if (!leaderboardFocusWeek) leaderboardFocusWeek = engine.currentWeekKey();
+  if (weeks.indexOf(leaderboardFocusWeek) === -1) leaderboardFocusWeek = weeks[0];
+  const view = engine.standingsForView(leaderboardFocusWeek);
+  const state = view.state || engine.periodState(leaderboardFocusWeek).state;
+  const isCurrent = engine.currentWeekKey() === leaderboardFocusWeek;
+  const me = lbCurrentUser();
+  const myRow = view.rows.filter(row => me && row.player === me)[0] || null;
+  const pool = engine.poolCoins(leaderboardFocusWeek);
+  const fees = engine.feeTotal(leaderboardFocusWeek);
+  const prizes = engine.prizeRows(leaderboardFocusWeek);
+  host.innerHTML = `
+    <div class="lb-week-nav">${weeks.map(key => `<button type="button" class="lb-week-chip ${key === leaderboardFocusWeek ? "active" : ""}" onclick="leaderboardFocusWeek='${key}'; renderCoinLeaderboard()">${lbShortLabel(key)}</button>`).join("")}</div>
+    <div class="lb-state-line">${lbStateChip(state, isCurrent)}</div>
+    <section class="lb-block">
+      <h3>🏆 ${lbShortLabel(leaderboardFocusWeek)} — weekly ranking</h3>
+      <div class="lb-period-note">${escapeHTML(engine.periodLabel(leaderboardFocusWeek))}${state !== "running" ? ` · settled through the team review desk` : ` · live`}</div>
+      ${lbRowsMarkup(view.rows, me, 10)}
+      ${myRow ? `<div class="lb-you">You: #${myRow.rank} · ${Number(myRow.points).toLocaleString()} pts · ${myRow.plays} play${myRow.plays === 1 ? "" : "s"}</div>` : me ? `<div class="lb-you">No eligible results from you this week — play a bet game or paid quiz entry to earn points.</div>` : `<div class="lb-you">You are a Guest. Bet games and paid quiz entries require a signed-in account — <button type="button" class="settings-link" style="display:inline;width:auto" onclick="requirePersonalSession('earn leaderboard points')">sign in</button> to become eligible.</div>`}
+    </section>
+    <section class="lb-block lb-pool-block">
+      <h3>💰 Reward pool — funded only by real competition fees</h3>
+      <div class="lb-pool-grid">
+        <div class="lb-pool-stat"><b>${Number(pool).toLocaleString()} coins</b><small>reward pool = 30% of realized fees${pool ? ` ${lbPoolNaira(pool)}` : ""}</small></div>
+        <div class="lb-pool-stat"><b>${Number(fees).toLocaleString()} coins</b><small>eligible realized competition-fee revenue this week</small></div>
+      </div>
+      ${pool > 0 ? `<div class="lb-dist">${prizes.map(p => `<span class="lb-dist-pill"><b>#${p.rank}</b>${p.rank <= 3 ? " top" : ""} · ${p.pct}% · ${Number(p.coins).toLocaleString()} coins</span>`).join("")}</div>` : `<div class="lb-dist lb-dist-zero">Pool is 0 coins (₦0) — the reward pool is never invented. It fills only from real realized competition-fee revenue, then rewards are approved by the team and credited.</div>`}
+    </section>
+    <section class="lb-block"><h3>Distribution — top 3 take the big shares, ranks 4–10 win smaller ones</h3>
+      <div class="lb-dist">${[30, 20, 15, 10, 7, 5, 4, 3, 2, 4].map((pct, i) => `<span class="lb-dist-pill"><b>#${i + 1}</b> · ${pct}%</span>`).join("")}<span class="lb-dist-note">= 100% of the pool, paid in full</span></div>
+    </section>
+    <section class="lb-block">${lbRulesBlock()}</section>`;
+}
+window.openCoinLeaderboard = function() {
+  const engine = lbEngine();
+  if (!engine) { showToast("Leaderboards are unavailable on this page.", "warning"); return; }
+  if (typeof document.createElement !== "function") return;
+  leaderboardFocusWeek = engine.currentWeekKey();
+  document.getElementById("coin-leaderboard-overlay")?.remove();
+  const overlay = document.createElement("div");
+  overlay.id = "coin-leaderboard-overlay";
+  overlay.className = "utility-overlay active install-overlay";
+  overlay.innerHTML = `
+    <div class="install-popup-card lb-card" role="dialog" aria-modal="true" aria-label="Weekly leaderboard">
+      <header><h2>🏆 Paragon Coins — Weekly Leaderboard</h2><p>Weekly ranking with rewards for the top 3 and ranks 4–10, funded by 30% of eligible realized competition-fee revenue. Free play never earns points.</p></header>
+      <div id="coin-leaderboard-host"></div>
+      <div class="install-popup-actions">
+        <button type="button" class="primary-action" onclick="document.getElementById('coin-leaderboard-overlay').remove(); document.body.classList.remove('popup-lock'); openCoinShop()">🪙 Buy coins</button>
+        <button type="button" class="secondary-action" onclick="document.getElementById('coin-leaderboard-overlay').remove(); document.body.classList.remove('popup-lock')">Close</button>
+      </div>
+      <small class="install-popup-note">Weekly periods run Monday to Sunday. Bet games and paid quiz entries are the only ways to earn points (docs/COIN-SYSTEM.md). The reward pool activates from real competition fees only — never from invented money.</small>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.classList.add("popup-lock");
+  overlay.addEventListener("click", event => { if (event.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); } });
+  renderCoinLeaderboard();
 };
 
 /* =====================================================================

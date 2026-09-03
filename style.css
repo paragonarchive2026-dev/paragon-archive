@@ -3682,3 +3682,87 @@ html.light .hub-topbar.legal-topbar { background: rgba(243,242,239,0.85); }
 .profile-header-tools { display: inline-flex; align-items: center; gap: 10px; }
 .profile-edit-pencil { padding: 9px 16px; border: 1px solid var(--border); border-radius: 999px; background: rgba(37,99,235,0.1); color: var(--text); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
 .profile-edit-pencil:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+/* =====================================================================
+   P-099 — STAGE 5 LEADERBOARDS (public popup + desk settlement styling)
+   Weekly ranking popup in the Archive app; shared badge chips reuse the
+   team-site-badge palette. Dark/light tokens come from the root vars.
+   ===================================================================== */
+.lb-card { width: min(640px, 94vw); }
+.lb-card .lb-week-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px; }
+.lb-week-chip { border: 1px solid var(--border); background: transparent; color: var(--text-faint); border-radius: 999px; padding: 6px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+.lb-week-chip.active, .lb-week-chip:hover { border-color: var(--accent); color: var(--accent); }
+.lb-state-line { margin: 0 0 12px; }
+.lb-block { margin: 12px 0 0; padding: 14px 15px; border: 1px solid var(--border); border-radius: 15px; background: rgba(255,255,255,0.02); }
+.lb-block h3 { margin: 0 0 8px; color: var(--text); font-size: 14px; }
+.lb-period-note { color: var(--text-faint); font-size: 11px; margin: 0 0 10px; }
+.lb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.lb-row { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 13px; background: rgba(255,255,255,0.02); }
+.lb-row.lb-me { border-color: var(--accent); background: rgba(37,99,235,0.10); }
+.lb-rank { width: 34px; flex: none; text-align: center; font-size: 17px; }
+.lb-rank-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); color: var(--text-faint); font-size: 12px; font-weight: 800; }
+.lb-who { flex: 1; min-width: 0; }
+.lb-who b { display: block; color: var(--text); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-who small { display: block; color: var(--text-faint); font-size: 10.5px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-pts { flex: none; text-align: right; color: var(--text); font-size: 15px; font-weight: 800; }
+.lb-pts small { color: var(--text-faint); font-size: 10px; font-weight: 600; }
+.lb-empty, .lb-you { padding: 13px 14px; border: 1px dashed var(--border); border-radius: 13px; color: var(--text-faint); font-size: 12px; line-height: 1.6; }
+.lb-you { margin-top: 9px; background: rgba(37,99,235,0.06); border-style: solid; }
+.lb-pool-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 10px; }
+.lb-pool-stat { flex: 1 1 200px; padding: 11px 13px; border-radius: 13px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.35); }
+.lb-pool-stat b { display: block; color: var(--text); font-size: 17px; }
+.lb-pool-stat small { display: block; margin-top: 3px; color: var(--text-faint); font-size: 10.5px; line-height: 1.5; }
+.lb-dist { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+.lb-dist-pill { border: 1px solid var(--border); border-radius: 999px; padding: 5px 10px; color: var(--text-faint); font-size: 10.5px; background: rgba(255,255,255,0.02); }
+.lb-dist-pill b { color: var(--text); }
+.lb-dist-note { align-self: center; color: var(--text-faint); font-size: 10.5px; margin-left: 2px; }
+.lb-dist-zero { border: 1px dashed var(--border); border-radius: 12px; padding: 11px 13px; font-size: 11.5px; line-height: 1.6; color: var(--text-faint); width: 100%; }
+.lb-details { margin-top: 2px; }
+.lb-details summary { cursor: pointer; color: var(--accent); font-size: 12px; font-weight: 700; }
+.lb-rules { margin: 10px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; }
+.lb-rules li { color: var(--text-faint); font-size: 11.5px; line-height: 1.55; }
+.lb-rules b { color: var(--text); }
+/* Team desk settlement */
+.lb-flag-chip { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; border: 1px solid rgba(245,158,11,0.5); color: #f59e0b; font-size: 9.5px; font-weight: 800; }
+.lb-note-input { width: min(340px, 100%); margin: 6px 0 0; padding: 7px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 12px; }
+.lb-pool-zero-note { margin: 8px 0 0; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 12px; color: var(--text-faint); font-size: 11.5px; line-height: 1.6; }
+.lb-audit-list { max-height: 220px; overflow: auto; }
+
+/* =====================================================================
+   P-100 — STAGE 6/7 WALLET + FINANCE DESKS
+   Withdrawal popup (Archive app) + the seven Team finance desk panels.
+   Honest device-layer styling only; values come from real stores.
+   ===================================================================== */
+.wallet-field { display: flex; flex-direction: column; gap: 5px; margin: 9px 0 0; font-size: 11.5px; font-weight: 700; color: var(--text); }
+.wallet-field input { margin: 0; padding: 9px 11px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 13px; }
+.wallet-field input:focus { outline: none; border-color: var(--accent); }
+.wd-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 2px 0 4px; }
+.wd-summary { margin: 9px 0 2px; padding: 9px 12px; border: 1px dashed rgba(245,158,11,0.45); border-radius: 11px; color: var(--text-faint); font-size: 11.5px; line-height: 1.6; }
+.wd-summary b { color: var(--text); }
+.shop-claim-form { display: flex; flex-direction: column; }
+.shop-summary-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding: 9px 12px; border: 1px solid rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); border-radius: 12px; font-size: 13px; }
+.shop-summary-row b { color: var(--text); }
+.shop-summary-row span { color: var(--text-faint); font-size: 11px; }
+/* Finance desk panels */
+.team-filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 13px; margin: 2px 0 12px; }
+.team-filter-bar select, .team-filter-bar label select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--text); font-size: 12px; }
+.fin-stat-note { grid-column: 1 / -1; color: var(--text-faint); font-size: 11px; padding: 8px 12px; border: 1px dashed var(--border); border-radius: 12px; }
+.fin-paid-row { border-color: rgba(34,197,94,0.4) !important; }
+.fin-paused { padding: 10px 14px; margin: 2px 0 12px; border: 1px solid rgba(239,68,68,0.5); background: rgba(239,68,68,0.08); border-radius: 13px; color: #ef4444; font-size: 12.5px; font-weight: 700; line-height: 1.6; }
+.audit-list-item { display: flex; gap: 12px; padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 12px; align-items: baseline; }
+.audit-list-item:last-child { border-bottom: none; }
+.audit-list-item code { color: var(--text-faint); font-size: 10.5px; flex: none; }
+.audit-list-item .audit-what { flex: 1; min-width: 0; color: var(--text); }
+.audit-list-item small { color: var(--text-faint); font-size: 10.5px; }
+.rep-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.rep-table th, .rep-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.rep-table th { color: var(--text-faint); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; }
+.rep-table td b { color: var(--text); }
+.rep-table tr.total-row td { border-top: 2px solid var(--border-strong); font-weight: 800; color: var(--text); }
+.wd-empty-rule { margin: 6px 0 0; padding: 8px 12px; border: 1px dashed rgba(245,158,11,0.4); border-radius: 11px; color: var(--text-faint); font-size: 11px; line-height: 1.6; }
+.kill-switch { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 13px; margin-bottom: 8px; }
+.kill-switch.on { border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.06); }
+.kill-switch b { display: block; color: var(--text); font-size: 13px; }
+.kill-switch small { color: var(--text-faint); font-size: 11px; line-height: 1.5; }
+.fin-toggle-on { border-color: rgba(239,68,68,0.5) !important; color: #ef4444 !important; }
+.site-maintenance-banner { margin: 0 0 12px; padding: 10px 13px; border: 1px solid rgba(239,68,68,0.45); background: rgba(239,68,68,0.08); border-radius: 12px; color: #ef4444; font-size: 12px; font-weight: 700; line-height: 1.6; }
