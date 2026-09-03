@@ -3747,3 +3747,52 @@ html.light #finance-desk-out {
   background: rgba(0, 0, 0, 0.04);
 }
 /* Product sites — slightly calmer page rhythm */
+
+
+/* P-106 — engagement leaderboard + ad support polish */
+.leaderboard-card { max-width: 440px; }
+.leaderboard-you {
+  margin: 10px 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(162, 155, 254, 0.35);
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.16), rgba(37, 99, 235, 0.08));
+  font-size: 13px;
+}
+.leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  max-height: 360px;
+  overflow: auto;
+}
+.leaderboard-list li {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+}
+.leaderboard-list li.is-you {
+  border-color: rgba(162, 155, 254, 0.55);
+  box-shadow: 0 0 0 1px rgba(108, 92, 231, 0.25);
+  background: rgba(108, 92, 231, 0.12);
+  font-weight: 700;
+}
+.leaderboard-list .lb-rank { color: var(--accent); font-weight: 850; }
+.leaderboard-list .lb-score { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.paragon-ad-slot {
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+[data-paragon-ad][role="button"]:hover .paragon-ad-slot,
+[data-paragon-ad][role="button"]:focus-visible .paragon-ad-slot {
+  border-color: rgba(162, 155, 254, 0.55);
+  color: var(--text-dim);
+  background: rgba(108, 92, 231, 0.08);
+}

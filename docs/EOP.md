@@ -5529,3 +5529,14 @@ Owner has a clear SQL VERIFY + run order. Financial engine foundation matches th
 
 ### Owner for SQL assurance
 Paste Script A from `supabase/SUPABASE-AI-VERIFY-PROMPT.md` results into chat.
+
+## v1.00.0 — 2026-09-03 — 50 achievements: ads + top-10 leaderboard engagement (P-106)
+
+**Status:** `[x]` completed
+
+### Executed
+1. Expanded achievements **30 → 50** (10 stages × 5).
+2. Ad path: view slots + tap reserved/live ads → counters; honest copy until Google approval.
+3. Engagement leaderboard: device board with Top 10 / podium badges; not a money referee.
+4. Retention + product engagement badges (streak, coins shop, products, install, community, details, categories, updates).
+5. Suites + cache v83.

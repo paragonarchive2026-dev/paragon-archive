@@ -131,11 +131,148 @@ const BADGE_ART = {
   "AI Regular": "assets/achievement-badges/badge-ai-regular.png",
   "Results Seeker": "assets/achievement-badges/badge-results-seeker.png",
   "Social Spreader": "assets/achievement-badges/badge-social-spreader.png",
-  "Fully Notified": "assets/achievement-badges/badge-fully-notified.png"
+  "Fully Notified": "assets/achievement-badges/badge-fully-notified.png",
+  /* P-106 — badges 31–50: ads, leaderboard, engagement (10 stages total) */
+  "Ad Curious": "assets/achievement-badges/badge-ad-curious.png",
+  "Ad Supporter": "assets/achievement-badges/badge-ad-supporter.png",
+  "Ad Ally": "assets/achievement-badges/badge-ad-ally.png",
+  "Ad Champion": "assets/achievement-badges/badge-ad-champion.png",
+  "Ad Patron": "assets/achievement-badges/badge-ad-patron.png",
+  "Leaderboard Scout": "assets/achievement-badges/badge-leaderboard-scout.png",
+  "Leaderboard Climber": "assets/achievement-badges/badge-leaderboard-climber.png",
+  "Top Ten Contender": "assets/achievement-badges/badge-top-ten-contender.png",
+  "Top Ten Finisher": "assets/achievement-badges/badge-top-ten-finisher.png",
+  "Podium Push": "assets/achievement-badges/badge-podium-push.png",
+  "Daily Return": "assets/achievement-badges/badge-daily-return.png",
+  "Week Streak": "assets/achievement-badges/badge-week-streak.png",
+  "Coin Curious": "assets/achievement-badges/badge-coin-curious.png",
+  "Product Pilot": "assets/achievement-badges/badge-product-pilot.png",
+  "Install Ready": "assets/achievement-badges/badge-install-ready.png",
+  "Community Step": "assets/achievement-badges/badge-community-step.png",
+  "Detail Deep Dive": "assets/achievement-badges/badge-detail-deep-dive.png",
+  "Category Hopper": "assets/achievement-badges/badge-category-hopper.png",
+  "Update Watcher": "assets/achievement-badges/badge-update-watcher.png",
+  "Archive Legend": "assets/achievement-badges/badge-archive-legend.png"
 };
 function badgeIconMarkup(task) {
   return BADGE_ART[task.title] ? `<img class="ach-badge-art" src="${BADGE_ART[task.title]}" alt="" loading="lazy">` : `<div class="emoji">${task.icon}</div>`;
 }
+
+/* P-106 — engagement counters (ads, leaderboard, streaks). Honest local scores;
+   server leaderboard periods (phase4) remain team-settled when live. */
+function engagementScore() {
+  const reviews = Object.values(localReviews || {}).flat().length;
+  /* Do not call achievementTasks() here — leaderboard checks run during achievement render. */
+  return (
+    localVisits.length * 4 +
+    bookmarkedSites.size * 3 +
+    reviews * 6 +
+    Number(accountProfile.shareCount || 0) * 5 +
+    Number(accountProfile.adClickCount || 0) * 8 +
+    Number(accountProfile.adImpressionCount || 0) * 1 +
+    Number(accountProfile.hubVisitCount || 0) * 3 +
+    Number(accountProfile.aiQuestionCount || 0) * 4 +
+    Number(accountProfile.productOpenCount || 0) * 5 +
+    Number(accountProfile.dayStreak || 0) * 10 +
+    Number(accountProfile.detailOpenCount || 0) * 2 +
+    Number(accountProfile.leaderboardCheckCount || 0) * 3 +
+    Math.min(coinBalance(), 500) * 0.05
+  );
+}
+
+function localDayKey(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function bumpDayStreak() {
+  if (!hasPersonalSession()) return;
+  const today = localDayKey();
+  const last = String(accountProfile.lastActiveDay || "");
+  if (last === today) return;
+  const yesterday = localDayKey(new Date(Date.now() - 86400000));
+  if (last === yesterday) accountProfile.dayStreak = Number(accountProfile.dayStreak || 0) + 1;
+  else accountProfile.dayStreak = 1;
+  accountProfile.lastActiveDay = today;
+  persistPersonalState();
+}
+
+function bumpEngagement(field, by = 1) {
+  if (!hasPersonalSession() || !field) return;
+  accountProfile[field] = Number(accountProfile[field] || 0) + by;
+  persistPersonalState();
+  try { renderAchievementsAccount(); } catch (_) { /* account tab may be idle */ }
+}
+
+window.ParagonArchiveAdsBridge = {
+  onImpression(purpose) {
+    bumpEngagement("adImpressionCount", 1);
+  },
+  onEngage(purpose, meta) {
+    bumpEngagement("adClickCount", 1);
+  }
+};
+
+function computeMyLeaderboardRank(score) {
+  /* Device-local competitive board: stable synthetic rivals + you.
+     Encourages climbing; not a money settlement source (D-222). */
+  const seeds = [980, 920, 860, 800, 740, 690, 640, 590, 540, 500, 460, 420, 380, 340, 300, 270, 240, 210, 180, 150];
+  const rivals = seeds.map((base, index) => ({
+    name: ["Nova", "Kemi", "Ada", "Tunde", "Zara", "Chidi", "Maya", "Leo", "Ife", "Sam", "Rae", "Ola", "Nia", "Ben", "Ayo", "Lux", "Ivy", "Kai", "Sade", "Jon"][index],
+    score: base + ((index * 17) % 40)
+  }));
+  const me = { name: "You", score: Math.round(score), isYou: true };
+  const board = rivals.concat([me]).sort((a, b) => b.score - a.score || (a.isYou ? -1 : 1));
+  const rank = board.findIndex(row => row.isYou) + 1;
+  return { rank, board: board.slice(0, 12), score: me.score };
+}
+
+function recordLeaderboardCheck(openCount = false) {
+  if (!hasPersonalSession()) return null;
+  const { rank, board, score } = computeMyLeaderboardRank(engagementScore());
+  if (openCount) bumpEngagement("leaderboardOpenCount", 1);
+  bumpEngagement("leaderboardCheckCount", 1);
+  const prev = Number(accountProfile.leaderboardBestRank || 0);
+  if (!prev || rank < prev) accountProfile.leaderboardBestRank = rank;
+  persistPersonalState();
+  try { renderAchievementsAccount(); } catch (_) {}
+  return { rank, board, score, best: Number(accountProfile.leaderboardBestRank || rank) };
+}
+
+window.openEngagementLeaderboard = function() {
+  if (!requirePersonalSession("view the engagement leaderboard")) return;
+  const snap = recordLeaderboardCheck(true) || computeMyLeaderboardRank(engagementScore());
+  const overlay = document.createElement("div");
+  overlay.id = "leaderboard-overlay";
+  overlay.className = "install-popup-overlay active";
+  overlay.innerHTML = `
+    <div class="install-popup-card leaderboard-card" role="dialog" aria-modal="true" aria-label="Engagement leaderboard">
+      <header><h2>🏆 Engagement leaderboard</h2>
+        <button type="button" class="icon-btn-small" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock')" aria-label="Close">×</button>
+      </header>
+      <p class="install-popup-note">Climb with real Archive activity — reviews, shares, <strong>support-ad taps</strong>, product use, and daily returns. Top 10 unlocks Contender / Finisher badges. Podium (top 3) unlocks Podium Push. This board is engagement practice on your device; coin competitions stay server-settled.</p>
+      <div class="leaderboard-you">Your score <strong>${snap.score.toLocaleString()}</strong> · Rank <strong>#${snap.rank}</strong> · Best <strong>#${snap.best || snap.rank}</strong></div>
+      <ol class="leaderboard-list">
+        ${snap.board.map((row, index) => `
+          <li class="${row.isYou ? "is-you" : ""}">
+            <span class="lb-rank">#${index + 1}</span>
+            <span class="lb-name">${row.isYou ? "You" : row.name}</span>
+            <span class="lb-score">${Math.round(row.score).toLocaleString()} pts</span>
+          </li>`).join("")}
+      </ol>
+      <div class="install-popup-actions" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;">
+        <button type="button" class="primary-action" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock');openEngagementLeaderboard()">↻ Recheck rank</button>
+        <button type="button" class="secondary-action" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock');document.querySelector('[data-paragon-ad]')?.scrollIntoView({behavior:'smooth',block:'center'})">Support via ads</button>
+        <button type="button" class="secondary-action" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock')">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.classList.add("popup-lock");
+  showToast(snap.rank <= 10 ? `Top 10 — you are #${snap.rank}. Keep climbing!` : `Rank #${snap.rank} — engage more to break top 10.`);
+};
+
 
 /* ============================================
    PARAGON ARCHIVE — FULL APPLICATION LOGIC
@@ -352,6 +489,24 @@ function mergePersonalStates(accountValue = {}, guestValue = {}) {
       qrCount: Number(account.profile?.qrCount || 0) + Number(guest.profile?.qrCount || 0),
       aiQuestionCount: Number(account.profile?.aiQuestionCount || 0) + Number(guest.profile?.aiQuestionCount || 0),
       resultsSearchCount: Number(account.profile?.resultsSearchCount || 0) + Number(guest.profile?.resultsSearchCount || 0),
+      adImpressionCount: Number(account.profile?.adImpressionCount || 0) + Number(guest.profile?.adImpressionCount || 0),
+      adClickCount: Number(account.profile?.adClickCount || 0) + Number(guest.profile?.adClickCount || 0),
+      leaderboardOpenCount: Number(account.profile?.leaderboardOpenCount || 0) + Number(guest.profile?.leaderboardOpenCount || 0),
+      leaderboardCheckCount: Number(account.profile?.leaderboardCheckCount || 0) + Number(guest.profile?.leaderboardCheckCount || 0),
+      leaderboardBestRank: (() => {
+        const ranks = [Number(account.profile?.leaderboardBestRank || 0), Number(guest.profile?.leaderboardBestRank || 0)].filter(n => n > 0);
+        return ranks.length ? Math.min(...ranks) : 0;
+      })(),
+      dayStreak: Math.max(Number(account.profile?.dayStreak || 0), Number(guest.profile?.dayStreak || 0)),
+      lastActiveDay: account.profile?.lastActiveDay || guest.profile?.lastActiveDay || null,
+      coinShopOpenCount: Number(account.profile?.coinShopOpenCount || 0) + Number(guest.profile?.coinShopOpenCount || 0),
+      productOpenCount: Number(account.profile?.productOpenCount || 0) + Number(guest.profile?.productOpenCount || 0),
+      installOpenCount: Number(account.profile?.installOpenCount || 0) + Number(guest.profile?.installOpenCount || 0),
+      communityOpenCount: Number(account.profile?.communityOpenCount || 0) + Number(guest.profile?.communityOpenCount || 0),
+      detailOpenCount: Number(account.profile?.detailOpenCount || 0) + Number(guest.profile?.detailOpenCount || 0),
+      categoryBrowseCount: Number(account.profile?.categoryBrowseCount || 0) + Number(guest.profile?.categoryBrowseCount || 0),
+      updatesViewCount: Number(account.profile?.updatesViewCount || 0) + Number(guest.profile?.updatesViewCount || 0),
+      categoriesBrowsed: [...new Set([...(account.profile?.categoriesBrowsed || []), ...(guest.profile?.categoriesBrowsed || [])])].slice(0, 40),
       achievementStage: Math.max(1, Number(account.profile?.achievementStage || 1), Number(guest.profile?.achievementStage || 1)),
       publicNotificationReads: { ...(guest.profile?.publicNotificationReads || {}), ...(account.profile?.publicNotificationReads || {}) },
       finalAchievementUnlockedAt: account.profile?.finalAchievementUnlockedAt || guest.profile?.finalAchievementUnlockedAt || null
@@ -939,6 +1094,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (applyPlatformMaintenanceLockdown()) return; /* P-097 — whole-platform maintenance outranks everything */
   if (new URLSearchParams(window.location.search).get("install") === "1") window.setTimeout(() => window.openParagonInstall?.(), 2600); /* P-097 — shared install link */
   showWelcomeSplash(); // P-096 — splash opens FIRST, instantly, before identity/auth resolves (bug fix)
+  try { bumpDayStreak(); } catch (_) { /* identity may still settle */ }
   // D-109 achievement engagement hooks: Hub visits and Paragon AI questions.
   document.addEventListener("click", event => {
     const link = event.target?.closest?.('a[href*="paragon-archive-hub.html"]');
@@ -1670,6 +1826,16 @@ function renderCategoryOverlay(categoryName = activeCategoryView) {
 }
 
 window.showCategoryInOverlay = function(categoryName) {
+  try {
+    if (hasPersonalSession() && categoryName) {
+      const seen = new Set(Array.isArray(accountProfile.categoriesBrowsed) ? accountProfile.categoriesBrowsed : []);
+      seen.add(String(categoryName));
+      accountProfile.categoriesBrowsed = [...seen].slice(0, 40);
+      accountProfile.categoryBrowseCount = seen.size;
+      persistPersonalState();
+      renderAchievementsAccount();
+    }
+  } catch (_) {}
   renderCategoryOverlay(categoryName);
   document.getElementById("category-overlay")?.scrollTo?.({ top: 0, behavior: "smooth" });
   requestAnimationFrame(() => document.getElementById("category-back")?.focus({ preventScroll: true }));
@@ -2250,7 +2416,8 @@ function achievementTasks() {
   const voteCount = Object.values(reviewVotes || {}).filter(Boolean).length;
   const progressCount = Object.keys(sharedProgress || {}).length;
   const readNotifications = inAppNotifications.filter(notification => notification.readAt).length;
-  return [
+  const bestRank = Number(accountProfile.leaderboardBestRank || 0);
+  const list = [
     { icon: "🥇", title: "First Visit", detail: "Open one website detail.", complete: localVisits.length >= 1 },
     { icon: "⭐", title: "First Rating", detail: "Rate one website.", complete: reviews.some(review => Number(review.stars) >= 1) },
     { icon: "📝", title: "First Review", detail: "Write one review.", complete: reviews.some(review => String(review.text || "").trim()) },
@@ -2280,8 +2447,32 @@ function achievementTasks() {
     { icon: "🤖", title: "AI Regular", detail: "Ask Paragon AI three questions.", complete: Number(accountProfile.aiQuestionCount || 0) >= 3 },
     { icon: "🔎", title: "Results Seeker", detail: "Run three full Search Results searches.", complete: Number(accountProfile.resultsSearchCount || 0) >= 3 },
     { icon: "📣", title: "Social Spreader", detail: "Share five detail links to apps or people.", complete: Number(accountProfile.shareCount || 0) >= 5 },
-    { icon: "🔔", title: "Fully Notified", detail: "Read ten account notifications.", complete: readNotifications >= 10 }
+    { icon: "🔔", title: "Fully Notified", detail: "Read ten account notifications.", complete: readNotifications >= 10 },
+    /* P-106 — stages 7–10: ads, leaderboard climb, retention & engagement */
+    { icon: "👀", title: "Ad Curious", detail: "View one reserved or live ad slot.", complete: Number(accountProfile.adImpressionCount || 0) >= 1 },
+    { icon: "📢", title: "Ad Supporter", detail: "Tap a support ad once (helps Paragon stay free).", complete: Number(accountProfile.adClickCount || 0) >= 1 },
+    { icon: "🤝", title: "Ad Ally", detail: "Tap support ads three times.", complete: Number(accountProfile.adClickCount || 0) >= 3 },
+    { icon: "🏅", title: "Ad Champion", detail: "Tap support ads ten times.", complete: Number(accountProfile.adClickCount || 0) >= 10 },
+    { icon: "💎", title: "Ad Patron", detail: "View twenty ad slots while browsing.", complete: Number(accountProfile.adImpressionCount || 0) >= 20 },
+    { icon: "📊", title: "Leaderboard Scout", detail: "Open the engagement leaderboard once.", complete: Number(accountProfile.leaderboardOpenCount || 0) >= 1 },
+    { icon: "🧗", title: "Leaderboard Climber", detail: "Check the leaderboard three times.", complete: Number(accountProfile.leaderboardCheckCount || 0) >= 3 },
+    { icon: "🔟", title: "Top Ten Contender", detail: "Reach a personal best rank of 10 or better.", complete: bestRank > 0 && bestRank <= 10 },
+    { icon: "🏁", title: "Top Ten Finisher", detail: "Hold top-10 best rank after five board checks.", complete: bestRank > 0 && bestRank <= 10 && Number(accountProfile.leaderboardCheckCount || 0) >= 5 },
+    { icon: "🥇", title: "Podium Push", detail: "Reach a personal best rank of 3 or better.", complete: bestRank > 0 && bestRank <= 3 },
+    { icon: "📅", title: "Daily Return", detail: "Come back on a second day (streak 2).", complete: Number(accountProfile.dayStreak || 0) >= 2 },
+    { icon: "🔥", title: "Week Streak", detail: "Keep a seven-day return streak.", complete: Number(accountProfile.dayStreak || 0) >= 7 },
+    { icon: "🪙", title: "Coin Curious", detail: "Open the Paragon Coins shop once.", complete: Number(accountProfile.coinShopOpenCount || 0) >= 1 },
+    { icon: "🚀", title: "Product Pilot", detail: "Open three Paragon product tools.", complete: Number(accountProfile.productOpenCount || 0) >= 3 },
+    { icon: "📲", title: "Install Ready", detail: "Open Install & app permissions once.", complete: Number(accountProfile.installOpenCount || 0) >= 1 },
+    { icon: "👥", title: "Community Step", detail: "Open Community from Account once.", complete: Number(accountProfile.communityOpenCount || 0) >= 1 },
+    { icon: "🔍", title: "Detail Deep Dive", detail: "Open fifteen website detail pages.", complete: Number(accountProfile.detailOpenCount || 0) >= 15 },
+    { icon: "🗂️", title: "Category Hopper", detail: "Browse five different categories.", complete: Number(accountProfile.categoryBrowseCount || 0) >= 5 },
+    { icon: "📰", title: "Update Watcher", detail: "Open the Updates tab five times.", complete: Number(accountProfile.updatesViewCount || 0) >= 5 },
+    { icon: "👑", title: "Archive Legend", detail: "Finish every other achievement first.", complete: false }
   ];
+  const prior = list.slice(0, -1);
+  list[list.length - 1].complete = prior.every(task => task.complete);
+  return list;
 }
 
 function currentAchievementStage(tasks = achievementTasks()) {
@@ -2300,7 +2491,7 @@ function renderAchievementsAccount() {
   const stageComplete = stage.tasks.length > 0 && stage.tasks.every(task => task.complete);
   const hasNext = stage.stage < stage.totalStages;
   const taskMarkup = stage.tasks.map(task => `
-    <article class="ach-item ${task.complete ? "completed" : ""}"><div class="emoji">${task.icon}</div><h4>${task.title}</h4><p>${task.complete ? "Completed" : task.detail}</p></article>`).join("");
+    <article class="ach-item ${task.complete ? "completed" : ""}">${badgeIconMarkup(task)}<h4>${task.title}</h4><p>${task.complete ? "Completed" : task.detail}</p></article>`).join("");
   const lockMarkup = hasNext ? `<button type="button" class="ach-item ${stageComplete ? "ready" : "locked"}" ${stageComplete ? "onclick=\"unlockNextAchievementStage()\"" : "disabled"} aria-label="More Soon: ${remaining} tasks remaining"><div class="emoji">${stageComplete ? "🔓" : `<img class="ach-lock-illus" src="assets/illustrations/achievement-locked.png" alt="" loading="lazy">`}</div><h4>More Soon</h4><p>${remaining} task${remaining === 1 ? "" : "s"} remaining</p></button>` : "";
   const stageCompleted = stage.tasks.filter(task => task.complete).length;
   const achievementPercent = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
@@ -2451,6 +2642,7 @@ function renderAccount() {
       ${loggedIn && providerLabel(authUser) === "Email" ? `<div class="row"><button type="button" class="settings-link" onclick="openPasswordUpdate()"><span>🔑 Change Password</span></button></div>` : ""}
       <div class="row"><button type="button" class="settings-link" onclick="openParagonInstall()"><span>📲 Install Paragon Archive &amp; app permissions</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openCoinShop()"><span>🪙 Paragon Coins — balance ${coinBalance().toLocaleString()} · buy (real-money OFF)</span></button></div>
+      <div class="row"><button type="button" class="settings-link" onclick="openEngagementLeaderboard()"><span>🏆 Engagement leaderboard — climb to Top 10</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="shareParagonApp()"><span>📤 Share Paragon Archive (install link)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openCommunityEntry()"><span>${communityMembershipRecord() ? "👥 Paragon Community · Open the Board" : "👥 Paragon Community"}</span></button></div>
       <div class="row"><a class="settings-link" href="paragon-archive-hub.html"><span><img class="settings-brand-mark" src="assets/brand/logo-mark.png" alt=""> Paragon Archive Hub</span></a></div>
@@ -2484,6 +2676,7 @@ window.openBecomeDeveloper = function() {
 };
 
 window.openCommunityEntry = async function() {
+  try { if (hasPersonalSession()) { accountProfile.communityOpenCount = Number(accountProfile.communityOpenCount || 0) + 1; persistPersonalState(); renderAchievementsAccount(); } } catch (_) {}
   if (communityMembershipRecord()) { window.location.href = "community-board.html"; return; }
   const overlay = ensureUtilityOverlay("community-join-overlay");
   overlay.innerHTML = `
@@ -3274,6 +3467,7 @@ window.openFinancialCase = function(caseType, summary) {
 };
 
 window.openCoinShop = function() {
+  try { if (hasPersonalSession()) { accountProfile.coinShopOpenCount = Number(accountProfile.coinShopOpenCount || 0) + 1; persistPersonalState(); renderAchievementsAccount(); } } catch (_) {}
   if (typeof document.createElement !== "function") return;
   syncApprovedCoinCredits();
   refreshCoinAccountFromServer().finally(() => {
@@ -3388,6 +3582,7 @@ window.toggleInstallPermission = async function(input, name) {
   window.renderInstallPopupStates?.();
 };
 window.openParagonInstall = function() {
+  try { if (hasPersonalSession()) { accountProfile.installOpenCount = Number(accountProfile.installOpenCount || 0) + 1; persistPersonalState(); renderAchievementsAccount(); } } catch (_) {}
   if (typeof document.createElement !== "function") return;
   document.getElementById("paragon-install-overlay")?.remove();
   const overlay = document.createElement("div");
@@ -3836,6 +4031,13 @@ function closeAllTransientUI() {
 }
 
 window.switchToTab = function(name, options = {}) {
+  try {
+    if (String(name) === "updates" && hasPersonalSession()) {
+      accountProfile.updatesViewCount = Number(accountProfile.updatesViewCount || 0) + 1;
+      persistPersonalState();
+      renderAchievementsAccount();
+    }
+  } catch (_) {}
   const { scroll = true, updateHash = true } = options;
   if (!["websites", "updates", "account"].includes(name)) name = "websites";
   closeAllTransientUI();
@@ -5320,6 +5522,13 @@ window.launchSite = function(siteName, button) {
   /* P-094 — the launch URL resolves through the pending footer destination for the Hub. */
   const launchUrl = resolveLaunchUrl(site) || "";
   const launchSite = launchUrl ? { ...site, siteUrl: launchUrl } : site;
+  try {
+    if (hasPersonalSession() && String(launchUrl || site.siteUrl || "").includes("/sites/")) {
+      accountProfile.productOpenCount = Number(accountProfile.productOpenCount || 0) + 1;
+      persistPersonalState();
+      renderAchievementsAccount();
+    }
+  } catch (_) {}
   const hasUrl = Boolean(launchUrl);
   let frameLoaded = !hasUrl;
   let visualReady = false;
@@ -5582,6 +5791,12 @@ function setActiveTabState(tabName) {
 }
 
 window.openDetail = function(name) {
+  try {
+    if (hasPersonalSession()) {
+      accountProfile.detailOpenCount = Number(accountProfile.detailOpenCount || 0) + 1;
+      persistPersonalState();
+    }
+  } catch (_) {}
   const site = sites.find(s => s.name === name) || (name === deployedTemplateExample.name ? deployedTemplateExample : null);
   if (!site) return;
   if (!isRestoringDetailState && !site.illustrative) {

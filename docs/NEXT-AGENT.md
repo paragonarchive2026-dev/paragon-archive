@@ -8,7 +8,7 @@
 
 # 🤝 NEXT-AGENT HANDOFF BRIEF — READ THIS FIRST
 
-**Last updated:** 2026-09-03 (EOP v0.99.0, prompt P-105)
+**Last updated:** 2026-09-03 (EOP v1.00.0, prompt P-106)
 **You are:** the owner's dedicated build agent for **Paragon Archive**, a large multi-product front-end platform.
 
 ## 1. WHO THE OWNER IS & HOW TO WORK WITH THEM
@@ -30,7 +30,7 @@
 - **P-001 preserve-first:** never destroy owner-approved work; extend it.
 - **P-014:** every new HTML/CSS/JS/SQL file starts with the `PARAGON ARCHIVE — EXPORT IDENTITY` comment header (REAL FILE NAME / EXPECTED PROJECT PATH / ROLE / RESTORE-LOAD NOTE).
 - **P-015:** responsive at all resolutions.
-- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v82**) AND the assertion in `tests/archive-hub.test.js`.
+- **P-016:** ANY cached-shell change (app.js, style.css, root HTMLs, data/, icons) ⇒ bump `CACHE_NAME` in `service-worker.js` (currently **paragon-archive-v83**) AND the assertion in `tests/archive-hub.test.js`.
 - **NO `window.alert/prompt/confirm` anywhere** — use inline panels or `ParagonTeamConfirm` (in `team/nav.js`).
 - **Canonical entry = `paragon-archive.html`. NEVER create a root index.html.**
 - Progress % must be milestone-derived (D-116) or labelled "team-set".
@@ -177,3 +177,9 @@ Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop (shopper). Meal Plann
 **Badges:** 30/30 art files exist and are wired.
 
 **Next:** owner paste Script A results; run any false migrations; Edge deploy; founder photo still OWNER-only.
+
+## 7l. WHERE WE STOPPED — after P-106 / EOP v1.00.0
+
+**Achievements:** 50/50 tasks + badge art. Ads + Top 10 leaderboard + streaks.
+
+**Next:** optional AI polish of geometric badges 41–50; owner AdSense publisher ID when approved; founder photo still OWNER-only.

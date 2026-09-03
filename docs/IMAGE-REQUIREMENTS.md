@@ -89,7 +89,7 @@ Per site: icon 200², card preview 800×400, hero 1200×600, 3–5 detail shots 
 | # | Image | Status |
 |---|---|---|
 | 22 | Default profile avatar | ✅ WIRED — `default-avatar.png` shown for Guest sessions |
-| 23 | Achievement badges | ✅ **30/30** in `assets/achievement-badges/` + wired in `BADGE_ART` (P-105 completed 21–30) |
+| 23 | Achievement badges | ✅ **50/50** in `assets/achievement-badges/` + wired in `BADGE_ART` (P-106 ads/leaderboard/engagement 31–50) |
 | 24–27 | Empty bookmarks/history/collections/reviews | 🎨 GENERATE — 4-piece matched illustration set |
 | 28 | Guest mode illustration | 🎨 after logo (uses logo) |
 | 29 | Collection folder icon | 💻 CODE — recolorable SVG folder |
