@@ -19,7 +19,7 @@
     set("statFilters", s.filters || 0);
   }
 
-  document.getElementById("themeToggle")?.addEventListener("click", kit.toggleTheme);
+  /* P-113 — per-site dark/light toggle removed; the Archive nav bar controls all sites. */
 
   const canvas = document.getElementById("photoCanvas");
   if (!canvas) { stats(); return; }

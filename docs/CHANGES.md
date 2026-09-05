@@ -1,4 +1,18 @@
-# 📦 Changed files — lineage-union merge to GitHub main (2026-09-03)
+# 📦 Changed files
+
+## 2026-09-05 — P-113 update wave
+See **[P-113-WAVE.md](P-113-WAVE.md)** for the full plain-English list. Highlights: Google-style
+instant search; smarter Paragon AI (chat/greetings/typos + floating Ask AI button); Updates feed
+reverted to flat; all popups modal (× on right, no outside-close, background locked); REAL
+leaderboards (no fake rivals, honest empty states) with a weekly calendar dropdown; prize split
+**30/20/15/10/9/6/4/3/2/1**; Real Money ON; withdrawal fee **100 coins** (₦50 × 2); OPay/Moniepoint
+KYC-driven payment rail with placeholders + live coin total; 12 account boxes (Coin Shop removed;
+Rewards / Daily Goals / Orders / Invite added); websites open **full tab (no iframes)**; each
+`/sites/` product now owns its CSS/JS with no per-site theme toggle; `vercel.json` root routing.
+
+---
+
+## 📦 Changed files — lineage-union merge to GitHub main (2026-09-03)
 
 Both post-P-098 parallel lineages are now ONE tree on GitHub `main`. Everything this
 workspace built (Stages 5–7 device leaderboards + withdrawal engine + finance desks)

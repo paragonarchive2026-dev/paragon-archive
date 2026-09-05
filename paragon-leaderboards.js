@@ -46,10 +46,14 @@
 
   /* Spec §12 defaults — the server-controlled paragon_economic_settings table mirrors these. */
   var CONFIG = {
-    rewardPoolShare: 0.30,            /* 30% of eligible realized competition-fee revenue */
+    rewardPoolShare: 0.30,            /* 30% of eligible realized competition-fee revenue (spec §18) */
     rewardRanks: 10,                  /* top 3 + ranks 4-10 */
-    minStakeCoins: 1,
-    distribution: [30, 20, 15, 10, 7, 5, 4, 3, 2, 4], /* percents, ranks #1-#10, total MUST be 100 */
+    /* P-113 owner ruleset (coin rules §4/§5/§6): min stake 100 coins, max 10,000 coins per match,
+       platform competition fee = 5% of the pool. Free play is always ₦0 and never scores. */
+    minStakeCoins: 100,
+    maxStakeCoins: 10000,
+    competitionFeeRate: 0.05,         /* 5% of the total competition pool */
+    distribution: [30, 20, 15, 10, 9, 6, 4, 3, 2, 1] /* P-113 owner-corrected percents, still sums to 100 */, /* percents, ranks #1-#10, total MUST be 100 */
     scoring: {                        /* performance-only per game; server-controlled */
       quiz: { mode: "accuracyPct" },  /* points = round(score/total * 100), 0..100 per play */
       default: { mode: "accuracyPct" }
@@ -127,6 +131,10 @@
   function applyEconomyMirror() {
     var mirror = readJSON(STORES.economy, null);
     if (!mirror || typeof mirror !== "object") return;
+    /* P-113: legacy mirrors (distribution 30/20/15/10/7/5/4/3/2/4) are pre-correction.
+       Ignore stale local mirrors unless they carry the current economy version marker. */
+    var ECONOMY_VERSION = 2;
+    if (Number(mirror.economyVersion || 0) < ECONOMY_VERSION) return;
     if (Number(mirror.rewardPoolShare) > 0 && Number(mirror.rewardPoolShare) <= 1) CONFIG.rewardPoolShare = Number(mirror.rewardPoolShare);
     if (Array.isArray(mirror.distribution)) {
       var list = mirror.distribution.map(Number);
@@ -214,16 +222,17 @@
     if (!player) return { ok: false, code: "no-player" };
     if (isGuest(player) || String(r.player || "").trim() === "Guest (this device)") return { ok: false, code: "guest" };
     if (String(r.mode || "").toLowerCase() !== "bet") return { ok: false, code: "free-play" }; /* spec: free play never climbs */
-    var stake = Math.round(Number(r.stakeCoins) || 0);
-    if (stake < CONFIG.minStakeCoins) return { ok: false, code: "below-min-stake" };
     var creatorFor = r.creatorFor ? escapePlayer(r.creatorFor) : "";
     if (r.selfPlay === true || (creatorFor && creatorFor === player)) {
-      return { ok: false, code: "creator-self-play" }; /* spec §9.2: never points, never prize from own quiz */
+      return { ok: false, code: "creator-self-play" }; /* spec §9.2/§13: never points, never prize from own quiz */
     }
     var perf = r.perf || {};
     var total = Number(perf.total) || 0;
     var score = Number(perf.score) || 0;
     if (total < 0 || score < 0 || (total > 0 && score > total)) return { ok: false, code: "impossible-result" };
+    var stake = Math.round(Number(r.stakeCoins) || 0);
+    if (stake < CONFIG.minStakeCoins) return { ok: false, code: "below-min-stake" }; /* spec §4 */
+    if (CONFIG.maxStakeCoins && stake > CONFIG.maxStakeCoins) return { ok: false, code: "above-max-stake" }; /* spec §5 */
     if (perf.place != null && perf.entrants != null && Number(perf.place) >= 1 && Number(perf.place) > Number(perf.entrants)) {
       return { ok: false, code: "impossible-result" };
     }
@@ -604,7 +613,7 @@
     issueCredits: issueCredits,
     auditLog: auditLog,
     isGuestPlayer: isGuest,
-    DISTRIBUTION_SPEC: "30/20/15/10/7/5/4/3/2/4" /* exact spec §12 table, kept for fixtures */
+    DISTRIBUTION_SPEC: "30/20/15/10/9/6/4/3/2/1" /* exact spec §12 table, kept for fixtures */
   };
   if (typeof window !== "undefined") window.ParagonLeaderboards = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

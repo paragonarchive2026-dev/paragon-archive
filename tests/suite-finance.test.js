@@ -48,7 +48,7 @@ console.log("🧪 P-100 — Stage 6/7 finance fixture (withdrawals, payouts, cla
 const engineSource = fs.readFileSync(path.join(root, "paragon-wallets.js"), "utf8");
 check(engineSource.includes("PARAGON ARCHIVE — EXPORT IDENTITY"), "paragon-wallets.js carries the identity header");
 check(!/window\.(alert|prompt|confirm)\s*\(/.test(engineSource), "wallet engine has no browser dialogs");
-check(engineSource.includes("withdrawalFeeThresholdNaira: 10000") && engineSource.includes("withdrawalFeeCoins: 50"), "engine carries the ₦10,000 → 50-coin fee rule");
+check(engineSource.includes("withdrawalFeeThresholdNaira: 10000") && engineSource.includes("withdrawalFeeCoins: 100"), "engine carries the ₦10,000+ → 100-coin fee rule (₦50 × 2 coins per ₦1)");
 check(engineSource.includes("dailyLimit: 2") && engineSource.includes("weeklyLimit: 5"), "engine defaults: 2 per rolling 24 h, 5 per rolling 7 days");
 check(engineSource.indexOf("PAID") !== -1 && engineSource.indexOf("COINS_UNLOCKED") !== -1, "engine implements the full payout state set");
 const archiveHtml = fs.readFileSync(path.join(root, "paragon-archive.html"), "utf8");
@@ -89,20 +89,20 @@ check(!dangerous, "no raw coinBalance localStorage setter outside the personal s
 const env = loadWallets({});
 const W = env.context.ParagonWallets;
 check(W.nairaToCoins(10000) === 20000 && W.coinsToNaira(20000) === 10000, "placeholder rate ₦1 = 2 coins both ways");
-check(W.withdrawalFeeFor(9999) === 0 && W.withdrawalFeeFor(10000) === 50 && W.withdrawalFeeFor(20000) === 50, "fee kicks in exactly at ₦10,000 (below = 0, at/above = 50)");
-check(W.coinsRequiredFor(10000) === 20050 && W.coinsRequiredFor(2000) === 4000, "₦10,000 needs 10,050 redeemable coins (payout value + tracked fee)");
+check(W.withdrawalFeeFor(9999) === 0 && W.withdrawalFeeFor(10000) === 100 && W.withdrawalFeeFor(20000) === 100, "fee kicks in exactly at ₦10,000 (below = 0, at/above = 100 coins = ₦50 worth)");
+check(W.coinsRequiredFor(10000) === 20100 && W.coinsRequiredFor(2000) === 4000, "₦10,000 needs 20,100 coins (20,000 payout value + 100-coin fee)");
 
 /* ---------- 3. Request intake (locking, honest balance) ---------- */
 const belowMin = W.requestWithdrawal({ user: "ada@example.com", naira: 500, availableCoins: 999999, payout: { bank: "OPay", accountNumber: "0123456789", accountName: "Ada Obi" } });
 check(!belowMin.ok && belowMin.code === "below-minimum", "below-minimum withdrawal rejected");
-const insufficient = W.requestWithdrawal({ user: "ada@example.com", naira: 10000, availableCoins: 20049, payout: { bank: "OPay", accountNumber: "0123456789", accountName: "Ada Obi" } });
+const insufficient = W.requestWithdrawal({ user: "ada@example.com", naira: 10000, availableCoins: 20099, payout: { bank: "OPay", accountNumber: "0123456789", accountName: "Ada Obi" } });
 check(!insufficient.ok && insufficient.code === "insufficient", "withdrawal rejected when balance cannot cover coins + fee");
-const okReq = W.requestWithdrawal({ user: "ada@example.com", naira: 10000, availableCoins: 20050, payout: { bank: "OPay", accountNumber: "0123456789", accountName: "Ada Obi" } });
-check(okReq.ok && okReq.request.state === "LOCKED" && okReq.lockedCoins === 20050 && okReq.feeCoins === 50, "valid ₦10,000 request locks 20,050 coins (20,000 + 50 fee)");
+const okReq = W.requestWithdrawal({ user: "ada@example.com", naira: 10000, availableCoins: 20100, payout: { bank: "OPay", accountNumber: "0123456789", accountName: "Ada Obi" } });
+check(okReq.ok && okReq.request.state === "LOCKED" && okReq.lockedCoins === 20100 && okReq.request.feeCoins === 100, "valid ₦10,000 request locks 20,100 coins (20,000 + 100 fee)");
 check(!!okReq.request.correlationId && okReq.request.correlationId.indexOf("CORR-") === 0, "every request carries a correlation ID for user tracing");
 check(okReq.request.payoutRef === "" && okReq.request.state !== "PAID", "a request NEVER claims it was paid (no fabricated payout)");
 check(W.findRequest(okReq.request.id).user === "ada@example.com", "request persisted and findable by id");
-const second = W.requestWithdrawal({ user: "ada@example.com", naira: 2000, availableCoins: 20050, payout: { bank: "Kuda", accountNumber: "0987654321", accountName: "Ada Obi" } });
+const second = W.requestWithdrawal({ user: "ada@example.com", naira: 2000, availableCoins: 20100, payout: { bank: "Kuda", accountNumber: "0987654321", accountName: "Ada Obi" } });
 check(second.ok && second.feeCoins === 0 && second.lockedCoins === 4000, "below-₦10,000 withdrawal pays no Paragon fee");
 
 /* ---------- 4. Rolling frequency limits (§23) ---------- */
@@ -193,12 +193,12 @@ check(resumedReq.ok, "lifting the pause resumes new withdrawals");
 /* ---------- 9. Typed ledger + balance reconciliation (§15–§16) ---------- */
 const ledgerEnv = loadWallets({});
 const WL = ledgerEnv.context.ParagonWallets;
-WL.appendLedger({ user: "led@example.com", type: "PURCHASE_CREDIT", amount: 25050, refType: "purchase", ref: "coin-aaa", reason: "Approved purchase", idempotencyKey: "led-1" });
-WL.appendLedger({ user: "led@example.com", type: "PURCHASE_CREDIT", amount: 25050, refType: "purchase", ref: "coin-aaa", reason: "replayed", idempotencyKey: "led-1" });
+WL.appendLedger({ user: "led@example.com", type: "PURCHASE_CREDIT", amount: 25100, refType: "purchase", ref: "coin-aaa", reason: "Approved purchase", idempotencyKey: "led-1" });
+WL.appendLedger({ user: "led@example.com", type: "PURCHASE_CREDIT", amount: 25100, refType: "purchase", ref: "coin-aaa", reason: "replayed", idempotencyKey: "led-1" });
 check(WL.ledgerFor("led@example.com").length === 1, "ledger rows are idempotency-keyed (replays never double-credit)");
-WL.appendLedger({ user: "led@example.com", type: "WITHDRAWAL_LOCK", amount: -20050, refType: "withdrawal", ref: "wd-x", idempotencyKey: "led-2" });
+WL.appendLedger({ user: "led@example.com", type: "WITHDRAWAL_LOCK", amount: -20100, refType: "withdrawal", ref: "wd-x", idempotencyKey: "led-2" });
 const rec = WL.reconcileBalance("led@example.com", 5000);
-check(rec.credits === 25050 && rec.debits === 20050 && rec.delta === 5000 && rec.matches === true && rec.difference === 0, "reconciliation matches: credits − debits = reported balance (25050 − 20050 = 5000)");
+check(rec.credits === 25100 && rec.debits === 20100 && rec.delta === 5000 && rec.matches === true && rec.difference === 0, "reconciliation matches: credits − debits = reported balance (25100 − 20100 = 5000)");
 const recMismatch = WL.reconcileBalance("led@example.com", 6000);
 check(recMismatch.matches === false && recMismatch.difference === -1000, "reconciliation reports the exact difference when the wallet balance disagrees with the ledger");
 const recNegative = WL.reconcileBalance("other@example.com", 0);
@@ -276,7 +276,7 @@ check(app.includes("pendingBackendSync"), "user-facing copy keeps the pendingBac
 check(engineSource.includes("browser is never authoritative for money"), "engine header states the browser-never-authoritative law");
 
 /* ---------- 17. Configurability: limits + fee read from the economic-settings mirror ---------- */
-const tunedEnv = loadWallets({ "paragonEconomicSettings.v1": { withdrawalDailyLimit: 1, withdrawalFeeCoins: 5, withdrawalFeeThresholdNaira: 5000, nairaRate: 3 } });
+const tunedEnv = loadWallets({ "paragonEconomicSettings.v1": { configVersion: 2, withdrawalDailyLimit: 1, withdrawalFeeCoins: 5, withdrawalFeeThresholdNaira: 5000, nairaRate: 3 } });
 const TW = tunedEnv.context.ParagonWallets;
 check(TW.effectiveConfig().dailyLimit === 1 && TW.effectiveConfig().withdrawalFeeCoins === 5 && TW.effectiveConfig().withdrawalFeeThresholdNaira === 5000 && TW.effectiveConfig().nairaRate === 3, "server-mirrored settings tune the limits, fee and rate");
 const tuneReq1 = TW.requestWithdrawal({ user: "tune@example.com", naira: 5000, availableCoins: 999999, payout: { bank: "OPay", accountNumber: "0123456789", accountName: "Tune" } });

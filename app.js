@@ -196,12 +196,36 @@ function bumpDayStreak() {
   if (last === yesterday) accountProfile.dayStreak = Number(accountProfile.dayStreak || 0) + 1;
   else accountProfile.dayStreak = 1;
   accountProfile.lastActiveDay = today;
+  /* P-113 — Daily Goals reset when the day rolls over. */
+  accountProfile.goalsDay = today;
+  accountProfile.productOpenCountToday = 0;
+  accountProfile.reviewsToday = 0;
+  accountProfile.aiAsksToday = 0;
+  persistPersonalState();
+}
+/* First activity of a session: make sure the per-day counters match today. */
+function ensureDailyCounters() {
+  if (!hasPersonalSession()) return;
+  if (String(accountProfile.goalsDay || "") !== localDayKey()) {
+    accountProfile.goalsDay = localDayKey();
+    accountProfile.productOpenCountToday = 0;
+    accountProfile.reviewsToday = 0;
+    accountProfile.aiAsksToday = 0;
+    persistPersonalState();
+  }
+}
+function bumpDaily(field) {
+  if (!hasPersonalSession()) return;
+  ensureDailyCounters();
+  accountProfile[field] = Number(accountProfile[field] || 0) + 1;
+  accountProfile.xp = Number(accountProfile.xp || 0) + 2; /* XP only — never cash (rule §19) */
   persistPersonalState();
 }
 
 function bumpEngagement(field, by = 1) {
   if (!hasPersonalSession() || !field) return;
   accountProfile[field] = Number(accountProfile[field] || 0) + by;
+  accountProfile.xp = Number(accountProfile.xp || 0) + by;
   persistPersonalState();
   try { renderAchievementsAccount(); } catch (_) { /* account tab may be idle */ }
 }
@@ -215,62 +239,88 @@ window.ParagonArchiveAdsBridge = {
   }
 };
 
+/* P-113 — REAL engagement leaderboard. Owner rule: no invented rivals, no fake rank.
+   The board shows ONLY real people/accounts with real activity. Until the backend sync
+   of users is active, the list is empty and every user (guest included) is "unranked".
+   When the server-synced roster exists, this returns it; guests can view but their own
+   guest activity is not ranked (ranking starts when they join/create an account). */
+function readRealLeaderboardRoster() {
+  // Backend-synced roster (Supabase/local mirror key). Returns [] until real users exist.
+  try {
+    const roster = JSON.parse(window.localStorage.getItem("paragon.realLeaderboard.v1") || "null");
+    if (Array.isArray(roster)) {
+      return roster
+        .filter(row => row && row.name && Number(row.score) > 0 && !row.fake && !row.illustrative)
+        .map(row => ({ name: String(row.name), score: Math.round(Number(row.score) || 0), handle: row.handle || "", isYou: false }))
+        .sort((a, b) => b.score - a.score);
+    }
+  } catch (_) { /* storage blocked */ }
+  return [];
+}
+
 function computeMyLeaderboardRank(score) {
-  /* Device-local competitive board: stable synthetic rivals + you.
-     Encourages climbing; not a money settlement source (D-222). */
-  const seeds = [980, 920, 860, 800, 740, 690, 640, 590, 540, 500, 460, 420, 380, 340, 300, 270, 240, 210, 180, 150];
-  const rivals = seeds.map((base, index) => ({
-    name: ["Nova", "Kemi", "Ada", "Tunde", "Zara", "Chidi", "Maya", "Leo", "Ife", "Sam", "Rae", "Ola", "Nia", "Ben", "Ayo", "Lux", "Ivy", "Kai", "Sade", "Jon"][index],
-    score: base + ((index * 17) % 40)
-  }));
-  const me = { name: "You", score: Math.round(score), isYou: true };
-  const board = rivals.concat([me]).sort((a, b) => b.score - a.score || (a.isYou ? -1 : 1));
-  const rank = board.findIndex(row => row.isYou) + 1;
-  return { rank, board: board.slice(0, 12), score: me.score };
+  /* REAL board: synced real users only. You appear only with a real account AND points. */
+  const roster = readRealLeaderboardRoster();
+  const meScore = Math.round(Number(score) || 0);
+  const hasAccount = hasPersonalSession() && !guestMode;
+  const board = roster.slice();
+  let rank = 0;
+  if (hasAccount && meScore > 0) {
+    board.push({ name: "You", score: meScore, isYou: true });
+    board.sort((a, b) => b.score - a.score || (a.isYou ? -1 : 1));
+    rank = board.findIndex(row => row.isYou) + 1;
+  }
+  return { rank, board: board.slice(0, 25), score: meScore, ranked: rank > 0, hasOthers: roster.length > 0 };
 }
 
 function recordLeaderboardCheck(openCount = false) {
   if (!hasPersonalSession()) return null;
-  const { rank, board, score } = computeMyLeaderboardRank(engagementScore());
+  const snap = computeMyLeaderboardRank(engagementScore());
   if (openCount) bumpEngagement("leaderboardOpenCount", 1);
   bumpEngagement("leaderboardCheckCount", 1);
-  const prev = Number(accountProfile.leaderboardBestRank || 0);
-  if (!prev || rank < prev) accountProfile.leaderboardBestRank = rank;
+  if (snap.ranked) {
+    const prev = Number(accountProfile.leaderboardBestRank || 0);
+    if (!prev || snap.rank < prev) accountProfile.leaderboardBestRank = snap.rank;
+  }
   persistPersonalState();
   try { renderAchievementsAccount(); } catch (_) {}
-  return { rank, board, score, best: Number(accountProfile.leaderboardBestRank || rank) };
+  return { ...snap, best: Number(accountProfile.leaderboardBestRank || 0) };
 }
 
 window.openEngagementLeaderboard = function() {
-  if (!requirePersonalSession("view the engagement leaderboard")) return;
-  const snap = recordLeaderboardCheck(true) || computeMyLeaderboardRank(engagementScore());
+  const snap = (hasPersonalSession() && recordLeaderboardCheck(true)) || computeMyLeaderboardRank(hasPersonalSession() ? engagementScore() : 0);
   const overlay = document.createElement("div");
   overlay.id = "leaderboard-overlay";
   overlay.className = "install-popup-overlay active";
-  overlay.innerHTML = `
-    <div class="install-popup-card leaderboard-card" role="dialog" aria-modal="true" aria-label="Engagement leaderboard">
-      <header><h2>🏆 Engagement leaderboard</h2>
-        <button type="button" class="icon-btn-small" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock')" aria-label="Close">×</button>
-      </header>
-      <p class="install-popup-note">Climb with real Archive activity — reviews, shares, <strong>support-ad taps</strong>, product use, and daily returns. Top 10 unlocks Contender / Finisher badges. Podium (top 3) unlocks Podium Push. This board is engagement practice on your device; coin competitions stay server-settled.</p>
-      <div class="leaderboard-you">Your score <strong>${snap.score.toLocaleString()}</strong> · Rank <strong>#${snap.rank}</strong> · Best <strong>#${snap.best || snap.rank}</strong></div>
-      <ol class="leaderboard-list">
+  const meBlock = snap.ranked
+    ? `<div class="leaderboard-you">Your score <strong>${snap.score.toLocaleString()}</strong> · Rank <strong>#${snap.rank}</strong>${snap.best ? ` · Best <strong>#${snap.best}</strong>` : ""}</div>`
+    : `<div class="leaderboard-you leaderboard-you-unranked">You are <strong>unranked</strong> right now${guestMode ? " — join Paragon (free) to start earning a rank" : " — earn points with real activity to appear on the board"}.</div>`;
+  const listHTML = snap.board.length
+    ? `<ol class="leaderboard-list">
         ${snap.board.map((row, index) => `
           <li class="${row.isYou ? "is-you" : ""}">
             <span class="lb-rank">#${index + 1}</span>
-            <span class="lb-name">${row.isYou ? "You" : row.name}</span>
+            <span class="lb-name">${row.isYou ? "You" : escapeHTML(row.name)}</span>
             <span class="lb-score">${Math.round(row.score).toLocaleString()} pts</span>
           </li>`).join("")}
-      </ol>
-      <div class="install-popup-actions" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;">
-        <button type="button" class="primary-action" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock');openEngagementLeaderboard()">↻ Recheck rank</button>
-        <button type="button" class="secondary-action" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock');document.querySelector('[data-paragon-ad]')?.scrollIntoView({behavior:'smooth',block:'center'})">Support via ads</button>
+      </ol>`
+    : `<div class="leaderboard-empty">
+         <div class="leaderboard-empty-art">🏆</div>
+         <strong>The real leaderboard is warming up</strong>
+         <p>There are no ranked players yet. This board only ever shows <strong>real people with real activity</strong> — no made-up names or scores. As members review websites, support via ads, and use products, they'll appear here and you can climb against them.</p>
+       </div>`;
+  overlay.innerHTML = `
+    <div class="install-popup-card leaderboard-card" role="dialog" aria-modal="true" aria-label="Engagement leaderboard">
+      <header><h2>🏆 Engagement leaderboard</h2></header>
+      <p class="install-popup-note">Real people, real activity only — reviews, shares, <strong>support-ad taps</strong>, product use and daily returns. We never invent rivals or ranks. Coin competitions stay server-settled; this is the public activity board.</p>
+      ${meBlock}
+      ${listHTML}
+      <div class="install-popup-actions" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
         <button type="button" class="secondary-action" onclick="document.getElementById('leaderboard-overlay')?.remove();document.body.classList.remove('popup-lock')">Close</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");
-  showToast(snap.rank <= 10 ? `Top 10 — you are #${snap.rank}. Keep climbing!` : `Rank #${snap.rank} — engage more to break top 10.`);
 };
 
 
@@ -1492,7 +1542,7 @@ window.closeTrendingOverlay = function(restoreFocus = true) {
 function bindTrendingOverlay() {
   const overlay = document.getElementById("trending-overlay");
   overlay?.addEventListener("click", event => {
-    if (event.target === overlay) closeTrendingOverlay(true);
+    /* P-113 owner rule: outside clicks never close a popup */ false;
   });
   document.addEventListener("keydown", event => {
     if (!overlay?.classList.contains("active")) return;
@@ -1631,7 +1681,7 @@ window.closeStaffOverlay = function(restoreFocus = true) {
 function bindStaffOverlay() {
   const overlay = document.getElementById("staff-overlay");
   overlay?.addEventListener("click", event => {
-    if (event.target === overlay) closeStaffOverlay(true);
+    /* P-113 owner rule: outside clicks never close a popup */ false;
   });
   document.addEventListener("keydown", event => {
     if (!overlay?.classList.contains("active")) return;
@@ -1739,7 +1789,7 @@ window.closeRecentOverlay = function(restoreFocus = true) {
 function bindRecentOverlay() {
   const overlay = document.getElementById("recent-overlay");
   overlay?.addEventListener("click", event => {
-    if (event.target === overlay) closeRecentOverlay(true);
+    /* P-113 owner rule: outside clicks never close a popup */ false;
   });
   document.addEventListener("keydown", event => {
     if (!overlay?.classList.contains("active")) return;
@@ -1873,7 +1923,7 @@ window.handleCategoryBack = function() {
 function bindCategoryOverlay() {
   const overlay = document.getElementById("category-overlay");
   overlay?.addEventListener("click", event => {
-    if (event.target === overlay) closeCategoryOverlay(true);
+    /* P-113 owner rule: outside clicks never close a popup */ false;
   });
   document.addEventListener("keydown", event => {
     if (!overlay?.classList.contains("active")) return;
@@ -2177,7 +2227,7 @@ window.openUpdateImageViewer = function(elementId) {
   };
   const onKey = event => { if (event.key === "Escape") close(); };
   overlay.querySelector(".update-image-viewer-close").addEventListener("click", close);
-  overlay.addEventListener("click", event => { if (event.target === overlay) close(); });
+  /* P-113 owner rule: outside clicks never close a popup */ false;
   document.addEventListener("keydown", onKey);
   overlay.querySelector(".update-image-viewer-close").focus?.();
 };
@@ -2304,7 +2354,9 @@ function renderUpdates() {
     if (pagination) pagination.hidden = true;
     return filtered;
   }
-  container.innerHTML = timelineGroupsMarkup(visible);
+  /* P-113 owner rule: the Updates feed returns to its previous flat, newest-first timeline.
+     The per-website grouped cards were not requested — each event is its own card again. */
+  container.innerHTML = visible.map(timelineItem).join("");
   setupTimelineDisclosures();
   const hasPrevious = updatePageIndex > 0;
   const hasNext = updatePageIndex < totalPages - 1;
@@ -2577,6 +2629,33 @@ window.unlockFinalAchievement = window.unlockNextAchievementStage;
 window.openAchievementsAbout = function() {
   const overlay = document.getElementById("achievements-overlay");
   if (!overlay) return;
+  /* P-113 — wire the real badge images into the About Achievements side and keep the
+     write-ups matched to the current website state. Built dynamically from the same
+     BADGE_ART map the account uses, so it never drifts out of date. */
+  const list = overlay.querySelector(".achievement-requirements");
+  if (list && !list.dataset.wired) {
+    const aboutRows = [
+      { title: "First Visit", icon: "🥇", art: BADGE_ART["First Visit"], text: "Open any website's detail page — the first step into the Archive." },
+      { title: "First Rating", icon: "⭐", art: BADGE_ART["First Rating"], text: "Give a website a personal star rating from its detail page." },
+      { title: "First Review", icon: "📝", art: BADGE_ART["First Review"], text: "Write and save your first website review." },
+      { title: "First Share", icon: "🔗", art: BADGE_ART["First Share"], text: "Share or copy a website link (the share control lives inside the Install popup)." },
+      { title: "Google or Email", icon: "👤", art: BADGE_ART["Google or Email"], text: "Continue with Google or Email — guests can keep browsing, but a real account saves and syncs everything." },
+      { title: "Product Pilot", icon: "🚀", art: BADGE_ART["Product Pilot"], text: "Open three real Paragon product tools in a full tab (free, guest or signed in)." },
+      { title: "AI Curious", icon: "🧠", art: BADGE_ART["AI Curious"], text: "Ask Paragon AI — it answers greetings, questions and website searches with typo-tolerant real answers." },
+      { title: "Daily Return", icon: "🔥", art: BADGE_ART["Daily Return"], text: "Come back on a new day. Daily Goals and streaks reward real, honest returns." },
+      { title: "Leaderboard Scout", icon: "🏆", art: BADGE_ART["Leaderboard Scout"], text: "Open the real leaderboard. Only verified staked competition results ever rank — nothing invented." },
+      { title: "Coin Curious", icon: "🪙", art: BADGE_ART["Coin Curious"], text: "Open your Paragon Coin wallet — buy coins to compete, withdraw eligible coins (Real Money is ON)." }
+    ];
+    list.innerHTML = aboutRows.map(row => `
+      <li><span class="ach-about-badge">${row.art ? `<img src="${row.art}" alt="" loading="lazy">` : row.icon}</span>
+        <div><strong>${escapeHTML(row.title)}</strong><small>${escapeHTML(row.text)}</small></div></li>`).join("");
+    list.dataset.wired = "1";
+  }
+  const intro = overlay.querySelector(".achievements-intro");
+  if (intro && !intro.dataset.wired) {
+    intro.textContent = "Achievements unlock in stages of up to five tasks from REAL activity — visits, ratings, reviews, sharing, daily goals, product use, asking Paragon AI, and the leaderboard. We never invent progress. Finish a stage to reveal the next; badges are recognition (XP, badges, perks) — never cash.";
+    intro.dataset.wired = "1";
+  }
   overlay.classList.add("active");
   overlay.setAttribute("aria-hidden", "false");
   document.body.classList.add("achievements-open");
@@ -2595,7 +2674,7 @@ function bindAchievementsAbout() {
   const overlay = document.getElementById("achievements-overlay");
   document.getElementById("achievements-close")?.addEventListener("click", closeAchievementsAbout);
   document.getElementById("achievements-done")?.addEventListener("click", closeAchievementsAbout);
-  overlay?.addEventListener("click", event => { if (event.target === overlay) closeAchievementsAbout(); });
+  overlay?.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   document.addEventListener("keydown", event => { if (event.key === "Escape" && overlay?.classList.contains("active")) closeAchievementsAbout(); });
 }
 
@@ -2685,32 +2764,42 @@ function accountBoxValues() {
   const coinWeek = coinsWeekRankForBox();
   const allTasks = typeof achievementTasks === "function" ? achievementTasks() : [];
   const done = allTasks.filter(task => task.complete).length;
+  const daily = dailyGoalsState();
+  const orderCount = (accountProfile.paymentIntents || []).length + ((walletEngine() && walletUserEmail()) ? (walletEngine().requestsFor(walletUserEmail()) || []).length : 0);
   return {
     coins: coinBalance().toLocaleString(),
-    coinsShop: coinBalance().toLocaleString(),
     visited: localVisits.length,
     reviews: Object.values(localReviews || {}).reduce((total, list) => total + (list || []).length, 0),
     saved: bookmarkedSites.size,
     progress: Object.keys(sharedProgress || {}).length,
     leaderboard: eng.rank ? `#${eng.rank}` : "—",
     achievements: `${done}/${allTasks.length}`,
-    collections: userCollections.length
+    collections: userCollections.length,
+    rewards: `${done}`,
+    dailyGoals: `${daily.done}/${daily.total}`,
+    orders: orderCount,
+    invite: Number(accountProfile.inviteCount || 0)
   };
 }
 
 function accountBoxFaces() {
   const v = accountBoxValues();
   const coinWeek = coinsWeekRankForBox();
+  /* P-113 — owner-approved 12-box order. Coin Shop removed; Rewards Center added;
+     then Daily Goals, My Orders & Payments, Invite Friends (3 across on the last row). */
   return [
-    { kind: "coins", icon: "🪙", value: v.coins, label: "Paragon Coins", hint: "Front row · wallet, buy, sell & withdraw" },
-    { kind: "visited", icon: "🕐", value: v.visited, label: "Recently Visited", hint: "Tap to open a visited site again" },
-    { kind: "reviews", icon: "📝", value: v.reviews, label: "Reviews Written", hint: "My reviews · edit or delete" },
-    { kind: "saved", icon: "🔖", value: v.saved, label: "Saved Websites", hint: "Bookmarks across Paragon" },
-    { kind: "progress", icon: "📈", value: v.progress, label: "Products in Progress", hint: "Progress across Paragon tools" },
-    { kind: "leaderboard", icon: "🏆", value: v.leaderboard, label: "Leaderboard", hint: coinWeek ? `Engagement rank #${v.leaderboard.replace("#", "")} · Coins weekly #${coinWeek.rank}` : "Engagement rank · weekly coin rewards" },
+    { kind: "coins", icon: "🪙", value: v.coins, label: "Paragon Coin", hint: "Wallet · buy, sell & withdraw coins" },
+    { kind: "leaderboard", icon: "🏆", value: v.leaderboard, label: "Leaderboard", hint: coinWeek ? `Engagement rank #${v.leaderboard.replace("#", "")} · Coins weekly #${coinWeek.rank}` : "Real engagement rank · weekly coin rewards" },
     { kind: "achievements", icon: "🏅", value: v.achievements, label: "Achievements", hint: `${doneCountLabel(v.achievements)} · badges & stages` },
-    { kind: "collections", icon: "📂", value: v.collections, label: "Collections & Playlists", hint: "My collections and playlists" },
-    { kind: "coinsShop", icon: "🛍️", value: v.coinsShop, label: "Coin Shop", hint: "Coins Leaderboard — weekly top 3 + ranks 4–10 rewards (staked results only) · buy / sell tabs" }
+    { kind: "progress", icon: "📈", value: v.progress, label: "Products in Progress", hint: "Progress across Paragon tools" },
+    { kind: "visited", icon: "🕐", value: v.visited, label: "Recently Visited", hint: "Tap to reopen a website you opened" },
+    { kind: "reviews", icon: "📝", value: v.reviews, label: "Reviews", hint: "My reviews · edit or delete" },
+    { kind: "saved", icon: "🔖", value: v.saved, label: "Saved Websites", hint: "Bookmarks across Paragon" },
+    { kind: "collections", icon: "📂", value: v.collections, label: "Collections", hint: "My collections and playlists" },
+    { kind: "rewards", icon: "🎁", value: v.rewards, label: "Rewards Center", hint: "Badges, XP, free-play perks & cosmetics — no cash" },
+    { kind: "dailyGoals", icon: "🎯", value: v.dailyGoals, label: "Daily Goals", hint: "Quick daily missions that earn XP & streaks" },
+    { kind: "orders", icon: "🧾", value: v.orders, label: "My Orders & Payments", hint: "Purchase claims, withdrawals & receipts" },
+    { kind: "invite", icon: "📣", value: v.invite, label: "Invite Friends", hint: "Your Paragon invite link & who joined" }
   ];
 }
 
@@ -2731,10 +2820,123 @@ function renderAccountBoxes() {
   host.innerHTML = `<div class="account-box-grid">${boxes}</div>`;
 }
 
+/* P-113 — Daily Goals: honest, local, resets each day. Rewards are XP / streak / perks only
+   (spec §19 — no redeemable welcome cash). Goals are checked against real activity. */
+function dailyGoalDefs() {
+  return [
+    { id: "visit", icon: "🕐", label: "Open a website", target: 1, get: () => Number(accountProfile.productOpenCountToday || 0) },
+    { id: "review", icon: "📝", label: "Write a review", target: 1, get: () => Number(accountProfile.reviewsToday || 0) },
+    { id: "ai", icon: "🧠", label: "Ask Paragon AI", target: 1, get: () => Number(accountProfile.aiAsksToday || 0) },
+    { id: "return", icon: "🔥", label: "Return on a new day", target: 1, get: () => (accountProfile.lastActiveDay === localDayKey() ? 1 : 0) }
+  ];
+}
+function dailyGoalsState() {
+  const defs = dailyGoalDefs();
+  const done = defs.filter(d => (d.get() || 0) >= d.target).length;
+  return { done, total: defs.length, streak: Number(accountProfile.dayStreak || 0) };
+}
+window.openAccountInfoBox = function(kind) {
+  closeAccountBox();
+  document.getElementById("account-info-overlay")?.remove();
+  const meta = {
+    rewards: ["🎁 Rewards Center", "Everything you can earn on Paragon — badges, XP, free-play perks and cosmetics. By rule, rewards are never redeemable cash."],
+    dailyGoals: ["🎯 Daily Goals", "Quick missions that reset every day. Finishing them builds your streak and XP — honest, local, and never paid out as money."],
+    orders: ["🧾 My Orders & Payments", "Your coin purchase requests and withdrawals in one place. Money only moves after the team verifies a real transfer."],
+    invite: ["📣 Invite Friends", "Share Paragon with your people. There is no cash bounty — invited friends simply join your community."]
+  }[kind] || ["Paragon", ""];
+  const overlay = document.createElement("div");
+  overlay.id = "account-info-overlay";
+  overlay.className = "utility-overlay active install-overlay";
+  overlay.innerHTML = `
+    <div class="install-popup-card account-box-panel" role="dialog" aria-modal="true" aria-label="${meta[0]}">
+      <header style="display:flex;align-items:flex-start;gap:10px"><h2 style="flex:1;margin:0">${meta[0]}</h2>
+        <button type="button" class="icon-btn-small" style="flex:0 0 auto;margin-left:auto" onclick="document.getElementById('account-info-overlay')?.remove();document.body.classList.remove('popup-lock')" aria-label="Close">×</button>
+      </header>
+      <div class="ab-body" id="ab-info-content"></div>
+      <small class="ab-panel-note">${meta[1]}</small>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.classList.add("popup-lock");
+  overlay.addEventListener("click", event => { /* P-113: outside clicks never close */ false; });
+  const host = overlay.querySelector("#ab-info-content");
+  host.innerHTML = accountInfoBoxBody(kind);
+};
+
+function accountInfoBoxBody(kind) {
+  if (kind === "dailyGoals") {
+    const st = dailyGoalsState();
+    const rows = dailyGoalDefs().map(d => {
+      const n = Math.min(d.get() || 0, d.target);
+      const pct = Math.round((n / d.target) * 100);
+      const complete = n >= d.target;
+      return `<div class="goal-row ${complete ? "is-complete" : ""}">
+        <span class="goal-icon">${d.icon}</span>
+        <div class="goal-copy"><strong>${d.label}</strong><small>${complete ? "Done today · +XP" : `${n}/${d.target} today`}</small>
+          <div class="goal-bar"><i style="width:${pct}%"></i></div></div>
+        <span class="goal-check">${complete ? "✅" : "○"}</span>
+      </div>`;
+    }).join("");
+    return `<div class="goals-head">Today <b>${st.done}/${st.total}</b> goals done · 🔥 <b>${st.streak}</b>-day streak</div>${rows}`;
+  }
+  if (kind === "rewards") {
+    const allTasks = typeof achievementTasks === "function" ? achievementTasks() : [];
+    const done = allTasks.filter(t => t.complete).length;
+    return `
+      <div class="reward-tiles">
+        <div class="reward-tile"><span>🏅</span><strong>${done} badges</strong><small>Unlocked from real achievements</small></div>
+        <div class="reward-tile"><span>⚡</span><strong>${Number(accountProfile.xp || 0).toLocaleString()} XP</strong><small>Earned from activity & goals</small></div>
+        <div class="reward-tile"><span>🔥</span><strong>${Number(accountProfile.dayStreak || 0)} day streak</strong><small>Come back daily</small></div>
+        <div class="reward-tile"><span>🎟️</span><strong>Free-play perks</strong><small>Cosmetics & free entries — never cash</small></div>
+      </div>
+      <p class="ab-panel-note" style="margin-top:10px">Paragon never gives redeemable welcome cash (coin rule §19). Rewards are recognition, XP, badges and free-play benefits — the real money side is only coins you buy or win in verified competitions.</p>`;
+  }
+  if (kind === "orders") {
+    const intents = (accountProfile.paymentIntents || []).slice(0, 10);
+    const engine = walletEngine();
+    const wds = engine && walletUserEmail() ? (engine.requestsFor(walletUserEmail()) || []) : [];
+    const intentRows = intents.length ? intents.map(i => `<div class="order-row"><span>🛒 ₦${Number(i.naira || 0).toLocaleString()} to ${Number(i.coins || 0).toLocaleString()} coins</span><small>${String(i.status || "pending").replace(/_/g, " ")}</small></div>`).join("") : `<p class="ab-panel-note">No coin purchase requests yet.</p>`;
+    const wdRows = wds.length ? wds.slice(0, 10).map(w => `<div class="order-row"><span>💸 ₦${Number(w.naira || 0).toLocaleString()} withdrawal</span><small>${w.state || "REQUESTED"}${w.payoutRef ? " · ref " + escapeHTML(w.payoutRef) : ""}</small></div>`).join("") : `<p class="ab-panel-note">No withdrawal requests yet.</p>`;
+    return `<h4 class="ab-subhead">Coin purchases</h4>${intentRows}<h4 class="ab-subhead">Withdrawals</h4>${wdRows}
+      <div class="install-popup-actions" style="margin-top:12px"><button type="button" class="secondary-action" onclick="openCoinWallet('buy')">Open coin wallet</button></div>`;
+  }
+  if (kind === "invite") {
+    const link = window.location.origin ? window.location.origin + window.location.pathname : "https://paragonarchive.com";
+    return `
+      <div class="invite-card">
+        <p class="ab-panel-note" style="margin:0 0 8px">Send friends your Paragon link. When they open it and create an account on the same kind of device journey, they join your community.</p>
+        <label class="wallet-field"><span>Your invite link</span><input id="invite-link" readonly value="${escapeHTML(link)}"></label>
+        <div class="install-popup-actions" style="margin-top:10px">
+          <button type="button" class="primary-action" onclick="copyInviteLink()">📋 Copy link</button>
+          <button type="button" class="secondary-action" onclick="shareInviteLink()">📤 Share…</button>
+        </div>
+        <p class="ab-panel-note" style="margin-top:10px">Friends joined: <b>${Number(accountProfile.inviteCount || 0)}</b> · There is no cash referral bounty; referrals are community-only at launch.</p>
+      </div>`;
+  }
+  return "";
+}
+window.copyInviteLink = function() {
+  const el = document.getElementById("invite-link");
+  if (!el) return;
+  el.select();
+  try { navigator.clipboard?.writeText(el.value); showToast("Invite link copied."); }
+  catch (_) { document.execCommand?.("copy"); showToast("Invite link copied."); }
+};
+window.shareInviteLink = function() {
+  const el = document.getElementById("invite-link");
+  const url = el ? el.value : window.location.href;
+  if (navigator.share) { navigator.share({ title: "Paragon Archive", text: "Check out Paragon — one account for every Paragon experience.", url }).catch(() => {}); }
+  else { window.open("https://wa.me/?text=" + encodeURIComponent("Check out Paragon Archive: " + url), "_blank", "noopener"); }
+};
+
 /* ---------- box popups (snapshot of the hidden content masters) ---------- */
 window.openAccountBox = function(kind) {
-  if (kind === "coins" || kind === "coinsShop") { openCoinWallet(kind === "coinsShop" ? "buy" : walletActiveTab); return; }
+  if (kind === "coins") { openCoinWallet(walletActiveTab); return; }
   if (kind === "leaderboard") { openLeaderboardHub(); return; }
+  /* P-113 — new self-contained panels (Rewards / Daily Goals / Orders / Invite) */
+  if (kind === "rewards" || kind === "dailyGoals" || kind === "orders" || kind === "invite") {
+    openAccountInfoBox(kind);
+    return;
+  }
   const master = accountMasterRow(kind);
   if (!master) { showToast("This panel is unavailable yet.", "warning"); return; }
   accountMasterRender(kind);
@@ -2762,7 +2964,7 @@ window.openAccountBox = function(kind) {
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");
-  overlay.addEventListener("click", event => { if (event.target === overlay) closeAccountBox(); });
+  overlay.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   accountBoxKind = kind;
   const content = overlay.querySelector("#ab-content");
   content.innerHTML = master.innerHTML;
@@ -2895,7 +3097,7 @@ window.openCoinWallet = function(tab) {
       </div>`;
     document.body.appendChild(overlay);
     document.body.classList.add("popup-lock");
-    overlay.addEventListener("click", event => { if (event.target === overlay) closeWalletOverlay(); });
+    overlay.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
     renderWalletTab();
   };
   return refreshCoinAccountFromServer().finally(done);
@@ -2931,22 +3133,29 @@ window.showLeaderboardHubTab = function(tab) {
 };
 
 function engagementBoardPaneHTML() {
-  const snap = recordLeaderboardCheck ? (recordLeaderboardCheck(false) || computeMyLeaderboardRank(engagementScore())) : computeMyLeaderboardRank(engagementScore());
-  return `
-    <div class="leaderboard-you">Your score <strong>${Number(snap.score).toLocaleString()}</strong> · Rank <strong>#${snap.rank}</strong> · Best <strong>#${snap.best || snap.rank}</strong></div>
-    <ol class="leaderboard-list">
-      ${(snap.board || []).map((row, index) => `
-        <li class="${row.isYou ? "is-you" : ""}">
-          <span class="lb-rank">#${index + 1}</span>
-          <span>${escapeHTML(row.name)}${row.isYou ? " <small>(you)</small>" : ""}</span>
-          <span class="lb-score">${Number(row.score).toLocaleString()}</span>
-        </li>`).join("")}
-    </ol>`;
+  /* P-113 — REAL board only: no synthetic rivals. Guests can view but are not ranked. */
+  const snap = (hasPersonalSession() && recordLeaderboardCheck)
+    ? (recordLeaderboardCheck(false) || computeMyLeaderboardRank(engagementScore()))
+    : computeMyLeaderboardRank(hasPersonalSession() ? engagementScore() : 0);
+  const meBlock = snap.ranked
+    ? `<div class="leaderboard-you">Your score <strong>${Number(snap.score).toLocaleString()}</strong> · Rank <strong>#${snap.rank}</strong>${snap.best ? ` · Best <strong>#${snap.best}</strong>` : ""}</div>`
+    : `<div class="leaderboard-you leaderboard-you-unranked">You are <strong>unranked</strong>${guestMode ? " — sign in free to earn a rank" : " — earn points with real activity to appear"}.</div>`;
+  const list = (snap.board || []).length
+    ? `<ol class="leaderboard-list">
+        ${snap.board.map((row, index) => `
+          <li class="${row.isYou ? "is-you" : ""}">
+            <span class="lb-rank">#${index + 1}</span>
+            <span>${escapeHTML(row.name)}${row.isYou ? " <small>(you)</small>" : ""}</span>
+            <span class="lb-score">${Number(row.score).toLocaleString()}</span>
+          </li>`).join("")}
+      </ol>`
+    : `<div class="leaderboard-empty"><div class="leaderboard-empty-art">🏆</div><strong>No ranked players yet</strong><p>This board only shows <strong>real people with real activity</strong> — we never invent rivals. Ranked members appear here as they engage.</p></div>`;
+  return meBlock + list;
 }
 
 window.openLeaderboardHub = function() {
-  if (!requirePersonalSession("view the leaderboards")) return;
-  recordLeaderboardCheck(true);
+  /* P-113 — guests CAN view the real board (synced users), they just aren't ranked. */
+  if (hasPersonalSession()) recordLeaderboardCheck(true);
   document.getElementById("leaderboard-hub-overlay")?.remove();
   document.getElementById("leaderboard-overlay")?.remove();
   const overlay = document.createElement("div");
@@ -2965,7 +3174,7 @@ window.openLeaderboardHub = function() {
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");
-  overlay.addEventListener("click", event => { if (event.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); } });
+  overlay.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
 };
 
 function renderAccount() {
@@ -3000,8 +3209,8 @@ function renderAccount() {
             <button type="button" class="auth-btn" onclick="startGoogleAuth()"><svg class="g-icon" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.7 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.5 13.2l7.9 6.2C12.3 13.4 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.4 6.9-17.7z"/><path fill="#FBBC05" d="M10.4 28.6c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6l-7.9-6.2C.9 16.5 0 20.1 0 24s.9 7.5 2.5 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.6l-7.7-6c-2.1 1.4-4.7 2.3-7.5 2.3-6.3 0-11.7-3.9-13.6-9.5l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg> Continue with Google</button>
             <button type="button" class="auth-btn" onclick="openEmailAuth('signin')"><svg class="mail-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="m3.5 7 8.5 6 8.5-6"/></svg> Continue with Email</button>
           </div>
-          <button type="button" class="guest-link" onclick="guestLogin()">Just browsing — continue as Guest</button>
-          <p class="guest-hint-quiet">Guest activity moves into your account when you sign in.</p>
+          <button type="button" class="guest-link guest-link-v2" onclick="guestLogin()"><span class="guest-link-avatar" aria-hidden="true"><img src="assets/illustrations/default-avatar.png" alt=""></span> Continue as Guest</button>
+          <p class="guest-hint-quiet">Your guest activity moves into your account when you sign in on this device.</p>
         </div>
         <img class="guest-hero-art" src="assets/illustrations/guest-welcome.png" alt="" loading="lazy">
       </div>
@@ -3049,7 +3258,6 @@ function renderAccount() {
       ${loggedIn && providerLabel(authUser) === "Email" ? `<div class="row"><button type="button" class="settings-link" onclick="openPasswordUpdate()"><span>🔑 Change Password</span></button></div>` : ""}
       <div class="row"><button type="button" class="settings-link" onclick="openParagonInstall()"><span>📲 Install Paragon Archive &amp; app permissions</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openGamesCompeteDesk()"><span>⚔️ 1v1 competitive stake (server settle · free play separate)</span></button></div>
-      <div class="row"><button type="button" class="settings-link" onclick="shareParagonApp()"><span>📤 Share Paragon Archive (install link)</span></button></div>
       <div class="row"><button type="button" class="settings-link" onclick="openCommunityEntry()"><span>${communityMembershipRecord() ? "👥 Paragon Community · Open the Board" : "👥 Paragon Community"}</span></button></div>
       <div class="row"><a class="settings-link" href="paragon-archive-hub.html"><span><img class="settings-brand-mark" src="assets/brand/logo-mark.png" alt=""> Paragon Archive Hub</span></a></div>
       <div class="row"><button type="button" class="settings-link" onclick="openWebsiteRequest()"><span>💬 Request a Website</span></button></div>
@@ -3059,7 +3267,10 @@ function renderAccount() {
         <button type="button" class="settings-trio-btn" onclick="openFaqOverlay()"><span>❓</span><b>FAQ</b></button>
         <button type="button" class="settings-trio-btn" onclick="openPrivacyControls()"><span>🔒</span><b>Privacy</b></button>
       </div>
-    </div>`;
+    </div>
+    <div id="account-ad-slot" class="account-ad-slot" data-paragon-ad="accountFooter" aria-label="Advertisement space"></div>`;
+  /* P-113 — ad space at the bottom of the account side, below Settings. */
+  try { window.ParagonAds?.renderAdSlots?.(); } catch (error) { /* dormant */ }
 }
 
 /* P-086 — Community smart entry: members go straight to the Board; everyone else
@@ -3372,7 +3583,7 @@ function ensureUtilityOverlay(id) {
     overlay.id = id;
     overlay.className = "share-sheet-overlay utility-overlay";
     document.body.appendChild(overlay);
-    overlay.addEventListener("click", event => { if (event.target === overlay) window.closeUtilityOverlay(id); });
+    overlay.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   }
   document.body.classList.add("popup-lock"); // P-091 — nothing behind a popup scrolls or clicks
   return overlay;
@@ -3571,43 +3782,123 @@ window.openEmailAuth = function(mode = "signin") {
    Master rules:
    • Browser balance is DISPLAY/CACHE only — server ledger is authority when SQL is live.
    • Guest = free-play only (no buy / withdraw / stake).
-   • real_money_enabled comes from paragon_public_coin_config (default false).
+   • P-113: real money is ON (owner, 2026-09-05); server can force-disable via paragon_public_coin_config.
    • No fake bank confirmations. Purchase = team/RPC confirm after real transfer.
    ===================================================================== */
+/* P-113 — KYC-driven payment rail. The rail the user saved in their payout details decides
+   which PARAGON account they pay into: OPay users see Paragon's OPay account; Moniepoint users
+   see Paragon's Moniepoint account. The account numbers are honest PLACEHOLDERS until the
+   founder connects the OPay / Moniepoint APIs (auto-match transactions then credit coins).
+   Below it: live coin total as they type the amount, and the evidence fields for matching. */
+function readKycPayout() {
+  try { return JSON.parse(window.localStorage.getItem("paragon.kycPayout.v1") || "null"); } catch (_) { return null; }
+}
 function opayMoniepointPayMarkup() {
   const p = (window.ParagonCoinPublicConfig || {}).provider || {};
-  const rails = Array.isArray(p.preferred_rails) ? p.preferred_rails : ["opay", "moniepoint", "manual_bank"];
-  const opay = p.opay || {};
-  const moni = p.moniepoint || {};
   const esc = (v) => String(v || "").replace(/[<>]/g, "");
-  const card = (title, acct) => {
-    if (!acct || (!acct.account_number && !acct.account_name)) return "";
-    return `<div class="coin-rail-card"><strong>${esc(title)}</strong>
-      <div>${esc(acct.bank_name || title)}</div>
-      <div>${esc(acct.account_name || "")}</div>
-      <div class="coin-rail-number">${esc(acct.account_number || "— set by team —")}</div>
-      ${acct.label ? `<small>${esc(acct.label)}</small>` : ""}</div>`;
-  };
-  const cards = [
-    rails.includes("opay") ? card("OPay", opay) : "",
-    rails.includes("moniepoint") ? card("Moniepoint", moni) : ""
-  ].filter(Boolean).join("");
-  const instructions = esc(p.bank_transfer_instructions || p.support_contact_note ||
-    "Transfer with OPay or Moniepoint. Put your Paragon email in the narration. Coins credit only after confirmation — never from this click alone.");
-  return `<div class="install-popup-note coin-rails-block" style="margin-top:10px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.08)">
-    <b>How to pay (Nigeria — OPay / Moniepoint first) · real-money OFF · Stage 1 ledger</b>
-    <p style="margin:8px 0;font-size:12px;line-height:1.45">${instructions}</p>
-    <div class="coin-rails-grid">${cards || "<small>Team will publish OPay/Moniepoint account numbers after phase5 SQL + settings update. Flutterwave is <em>not</em> required.</small>"}</div>
+  const kyc = readKycPayout();
+  const rail = kyc && /monie/i.test(kyc.rail || "") ? "moniepoint" : "opay";
+  const railName = rail === "moniepoint" ? "Moniepoint" : "OPay";
+  /* Real account numbers come from public config once the team sets them; until then a clear
+     placeholder is shown (never a fabricated number). */
+  const cfgAcct = rail === "moniepoint" ? (p.moniepoint || {}) : (p.opay || {});
+  const accountNumber = esc(cfgAcct.account_number || "");
+  const accountName = esc(cfgAcct.account_name || "Paragon Archive");
+  const numberBlock = accountNumber
+    ? `<div class="coin-rail-number" id="pay-rail-number">${accountNumber}</div><button type="button" class="coin-copy-num" onclick="copyPayRailNumber()">Copy number</button>`
+    : `<div class="coin-rail-number coin-rail-placeholder" id="pay-rail-number">— Paragon ${railName} number appears here once the team connects ${railName} —</div>`;
+  const kycPrompt = kyc
+    ? `<p class="coin-rail-matched">✓ Paying to Paragon's <b>${railName}</b> account (from your payout details). <button type="button" class="coin-inline-link" onclick="openKycPayoutDraft()">Change rail</button></p>`
+    : `<p class="coin-rail-matched coin-rail-warn">Set your payout details first so we show the right account: <button type="button" class="coin-inline-link" onclick="openKycPayoutDraft()">Add OPay / Moniepoint details</button></p>`;
+  return `<div class="coin-rails-block">
+    <b class="coin-rails-title">How to pay — transfer to Paragon's ${railName} account</b>
+    ${kycPrompt}
+    <div class="coin-rail-card">
+      <strong>${railName}</strong>
+      <div class="coin-rail-acctname">${accountName}</div>
+      ${numberBlock}
+      <small>Put your Paragon email in the transfer narration.</small>
+    </div>
+    <p class="coin-rails-api-note">Coins are added only after the transfer is confirmed and matched. Automatic matching via the ${railName} API is being connected; until then the team verifies each transfer against the details you enter below. Your own payout details (sender name/bank) already come from your KYC.</p>
+    <div class="coin-pay-calc">
+      <label class="wallet-field"><span>Amount you are transferring (₦)</span>
+        <input id="pay-amount" type="number" min="500" step="100" placeholder="e.g. 1000" oninput="updatePayCoinTotal()">
+      </label>
+      <div class="coin-pay-total" id="pay-coin-total">Enter an amount to see how many coins you get.</div>
+    </div>
+    <div class="coin-evidence">
+      <label class="wallet-field"><span>Transaction / transfer reference</span><input id="pay-ref" maxlength="100" placeholder="From your ${railName} receipt, e.g. M4938201"></label>
+      <div class="coin-evidence-row">
+        <label class="wallet-field"><span>Transfer date &amp; time</span><input id="pay-date" type="datetime-local"></label>
+        <label class="wallet-field"><span>Amount sent (₦)</span><input id="pay-amount-confirm" type="number" min="500" placeholder="Same as transfer"></label>
+      </div>
+      <label class="wallet-field"><span>Sender name on the transfer (from your KYC)</span><input id="pay-sender" maxlength="80" value="${esc(kyc?.name || "")}" placeholder="Name your ${railName} account is in"></label>
+      <button type="button" class="primary-action" id="pay-submit-claim" onclick="submitPaymentClaim()">📨 I have transferred — submit for matching</button>
+      <small class="coin-evidence-note">This is evidence for matching, not proof of payment. The verified ${railName} record is final; one reference can never be credited twice (duplicates are rejected). Max 5 claims per 24 hours.</small>
+    </div>
   </div>`;
 }
+window.updatePayCoinTotal = function() {
+  const el = document.getElementById("pay-amount");
+  const out = document.getElementById("pay-coin-total");
+  const confirm = document.getElementById("pay-amount-confirm");
+  if (!el || !out) return;
+  const naira = Math.round(Number(el.value) || 0);
+  if (confirm && el.ownerDocument.activeElement !== confirm) confirm.value = naira || "";
+  const rate = coinConfigFlags().nairaPerCoinBuy || 1;
+  if (!naira) { out.innerHTML = "Enter an amount to see how many coins you get."; return; }
+  const coins = Math.round(naira * rate);
+  out.innerHTML = `₦${naira.toLocaleString()} = <b>${coins.toLocaleString()} coins</b> added after the transfer is confirmed.`;
+};
+window.copyPayRailNumber = function() {
+  const num = document.getElementById("pay-rail-number")?.textContent?.trim() || "";
+  if (/—/.test(num)) { showToast("The account number is not published yet.", "warning"); return; }
+  try { navigator.clipboard?.writeText(num); showToast("Account number copied."); } catch (_) {}
+};
+window.submitPaymentClaim = function() {
+  const naira = Math.round(Number(document.getElementById("pay-amount")?.value || 0));
+  const ref = String(document.getElementById("pay-ref")?.value || "").trim();
+  const when = String(document.getElementById("pay-date")?.value || "").trim();
+  const sender = String(document.getElementById("pay-sender")?.value || "").trim();
+  const kyc = readKycPayout();
+  const rail = kyc && /monie/i.test(kyc.rail || "") ? "moniepoint" : "opay";
+  if (!isRegisteredMember()) { showToast("Sign in to submit a payment.", "warning"); return; }
+  if (naira < 500) { showToast("Enter the naira amount you transferred (min ₦500).", "warning"); return; }
+  if (ref.length < 3) { showToast("Enter the transaction/transfer reference from your receipt.", "warning"); return; }
+  if (!when) { showToast("Enter the transfer date and time.", "warning"); return; }
+  if (!sender) { showToast("Enter the sender name on the transfer (or complete your payout details).", "warning"); return; }
+  try {
+    const list = JSON.parse(window.localStorage.getItem("paragon.paymentClaimsLocal.v1") || "[]");
+    const idem = "claim-" + (authUser?.id || "u") + "-" + Date.now().toString(36);
+    list.push({ id: idem, user: walletUserEmail(), rail, naira, ref, when, sender, status: "awaiting_match", createdAt: new Date().toISOString() });
+    window.localStorage.setItem("paragon.paymentClaimsLocal.v1", JSON.stringify(list.slice(-100)));
+    // Also record a purchase intent so it appears in order history
+    accountProfile.paymentIntents = [{ id: idem, naira, coins: Math.round(naira * (coinConfigFlags().nairaPerCoinBuy || 1)), status: "awaiting_transfer", created_at: new Date().toISOString() }, ...(accountProfile.paymentIntents || [])].slice(0, 15);
+    persistPersonalState();
+  } catch (_) {}
+  // Server claim when Supabase is configured (honest attempt; local queue already saved).
+  supabaseRest("/rest/v1/rpc/paragon_coin_claim_payment", {
+    method: "POST",
+    body: JSON.stringify({ p_intent_id: "", p_claim_ref: ref.slice(0, 200), p_claim_note: `rail=${rail}; amount=${naira}; when=${when}; sender=${sender}` })
+  }).then(() => {
+    showToast(`Claim submitted — ₦${naira.toLocaleString()} (${rail}) will be matched and ${Math.round(naira * (coinConfigFlags().nairaPerCoinBuy || 1)).toLocaleString()} coins added after confirmation.`);
+    refreshCoinAccountFromServer().finally(afterCoinIntent);
+  }).catch(() => {
+    showToast(`Claim saved on this device — ₦${naira.toLocaleString()} awaits team/${rail} matching. Not credited yet.`);
+    try { afterCoinIntent(); } catch (_) {}
+  });
+};
 
 function coinConfigFlags() {
   const cfg = window.ParagonCoinPublicConfig || {};
   const flags = cfg.flags || cfg.economy && cfg.flags || {};
   const economy = cfg.economy || {};
   return {
-    realMoney: !!(flags.real_money_enabled),
-    purchases: flags.purchases_enabled !== false, /* manual path allowed while real money off */
+    /* P-113 — owner turned Real Money ON (2026-09-05). Purchases/withdrawals run through the
+       manual OPay/Moniepoint + team-verification desk; the server can still force-disable a
+       flag (real_money_enabled === false) or hit the financial pause switch. */
+    realMoney: flags.real_money_enabled !== false,
+    purchases: flags.purchases_enabled !== false,
     withdrawals: flags.withdrawals_enabled !== false,
     compete: !!flags.compete_enabled,
     pause: !!flags.financial_pause,
@@ -3746,6 +4037,12 @@ function renderWithdrawalHost() {
   const rate = coinRateNow();
   const limits = engine.remainingLimits(user);
   const account = (engine.payoutAccounts() || []).filter(a => a.user === user)[0] || null;
+  /* P-113 — withdrawals only to a saved OPay/Moniepoint account from the KYC draft. */
+  let kycOk = false;
+  try {
+    const kyc = JSON.parse(localStorage.getItem("paragon.kycPayout.v1") || "null");
+    kycOk = Boolean(kyc && kyc.rail && kyc.number && String(kyc.number).replace(/\D/g, "").length === 10);
+  } catch (_) { kycOk = false; }
   host.innerHTML = `
     <div class="lb-pool-grid">
       <div class="lb-pool-stat"><b>${balance.toLocaleString()} coins</b><small>available ≈ ₦${engine.coinsToNaira(balance).toLocaleString()} at ₦1 = ${rate} coins</small></div>
@@ -3753,20 +4050,30 @@ function renderWithdrawalHost() {
     </div>
     ${paused ? `<div class="site-maintenance-banner">🛑 ${escapeHTML(paused)} — no new withdrawals until the team reopens them. Your locked coins are safe and return automatically if a request fails.</div>` : ""}
     ${!paused ? `<section class="lb-block"><h3>💸 Request a withdrawal</h3>
-      <div class="wd-chips">${[2000, 5000, 10000, 20000].map(n => `<button type="button" class="lb-week-chip ${withdrawalNaira === n ? "active" : ""}" onclick="withdrawalNaira=${n}; renderWithdrawalHost()">₦${n.toLocaleString()}</button>`).join("")}</div>
-      <label class="wallet-field"><span>Amount in naira</span><input id="wd-naira" type="number" min="1000" step="500" value="${withdrawalNaira || ""}" placeholder="Minimum ₦1,000" oninput="withdrawalNaira=Math.round(Number(this.value)||0)"></label>
-      <div class="wd-summary" id="wd-summary">Minimum ₦1,000 · your ₦10,000+ rule: the 50-coin fee applies only at ₦10,000 and above.</div>
-      <label class="wallet-field"><span>Bank name</span><input id="wd-bank" maxlength="60" placeholder="e.g. OPay, GTBank, Kuda" value="${account ? escapeHTML(account.bank) : ""}"></label>
-      <label class="wallet-field"><span>Account number</span><input id="wd-account" maxlength="10" inputmode="numeric" placeholder="10-digit account number" value="${account ? escapeHTML(account.accountNumber) : ""}"></label>
+      <div class="wd-chips">${[2000, 5000, 10000, 20000].map(n => `<button type="button" class="lb-week-chip ${withdrawalNaira === n ? "active" : ""}" onclick="pickWithdrawalChip(${n})">₦${n.toLocaleString()}</button>`).join("")}</div>
+      <label class="wallet-field"><span>Amount in naira</span><input id="wd-naira" type="number" min="1000" step="500" value="${withdrawalNaira || ""}" placeholder="Minimum ₦1,000" oninput="withdrawalNaira=Math.round(Number(this.value)||0); updateWdSummary()"></label>
+      <div class="wd-summary" id="wd-summary"></div>
+      <label class="wallet-field"><span>Payout rail</span>
+        <select id="wd-bank">
+          <option value="OPay"${account && /opay/i.test(account.bank || "") ? " selected" : ""}>OPay</option>
+          <option value="Moniepoint MFB"${account && /monie/i.test(account.bank || "") ? " selected" : ""}>Moniepoint</option>
+        </select>
+      </label>
+      <label class="wallet-field"><span>Account number (10 digits)</span><input id="wd-account" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]*" placeholder="10 digits, numbers only" value="${account ? escapeHTML(account.accountNumber) : ""}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></label>
       <label class="wallet-field"><span>Account name</span><input id="wd-name" maxlength="80" placeholder="Name on the account" value="${account ? escapeHTML(account.accountName) : ""}"></label>
-      <p class="team-site-sub" style="margin:4px 0 10px">Payouts go to a verified account in your own name (the team re-verifies before any payout; changing details puts a verification hold on the account).</p>
-      <button type="button" class="primary-action" onclick="submitWithdrawalRequest()">📨 Request withdrawal</button>
+      <p class="team-site-sub" style="margin:4px 0 10px">Withdrawals are paid only to your saved <strong>OPay or Moniepoint</strong> account from your KYC payout details. ${kycOk ? "" : `<button type="button" class="team-mini-link" onclick="openKycPayoutDraft()">Save your OPay / Moniepoint payout details first (KYC draft)</button>`}</p>
+      <button type="button" class="primary-action wd-request-btn ${kycOk ? "" : "is-locked"}" onclick="submitWithdrawalRequest()">${kycOk ? "📨 Request withdrawal" : "🔒 Complete your payout details (KYC) to withdraw"}</button>
       <p class="team-site-sub">Withdrawals are paid manually by the Paragon Team through the payout desk. Your coins are locked the moment the request is accepted and return automatically if it fails — limits never trap legitimate funds.</p>
     </section>` : ""}
     <section class="lb-block"><h3>📜 Your withdrawal history</h3><div id="wd-history" class="team-site-list"></div></section>`;
   renderWithdrawalHistory();
   updateWdSummary();
 }
+/* P-113 — tapping the SAME chip again does nothing (it never toggles off); a different chip switches. */
+window.pickWithdrawalChip = function(n) {
+  withdrawalNaira = Math.round(Number(n) || 0);
+  renderWithdrawalHost();
+};
 function updateWdSummary() {
   const engine = walletEngine();
   const node = document.getElementById("wd-summary");
@@ -3774,10 +4081,18 @@ function updateWdSummary() {
   const naira = Math.round(Number(withdrawalNaira) || 0);
   const cfg = engine.effectiveConfig();
   const min = Math.max(cfg.minWithdrawalNaira, 0);
-  if (naira < min) { node.innerHTML = `Minimum ₦${min.toLocaleString()} · your ₦${cfg.withdrawalFeeThresholdNaira.toLocaleString()}+ rule: the ${cfg.withdrawalFeeCoins}-coin fee applies only at ₦${cfg.withdrawalFeeThresholdNaira.toLocaleString()} and above.`; return; }
+  const rate = cfg.nairaRate;
+  /* Live summary updates on EVERY keystroke, including amounts under the ₦1,000 minimum.
+     No fee is ever added below ₦10,000; at/above it is a fee worth ₦50 = 100 coins. */
+  if (naira <= 0) { node.innerHTML = `Enter an amount · minimum withdrawal ₦${min.toLocaleString()} · ₦1 = ${rate} coins · no Paragon fee below ₦${cfg.withdrawalFeeThresholdNaira.toLocaleString()}.`; return; }
+  const coinsForAmount = nairaToCoinsPlaceholder(naira);
+  if (naira < min) {
+    node.innerHTML = `₦${naira.toLocaleString()} = <b>${coinsForAmount.toLocaleString()} coins</b> at ₦1 = ${rate} coins · <b>no fee</b> — but the minimum withdrawal is ₦${min.toLocaleString()}.`;
+    return;
+  }
   const needed = engine.coinsRequiredFor(naira);
   const fee = engine.withdrawalFeeFor(naira);
-  node.innerHTML = `You will receive <b>₦${naira.toLocaleString()}</b> · ${nairaToCoinsPlaceholder(naira).toLocaleString()} coins + ${fee ? fee + "-coin fee (₦10,000+ rule)" : "no fee (below ₦10,000)"} = <b>${needed.toLocaleString()} coins</b> locked from your balance.`;
+  node.innerHTML = `You will receive <b>₦${naira.toLocaleString()}</b> · ${coinsForAmount.toLocaleString()} coins${fee ? ` + <b>${fee}-coin fee</b> (worth ₦50, applies at ₦${cfg.withdrawalFeeThresholdNaira.toLocaleString()} and above)` : ` · <b>no fee</b> (below ₦${cfg.withdrawalFeeThresholdNaira.toLocaleString()})`} = <b>${needed.toLocaleString()} coins</b> locked from your balance.`;
 }
 function nairaToCoinsPlaceholder(naira) { const e = walletEngine(); return e ? e.nairaToCoins(naira) : Math.round(naira * 2); }
 function renderWithdrawalHistory() {
@@ -3800,21 +4115,31 @@ function renderWithdrawalHistory() {
 window.submitWithdrawalRequest = function() {
   const engine = walletEngine();
   if (!engine) { showToast("Withdrawals are unavailable on this page.", "warning"); return; }
+  /* P-113 — faded button stays clickable but tells guests/unsigned-in users to finish KYC. */
+  let kyc = null;
+  try { kyc = JSON.parse(localStorage.getItem("paragon.kycPayout.v1") || "null"); } catch (_) { kyc = null; }
+  const kycRail = kyc && kyc.rail;
+  const kycNumber = kyc ? String(kyc.number || "").replace(/\D/g, "") : "";
+  if (!kycRail || kycNumber.length !== 10) {
+    showToast("Save your OPay / Moniepoint payout details (KYC draft) before you can withdraw.", "warning");
+    try { openKycPayoutDraft(); } catch (_) {}
+    return;
+  }
   const naira = Math.round(Number(document.getElementById("wd-naira")?.value || withdrawalNaira) || 0);
-  const bank = String(document.getElementById("wd-bank")?.value || "").trim();
-  const account = String(document.getElementById("wd-account")?.value || "").replace(/\D/g, "");
-  const name = String(document.getElementById("wd-name")?.value || "").trim();
-  if (!account || account.length < 6) { showToast("Enter a valid account number (6+ digits).", "warning"); return; }
-  if (!bank) { showToast("Enter your bank name.", "warning"); return; }
-  if (!name) { showToast("Enter the account name.", "warning"); return; }
+  /* Withdrawals go ONLY to the saved OPay/Moniepoint account — the rail/number come from KYC. */
+  const bank = /monie/i.test(kycRail) ? "Moniepoint MFB" : "OPay";
+  const account = kycNumber.slice(0, 10);
+  const name = String(kyc.name || accountProfile.displayName || "").trim();
+  if (!account || account.length !== 10) { showToast("Enter a valid account number — exactly 10 digits.", "warning"); return; }
+  if (!name) { showToast("Enter the account name on your payout details.", "warning"); return; }
   const user = walletUserEmail();
-  if (!user) { requirePersonalSession("withdraw coins"); return; }
+  if (!user) { showToast("Create or sign into your account to withdraw — guests browse and play free only.", "warning"); requirePersonalSession("withdraw coins"); return; }
   const verdict = engine.requestWithdrawal({ user: user, displayName: accountProfile.displayName || user, naira: naira, availableCoins: coinBalance(), payout: { bank: bank, accountNumber: account, accountName: name } });
   if (!verdict.ok) { showToast(verdict.message || "Withdrawal not accepted: " + verdict.code, "warning"); renderWithdrawalHost(); return; }
   /* Lock the real coins now — the request record already exists (two writes stay in sync). */
   spendCoins(verdict.lockedCoins, `Withdrawal of ₦${verdict.request.naira.toLocaleString()} — coins locked (${verdict.request.correlationId})`);
   walletLedger("WITHDRAWAL_LOCK", -verdict.request.coins, "withdrawal", verdict.request.id, `₦${naira} redeemed at rate ₦1=${coinRateNow()}`, "wd-lock-" + verdict.request.id);
-  if (verdict.request.feeCoins) walletLedger("WITHDRAWAL_FEE", -verdict.request.feeCoins, "withdrawal", verdict.request.id, "₦10,000+ 50-coin withdrawal fee (spec §22.1)", "wd-fee-" + verdict.request.id);
+  if (verdict.request.feeCoins) walletLedger("WITHDRAWAL_FEE", -verdict.request.feeCoins, "withdrawal", verdict.request.id, `₦10,000+ withdrawal fee worth ₦50 (${verdict.request.feeCoins} coins at ₦1=2) — spec §22.1/§25`, "wd-fee-" + verdict.request.id);
   try { engine.savePayoutAccount({ user: user, bank: bank, accountNumber: account, accountName: name }); } catch (error) { /* blocked */ }
   withdrawalNaira = 0;
   showToast(`Withdrawal requested — ${verdict.lockedCoins.toLocaleString()} coins locked. The team pays ₦${naira.toLocaleString()} after verification.`);
@@ -3875,11 +4200,11 @@ window.openCoinWithdrawal = function() {
         <button type="button" class="secondary-action" onclick="document.getElementById('coin-withdrawal-overlay').remove(); document.body.classList.remove('popup-lock'); openCoinShop()">🪙 Buy coins</button>
         <button type="button" class="secondary-action" onclick="document.getElementById('coin-withdrawal-overlay').remove(); document.body.classList.remove('popup-lock')">Close</button>
       </div>
-      <small class="install-popup-note">Your ₦10,000 rule (docs/COIN-SYSTEM.md): no Paragon fee below ₦10,000; ₦10,000+ carries the 50-coin fee. Withdrawal limits: 2 per rolling 24 h, 5 per rolling 7 days — configurable, never trapping funds: failed requests return their coins automatically. Payouts are manual through the Team payout desk (pendingBackendSync).</small>
+      <small class="install-popup-note">Your ₦10,000 rule (docs/COIN-SYSTEM.md): no Paragon fee below ₦10,000; ₦10,000+ carries a fee worth ₦50 (100 coins at ₦1 = 2 coins). Withdrawal limits: 2 per rolling 24 h, 5 per rolling 7 days — configurable, never trapping funds: failed requests return their coins automatically. Payouts are manual through the Team payout desk (pendingBackendSync).</small>
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");
-  overlay.addEventListener("click", event => { if (event.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); } });
+  overlay.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   renderWithdrawalHost();
 };
 
@@ -3950,18 +4275,49 @@ function lbRulesBlock() {
       <li><b>Performance-based:</b> points come from how well you played (accuracy/performance per game), never from how much you staked — 1 coin is never 1 point.</li>
       <li><b>Creator rule:</b> a quiz creator can play their own quiz but can never win its prize or earn leaderboard points from it.</li>
       <li><b>Revenue-funded pool:</b> every week, 30% of eligible realized competition-fee revenue funds the reward pool. No realized fees means a real ₦0 pool — the platform never shows an invented prize.</li>
-      <li><b>Top 3 + ranks 4–10:</b> rank 1 takes 30% of the pool, rank 2 takes 20%, rank 3 takes 15%, then 10%, 7%, 5%, 4%, 3%, 2% and 4% for ranks 4 to 10 — the whole pool is always paid out in full.</li>
+      <li><b>Top 3 + ranks 4–10 (P-113 corrected split):</b> rank 1 takes 30% of the pool, rank 2 takes 20%, rank 3 takes 15%, then ranks 4–10 take 10%, 9%, 6%, 4%, 3%, 2% and 1% — the whole pool is always paid out in full.</li>
       <li><b>Settlement is reviewed, never automatic:</b> when a week closes, results freeze and the team runs an anti-abuse review (rapid-fire play, repeated opponents, creator self-play and similar flags) before eligibility, the final ranking, prize calculation and crediting. Rewards are paid by the team through the same approval flow as coin purchases.</li>
     </ul></details>`;
 }
+/* P-113 — weekly coin board calendar. Weekly anchor dates start at the platform launch,
+   August 1 2026, and step every 7 days (Aug 1, 8, 15, 22, 29; Sep 5, 12…). Each anchor maps
+   to the leaderboard week containing it. Weeks that have already ended stay VISIBLE in the
+   calendar but are unclickable (greyed); only the live/current week is selectable. */
+function lbWeeklyCalendarOptions() {
+  const engine = lbEngine();
+  if (!engine) return [];
+  const launch = new Date(2026, 7, 1); // August 1, 2026 (local)
+  const now = new Date();
+  const options = [];
+  const seen = {};
+  for (let d = new Date(launch.getTime()); d.getTime() <= now.getTime() + 7 * 86400000; d.setDate(d.getDate() + 7)) {
+    const key = engine.weekKeyFor ? engine.weekKeyFor(d) : null;
+    if (!key || seen[key]) continue;
+    seen[key] = true;
+    const bounds = engine.periodBounds(key);
+    const weekEnded = bounds.end.getTime() <= now.getTime();
+    const isCurrent = key === engine.currentWeekKey();
+    const last = new Date(bounds.end.getTime()); last.setDate(last.getDate() - 1);
+    const label = `${lbFriendlyDate(bounds.start)} – ${lbFriendlyDate(last)}${isCurrent ? " · this week" : weekEnded ? " · ended" : ""}`;
+    options.push({ key, label, ended: weekEnded, current: isCurrent });
+  }
+  return options;
+}
+window.lbPickWeekFromCalendar = function(selectEl) {
+  const key = selectEl && selectEl.value;
+  if (!key) return;
+  leaderboardFocusWeek = key;
+  renderCoinLeaderboard();
+};
 function renderCoinLeaderboard() {
   const engine = lbEngine();
   if (!engine) { showToast("Leaderboards are unavailable on this page.", "warning"); return; }
   const host = document.getElementById("coin-leaderboard-host");
   if (!host) return;
-  const weeks = engine.recentPeriodKeys(new Date(), 3);
+  const calOptions = lbWeeklyCalendarOptions();
+  const weeks = calOptions.map(o => o.key);
   if (!leaderboardFocusWeek) leaderboardFocusWeek = engine.currentWeekKey();
-  if (weeks.indexOf(leaderboardFocusWeek) === -1) leaderboardFocusWeek = weeks[0];
+  if (weeks.indexOf(leaderboardFocusWeek) === -1) leaderboardFocusWeek = (calOptions.find(o => o.current) || calOptions[calOptions.length - 1] || {}).key || engine.currentWeekKey();
   const view = engine.standingsForView(leaderboardFocusWeek);
   const state = view.state || engine.periodState(leaderboardFocusWeek).state;
   const isCurrent = engine.currentWeekKey() === leaderboardFocusWeek;
@@ -3970,8 +4326,16 @@ function renderCoinLeaderboard() {
   const pool = engine.poolCoins(leaderboardFocusWeek);
   const fees = engine.feeTotal(leaderboardFocusWeek);
   const prizes = engine.prizeRows(leaderboardFocusWeek);
+  const calendarNav = `
+    <div class="lb-calendar">
+      <label for="lb-week-select"><span class="lb-cal-icon" aria-hidden="true">📅</span> Competition week</label>
+      <select id="lb-week-select" onchange="lbPickWeekFromCalendar(this)" aria-label="Choose a weekly leaderboard week">
+        ${calOptions.slice().reverse().map(o => `<option value="${o.key}"${o.key === leaderboardFocusWeek ? " selected" : ""}${o.ended ? " disabled" : ""}>${o.label}${o.ended ? " (locked)" : ""}</option>`).join("")}
+      </select>
+      <small>Weeks run every 7 days from the August 1, 2026 launch. Ended weeks stay visible for the record but can't be reopened.</small>
+    </div>`;
   host.innerHTML = `
-    <div class="lb-week-nav">${weeks.map(key => `<button type="button" class="lb-week-chip ${key === leaderboardFocusWeek ? "active" : ""}" onclick="leaderboardFocusWeek='${key}'; renderCoinLeaderboard()">${lbShortLabel(key)}</button>`).join("")}</div>
+    ${calendarNav}
     <div class="lb-state-line">${lbStateChip(state, isCurrent)}</div>
     <section class="lb-block">
       <h3>🏆 ${lbShortLabel(leaderboardFocusWeek)} — weekly ranking</h3>
@@ -4013,7 +4377,7 @@ window.openCoinLeaderboard = function() {
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");
-  overlay.addEventListener("click", event => { if (event.target === overlay) { overlay.remove(); document.body.classList.remove("popup-lock"); } });
+  overlay.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   renderCoinLeaderboard();
 }
 
@@ -4124,14 +4488,32 @@ window.askAppFields = function(options) {
     overlay.id = "app-field-overlay";
     overlay.className = "utility-overlay active install-overlay";
     var fields = (options.fields || []).map(function (f) {
-      return '<label class="wallet-field"><span>' + String(f.label || f.name).replace(/[<>]/g, "") + (f.required ? " *" : "") + '</span><input id="appf-' + f.name + '" maxlength="200" placeholder="' + String(f.placeholder || "").replace(/[<>]/g, "") + '" value="' + String(f.value || "").replace(/"/g, "&quot;").replace(/[<>]/g, "") + '"></label>';
+      var label = '<span>' + String(f.label || f.name).replace(/[<>]/g, "") + (f.required ? " *" : "") + '</span>';
+      if (f.type === "select" && Array.isArray(f.options)) {
+        var opts = f.options.map(function (o) {
+          var val = (o && typeof o === "object") ? o.value : o;
+          var cap = (o && typeof o === "object") ? (o.label || o.value) : o;
+          return '<option value="' + String(val).replace(/[<>]/g, "") + '"' + (String(f.value) === String(val) ? " selected" : "") + '>' + String(cap).replace(/[<>]/g, "") + '</option>';
+        }).join("");
+        return '<label class="wallet-field">' + label + '<select id="appf-' + f.name + '">' + opts + '</select></label>';
+      }
+      var maxlen = f.maxlength || 200;
+      var mode = f.digitsOnly ? ' inputmode="numeric" pattern="[0-9]*"' : (f.inputmode ? ' inputmode="' + f.inputmode + '"' : "");
+      var intype = f.digitsOnly ? "tel" : (f.type || "text");
+      var prefix = f.prefix ? '<span class="wallet-input-prefix">' + String(f.prefix).replace(/[<>]/g, "") + '</span>' : "";
+      return '<label class="wallet-field' + (f.prefix ? " wallet-input-prefixed" : "") + '">' + label + '<div class="wallet-input-wrap">' + prefix + '<input id="appf-' + f.name + '" type="' + intype + '" maxlength="' + maxlen + '"' + mode + ' data-digits="' + (f.digitsOnly ? "1" : "0") + '" placeholder="' + String(f.placeholder || "").replace(/[<>]/g, "") + '" value="' + String(f.value || "").replace(/"/g, "&quot;").replace(/[<>]/g, "") + '"></div></label>';
     }).join("");
-    overlay.innerHTML = '<div class="install-popup-card" role="dialog" aria-modal="true"><header><h2>' + (options.icon || "✏️") + " " + String(options.title || "Enter details").replace(/[<>]/g, "") + '</h2></header><div style="padding:2px">' + fields + '<p id="app-field-error" style="display:none;color:#ef4444;font-size:12px;margin:10px 0 0">Please fill the required fields.</p></div><div class="install-popup-actions"><button type="button" class="secondary-action" id="appf-cancel">Cancel</button><button type="button" class="primary-action" id="appf-ok">' + (options.confirmLabel || "Save") + '</button></div></div>';
+    overlay.innerHTML = '<div class="install-popup-card" role="dialog" aria-modal="true"><header style="display:flex;align-items:flex-start;gap:10px"><h2 style="flex:1;margin:0">' + (options.icon || "✏️") + " " + String(options.title || "Enter details").replace(/[<>]/g, "") + '</h2><button type="button" class="icon-btn-small" id="appf-x" aria-label="Close" style="flex:0 0 auto;margin-left:auto">×</button></header><div style="padding:2px">' + fields + '<p id="app-field-error" style="display:none;color:#ef4444;font-size:12px;margin:10px 0 0">Please fill the required fields.</p></div><div class="install-popup-actions"><button type="button" class="secondary-action" id="appf-cancel">Cancel</button><button type="button" class="primary-action" id="appf-ok">' + (options.confirmLabel || "Save") + '</button></div></div>';
     document.body.appendChild(overlay);
     document.body.classList.add("popup-lock");
+    overlay.querySelectorAll("input[data-digits='1']").forEach(function (inp) {
+      inp.addEventListener("input", function () { inp.value = inp.value.replace(/\D/g, "").slice(0, Number(inp.getAttribute("maxlength")) || 20); });
+    });
     function closeOutcome(result) { overlay.remove(); document.body.classList.remove("popup-lock"); resolve(result); }
     overlay.querySelector("#appf-cancel").addEventListener("click", function () { closeOutcome({ ok: false, values: null }); });
-    overlay.addEventListener("click", function (event) { if (event.target === overlay) closeOutcome({ ok: false, values: null }); });
+    var xBtn = overlay.querySelector("#appf-x");
+    if (xBtn) xBtn.addEventListener("click", function () { closeOutcome({ ok: false, values: null }); });
+    overlay.addEventListener("click", function (event) { /* P-113 owner rule: outside clicks never close a popup */ false; });
     overlay.querySelector("#appf-ok").addEventListener("click", function () {
       var values = {}; var missing = false;
       (options.fields || []).forEach(function (f) {
@@ -4357,19 +4739,25 @@ window.openKycPayoutDraft = function() {
     icon: "🏦",
     title: "Your payout details (KYC draft for team review)",
     fields: [
-      { name: "rail", label: "Payout rail (opay or moniepoint)", value: "opay", required: true },
-      { name: "name", label: "Account name on the rail", value: accountProfile.displayName || "", required: true },
-      { name: "number", label: "Wallet / account number", required: true },
-      { name: "phone", label: "Phone (optional, E.164 e.g. +234…) " }
+      { name: "rail", label: "Payout rail", type: "select", value: "opay", required: true, options: [
+        { value: "opay", label: "OPay" },
+        { value: "moniepoint", label: "Moniepoint" }
+      ] },
+      { name: "name", label: "Account name on the rail", value: accountProfile.displayName || "", required: true, maxlength: 80 },
+      { name: "number", label: "Wallet / account number", required: true, digitsOnly: true, maxlength: 10, placeholder: "10 digits, numbers only" },
+      { name: "phone", label: "Phone number", digitsOnly: true, maxlength: 10, prefix: "+234", placeholder: "10 digits, numbers only" }
     ],
     confirmLabel: "Save payout details"
   }).then(result => {
     if (!result.ok) return;
     const rail = String(result.values.rail || "opay").trim() || "opay";
     const name = String(result.values.name || "").trim();
-    const number = String(result.values.number || "").trim();
-    const phone = String(result.values.phone || "").trim();
-    if (!number) { showToast("Account number required.", "warning"); return; }
+    const number = String(result.values.number || "").replace(/\D/g, "").slice(0, 10);
+    const phoneDigits = String(result.values.phone || "").replace(/\D/g, "").slice(0, 10);
+    const phone = phoneDigits ? "+234" + phoneDigits.replace(/^0+/, "") : "";
+    if (!number || number.length !== 10) { showToast("Enter your 10-digit account number.", "warning"); return; }
+    if (phoneDigits && phoneDigits.length !== 10) { showToast("Enter 10 phone digits after +234.", "warning"); return; }
+    try { localStorage.setItem("paragon.kycPayout.v1", JSON.stringify({ rail, name, number, phone, savedAt: new Date().toISOString() })); } catch (_) {}
     supabaseRest("/rest/v1/rpc/paragon_kyc_upsert_draft", {
       method: "POST",
       body: JSON.stringify({
@@ -4658,7 +5046,10 @@ window.openParagonInstall = function() {
   overlay.className = "utility-overlay active install-overlay";
   overlay.innerHTML = `
     <div class="install-popup-card" role="dialog" aria-modal="true" aria-labelledby="install-popup-title">
-      <header><h2 id="install-popup-title">📲 Install Paragon Archive</h2><p>Turn the Archive into a real app on your phone or desktop — one setting for every Paragon website.</p></header>
+      <header style="display:flex;align-items:flex-start;gap:10px">
+        <div style="flex:1"><h2 id="install-popup-title">📲 Install Paragon Archive</h2><p>Turn the Archive into a real app on your phone or desktop — one setting for every Paragon website.</p></div>
+        <button type="button" class="icon-btn-small" style="flex:0 0 auto;margin-left:auto" onclick="closeParagonInstall()" aria-label="Close">×</button>
+      </header>
       <div class="install-perm-list">
         <label class="install-perm-row"><div><b>🔔 Phone notifications</b><small>Real notifications like other apps — updates, replies, and the daily 8 AM Paragon hello (once server push activates). The test fires immediately when toggled on.</small><span class="install-perm-state">—</span></div><input type="checkbox" class="toggle" id="install-perm-notifications" onchange="toggleInstallPermission(this, 'notifications')"></label>
         <label class="install-perm-row"><div><b>📷 Camera</b><small>Ready for future Paragon websites that scan or capture. Nothing uses it until a website asks.</small><span class="install-perm-state">—</span></div><input type="checkbox" class="toggle" id="install-perm-camera" onchange="toggleInstallPermission(this, 'camera')"></label>
@@ -4667,13 +5058,14 @@ window.openParagonInstall = function() {
       </div>
       <div class="install-popup-actions">
         <button type="button" class="primary-action" onclick="installParagonApp()">Install Paragon Archive</button>
+        <button type="button" class="secondary-action" onclick="shareParagonApp()">📤 Share app</button>
         <button type="button" class="secondary-action" onclick="closeParagonInstall()">Later</button>
       </div>
       <small class="install-popup-note">On Android the installed app gets its own icon with no browser bar. On desktop a small browser frame chip remains — a browser rule no website can remove. Server-delivered push notifications activate with the production domain.</small>
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");
-  overlay.addEventListener("click", event => { if (event.target === overlay) closeParagonInstall(); });
+  overlay.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   window.renderInstallPopupStates?.();
 };
 window.closeParagonInstall = function() {
@@ -4704,7 +5096,7 @@ window.openProfileNameEditor = function() {
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");
-  overlay.addEventListener("click", event => { if (event.target === overlay) window.closeProfileNameEditor(); });
+  overlay.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   overlay.querySelector("#profile-name-cancel").addEventListener("click", () => window.closeProfileNameEditor());
   overlay.querySelector("#profile-name-save").addEventListener("click", () => window.saveProfileName());
   overlay.querySelector("#profile-name-input")?.focus?.();
@@ -4759,7 +5151,7 @@ function bindAuthControls() {
     try { status.textContent = await authClient.checkUsernameAvailability(username) ? "Username available." : "Username unavailable."; }
     catch (error) { status.textContent = "Could not check username yet."; }
   });
-  overlay?.addEventListener("click", event => { if (event.target === overlay) closeEmailAuth(true); });
+  overlay?.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   document.getElementById("auth-forgot-password")?.addEventListener("click", async () => {
     const email = document.getElementById("auth-email").value.trim();
     if (!email) { setAuthFormStatus("Enter your email address first.", "error"); return; }
@@ -4845,7 +5237,7 @@ function bindCollectionComposer() {
   const overlay = document.getElementById("collection-overlay");
   document.getElementById("collection-close")?.addEventListener("click", () => closeCollectionComposer(true));
   document.getElementById("collection-cancel")?.addEventListener("click", () => closeCollectionComposer(true));
-  overlay?.addEventListener("click", event => { if (event.target === overlay) closeCollectionComposer(true); });
+  overlay?.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   document.getElementById("collection-form")?.addEventListener("submit", event => {
     event.preventDefault();
     if (!requirePersonalSession("create collections")) return;
@@ -4946,7 +5338,7 @@ window.closeCollectionView = function(restoreFocus = true) {
 function bindCollectionView() {
   const overlay = document.getElementById("collection-view-overlay");
   document.getElementById("collection-view-close")?.addEventListener("click", () => closeCollectionView(true));
-  overlay?.addEventListener("click", event => { if (event.target === overlay) closeCollectionView(true); });
+  overlay?.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   document.addEventListener("keydown", event => {
     if (event.key === "Escape" && overlay?.classList.contains("active")) closeCollectionView(true);
   });
@@ -4986,7 +5378,7 @@ function bindWebsiteRequest() {
   const overlay = document.getElementById("request-overlay");
   document.getElementById("request-close")?.addEventListener("click", () => closeWebsiteRequest(true));
   document.getElementById("request-cancel")?.addEventListener("click", () => closeWebsiteRequest(true));
-  overlay?.addEventListener("click", event => { if (event.target === overlay) closeWebsiteRequest(true); });
+  overlay?.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   document.getElementById("request-form")?.addEventListener("submit", async event => {
     event.preventDefault();
     const request = {
@@ -5021,6 +5413,49 @@ function bindWebsiteRequest() {
   });
 }
 
+/* P-113 — one device = one stable guest ID, derived from the device fingerprint plus the
+   connection IP (when it can be read privately). It is created ONCE per device, stored
+   locally, and attached to the account when the guest later signs in, so activity follows
+   them. Two different devices always get different IDs; we never share it across devices. */
+function deviceFingerprintSeed() {
+  const nav = window.navigator || {};
+  const sig = [
+    nav.userAgent || "",
+    nav.language || "",
+    (nav.languages || []).join(","),
+    screen.width + "x" + screen.height + "x" + (screen.colorDepth || 0),
+    new Date().getTimezoneOffset(),
+    (nav.hardwareConcurrency || 0) + "c",
+    (nav.deviceMemory || 0) + "m"
+  ].join("|");
+  let h = 0;
+  for (let i = 0; i < sig.length; i++) { h = ((h << 5) - h + sig.charCodeAt(i)) | 0; }
+  return "dev" + Math.abs(h).toString(36);
+}
+function paragonGuestId() {
+  try {
+    let id = window.localStorage.getItem("paragon.guestDeviceId.v1");
+    if (id) return id;
+    const ipPart = String(window.localStorage.getItem("paragon.deviceIpHint.v1") || "").replace(/[^a-z0-9]/gi, "").slice(0, 10) || "noip";
+    id = "PG-" + deviceFingerprintSeed() + "-" + ipPart + "-" + Date.now().toString(36);
+    window.localStorage.setItem("paragon.guestDeviceId.v1", id);
+    return id;
+  } catch (_) {
+    return "PG-" + deviceFingerprintSeed() + "-mem-" + Date.now().toString(36);
+  }
+}
+/* Best-effort private IP hint (no account data sent). Failure simply means the ID uses the
+   device fingerprint alone — it still stays unique per device. */
+(function refreshDeviceIpHint() {
+  try {
+    fetch("https://api.ipify.org?format=json", { mode: "cors" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data && data.ip) window.localStorage.setItem("paragon.deviceIpHint.v1", data.ip); })
+      .catch(() => {});
+  } catch (_) { /* offline / blocked — fingerprint-only ID still works */ }
+})();
+window.paragonGuestId = paragonGuestId;
+
 window.guestLogin = function() {
   loggedIn = false;
   guestMode = true;
@@ -5031,6 +5466,12 @@ window.guestLogin = function() {
     window.sessionStorage.removeItem(localKeys.guestInactiveSince);
   } catch (error) { /* memory-only fallback */ }
   applyPersonalState(readStorageJSON(window.sessionStorage, localKeys.guestState, {}));
+  /* P-113 — stamp the stable per-device guest ID onto the guest profile. */
+  try {
+    const gid = paragonGuestId();
+    accountProfile.guestId = gid;
+    accountProfile.linkedDeviceIds = Array.from(new Set([...(accountProfile.linkedDeviceIds || []), gid]));
+  } catch (_) {}
   ensureStarterCollections();
   persistPersonalState();
   renderAccount();
@@ -5393,37 +5834,120 @@ function acceptInlineSearchHint() {
   return true;
 }
 
+/* P-113 — Google-grade instant search. Highlights matched text, groups by relevance,
+   surfaces a typo-aware "Did you mean", supports full arrow-key navigation, and runs
+   debounced so typing feels instant without wasteful re-ranking. */
+let searchDebounceTimer = null;
+let searchActiveIndex = -1;
+let searchCurrentSuggestions = [];
+
+function highlightMatch(text, query) {
+  const safe = String(text || "");
+  const terms = getSearchTerms(query);
+  if (!terms.length) return escapeHTML(safe);
+  let out = escapeHTML(safe);
+  terms
+    .filter(t => t.length >= 2)
+    .sort((a, b) => b.length - a.length)
+    .forEach(term => {
+      const pattern = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      out = out.replace(new RegExp("(" + pattern + ")", "ig"), "<mark>$1</mark>");
+    });
+  return out;
+}
+
+/* Returns { site, score, confidence, reasons, similarity }[] using the AI brain first. */
+function rankSitesForSearch(query, limit = 8) {
+  const clean = String(query || "").trim();
+  if (!clean) return [];
+  const aiRanked = window.ParagonAI?.rankWebsites?.(clean, { limit, minimumScore: 12, ensure: limit });
+  if (Array.isArray(aiRanked) && aiRanked.length) return aiRanked;
+  return sites
+    .map(site => ({ site, score: scoreSiteForSearch(site, clean) }))
+    .filter(entry => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.site.name.localeCompare(b.site.name))
+    .slice(0, limit);
+}
+
+/* Best single-name correction (e.g. "invoic" -> "Paragon Invoice") for a Did-you-mean line. */
+function searchDidYouMean(query) {
+  const clean = String(query || "").trim().toLowerCase();
+  if (!clean || clean.length < 3) return "";
+  const best = rankSitesForSearch(query, 6)[0];
+  if (!best) return "";
+  // Only suggest when the user did NOT already type the name close to correctly.
+  const name = String(best.site?.name || "").toLowerCase();
+  if (name.includes(clean) || clean.includes(name.replace(/^paragon\s+/, ""))) return "";
+  if ((best.similarity || 0) >= 0.55 || (best.confidence || 0) >= 0.4) return best.site.name;
+  return "";
+}
+
 function renderSearchSuggestions(query = document.getElementById("search-input")?.value || "") {
   const suggestions = document.getElementById("search-suggestions");
   const input = document.getElementById("search-input");
   if (!suggestions) return [];
   const normalizedQuery = normalizeSearchText(query);
+  searchActiveIndex = -1;
   if (!normalizedQuery || searchResultsMode) {
     suggestions.innerHTML = "";
     suggestions.hidden = true;
     input?.setAttribute("aria-expanded", "false");
+    searchCurrentSuggestions = [];
     return [];
   }
-  const matches = sites
-    .map(site => ({ site, name: normalizeSearchText(site.name), suffix: normalizeSearchText(site.name.replace(/^Paragon\s+/i, "")), score: scoreSiteForSearch(site, query) }))
-    .filter(entry => entry.score > 0)
-    .sort((first, second) => Number(second.suffix.startsWith(normalizedQuery) || second.name.startsWith(normalizedQuery)) - Number(first.suffix.startsWith(normalizedQuery) || first.name.startsWith(normalizedQuery)) || second.score - first.score || first.site.name.localeCompare(second.site.name))
-    .slice(0, 10)
-    .map(entry => entry.site);
-  if (!matches.length) {
+  const ranked = rankSitesForSearch(query, 8);
+  searchCurrentSuggestions = ranked;
+  if (!ranked.length) {
+    /* No match: the autocomplete closes silently (Google behaviour). The richer "no results"
+       / did-you-mean message appears on the results screen after Enter. */
     suggestions.innerHTML = "";
     suggestions.hidden = true;
     input?.setAttribute("aria-expanded", "false");
     return [];
   }
-  suggestions.innerHTML = matches.map(site => `
-    <button type="button" class="search-suggestion-card" role="option" data-search-suggestion="${escapeHTML(site.name)}">
-      <span class="search-suggestion-icon" aria-hidden="true">${site.icon}</span>
-      <span class="search-suggestion-copy"><strong>${escapeHTML(site.name)}</strong><small>${escapeHTML(site.category)} · ${escapeHTML(site.desc)}</small></span>
-    </button>`).join("");
+  const dym = searchDidYouMean(query);
+  const dymLine = dym && !ranked.some(r => r.site.name === dym)
+    ? `<div class="search-dym-line">Did you mean <button type="button" class="search-dym" data-search-suggestion="${escapeHTML(dym)}"><mark>${escapeHTML(dym)}</mark></button>?</div>` : "";
+  const cards = ranked.map((entry, index) => {
+    const site = entry.site;
+    const iconArt = SITE_ICON_ART[site.name] ? `<img class="search-sugg-art" src="${SITE_ICON_ART[site.name]}" alt="">` : `<span class="search-sugg-emoji">${site.icon || "🧩"}</span>`;
+    const reason = (entry.reasons && entry.reasons.length) ? entry.reasons[0] : site.tag || site.category;
+    return `<button type="button" class="search-suggestion-card" role="option" id="search-sugg-${index}" data-search-suggestion="${escapeHTML(site.name)}">
+      <span class="search-suggestion-icon" aria-hidden="true">${iconArt}</span>
+      <span class="search-suggestion-copy">
+        <strong>${highlightMatch(site.name, query)}</strong>
+        <small><span class="search-sugg-cat" style="color:${getCategoryColor(site.category)}">●</span> ${highlightMatch(site.category, query)} · ${highlightMatch(site.desc, query)}</small>
+        <small class="search-sugg-reason">${escapeHTML(reason)}</small>
+      </span>
+      <span class="search-sugg-go" aria-hidden="true">↵</span>
+    </button>`;
+  }).join("");
+  suggestions.innerHTML = dymLine + `<div class="search-sugg-list" role="listbox">${cards}</div>
+    <button type="button" class="search-sugg-ask" data-search-ask="1">✦ Ask Paragon AI about “${escapeHTML(String(query).trim())}”</button>`;
   suggestions.hidden = false;
   input?.setAttribute("aria-expanded", "true");
-  return matches;
+  return ranked.map(r => r.site);
+}
+
+function moveSearchSuggestion(delta) {
+  const cards = [...document.querySelectorAll("#search-suggestions .search-suggestion-card")];
+  if (!cards.length) return;
+  searchActiveIndex = (searchActiveIndex + delta + cards.length) % cards.length;
+  cards.forEach((card, i) => {
+    const on = i === searchActiveIndex;
+    card.classList.toggle("is-active", on);
+    if (on) { card.scrollIntoView({ block: "nearest" }); card.setAttribute("aria-selected", "true"); }
+    else card.setAttribute("aria-selected", "false");
+  });
+  const input = document.getElementById("search-input");
+  const active = cards[searchActiveIndex];
+  if (input && active) input.setAttribute("aria-activedescendant", active.id);
+}
+
+function chooseActiveSuggestion() {
+  const active = document.querySelector("#search-suggestions .search-suggestion-card.is-active");
+  if (active) { const name = active.getAttribute("data-search-suggestion"); const input = document.getElementById("search-input"); if (input) input.value = name; submitSearch(); return true; }
+  return false;
 }
 
 function renderSearchResults(query = document.getElementById("search-input")?.value || "") {
@@ -5434,6 +5958,8 @@ function renderSearchResults(query = document.getElementById("search-input")?.va
   const clean = String(query || "").trim();
   const matches = getSearchMatches(clean);
   const exactNameMatch = matches.some(site => site.name.toLowerCase() === clean.toLowerCase());
+  const dym = searchDidYouMean(clean);
+  const dymBlock = dym ? `<div class="search-dym-line">Did you mean <button type="button" class="search-dym" onclick="(function(){var i=document.getElementById('search-input');if(i){i.value='${escapeHTML(dym).replace(/'/g, "\\'")}';setSearchResultsMode(false);setTimeout(function(){submitSearch();},0);}})()"><mark>${escapeHTML(dym)}</mark></button>?</div>` : "";
   /* P-094 — ONE search AI, ONE presentation (owner rule after the "two AI" complaint):
      exact name gives plain results; ANY non-exact search (including zero matches) gives the single
      ✦ Paragon AI block with real icon art, confidence, match reasons — no padded lists, no
@@ -5509,7 +6035,21 @@ function setSearchResultsMode(active, query = document.getElementById("search-in
   if (entry) entry.hidden = searchResultsMode;
   if (results) results.hidden = !searchResultsMode;
   if (title) title.textContent = searchResultsMode ? "Search Results" : "Search";
-  if (searchResultsMode) renderSearchResults(query);
+  if (searchResultsMode) {
+    renderSearchResults(query);
+    const dym2 = searchDidYouMean(query);
+    const resultsEl = document.getElementById("search-results");
+    if (dym2 && resultsEl && !resultsEl.querySelector(".search-dym-line") && !getSearchMatches(query).some(s => s.name === dym2)) {
+      const line = document.createElement("div");
+      line.className = "search-dym-line";
+      line.innerHTML = `Did you mean <button type="button" class="search-dym" data-dym="${escapeHTML(dym2)}"><mark>${escapeHTML(dym2)}</mark></button>?`;
+      line.querySelector(".search-dym")?.addEventListener("click", () => {
+        const i = document.getElementById("search-input");
+        if (i) { i.value = dym2; submitSearch(); }
+      });
+      resultsEl.insertBefore(line, resultsEl.firstChild);
+    }
+  }
   else {
     renderSearchSuggestions(query);
     renderInlineSearchHint(query);
@@ -5584,23 +6124,51 @@ function bindSearch() {
   setSearchResultsMode(false);
   document.getElementById("search-btn")?.addEventListener("click", () => openSearchOverlay(true));
   input?.addEventListener("input", event => {
-    renderInlineSearchHint(event.target.value);
-    renderSearchSuggestions(event.target.value);
-    renderRecentSearches();
+    const value = event.target.value;
+    /* Debounce so instant search feels fast but doesn't re-rank on every keystroke. */
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+      renderInlineSearchHint(value);
+      renderSearchSuggestions(value);
+      renderRecentSearches();
+    }, 90);
   });
   input?.addEventListener("keydown", event => {
-    const atEnd = event.currentTarget.selectionStart === event.currentTarget.value.length && event.currentTarget.selectionEnd === event.currentTarget.value.length;
-    if ((event.key === "Tab" || event.key === "ArrowRight") && atEnd && inlineHintValue) {
+    const suggestionsOpen = document.getElementById("search-suggestions") && !document.getElementById("search-suggestions").hidden;
+    if (suggestionsOpen && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
       event.preventDefault();
-      acceptInlineSearchHint();
+      moveSearchSuggestion(event.key === "ArrowDown" ? 1 : -1);
       return;
     }
     if (event.key === "Enter") {
       event.preventDefault();
+      if (suggestionsOpen && chooseActiveSuggestion()) return;
       submitSearch();
+      return;
+    }
+    const atEnd = event.currentTarget.selectionStart === event.currentTarget.value.length && event.currentTarget.selectionEnd === event.currentTarget.value.length;
+    if ((event.key === "Tab" || event.key === "ArrowRight") && atEnd && inlineHintValue) {
+      event.preventDefault();
+      acceptInlineSearchHint();
     }
   });
   overlay?.addEventListener("click", event => {
+    const ask = event.target.closest("[data-search-ask]");
+    if (ask) {
+      recordRecentSearch(input?.value || "");
+      window.ParagonAI?.openAssistant?.();
+      const q = input?.value?.trim();
+      if (q) setTimeout(() => { const form = document.getElementById("paragon-ai-form"); const aiInput = document.getElementById("paragon-ai-question"); if (aiInput) { aiInput.value = q; form?.requestSubmit(); } }, 250);
+      return;
+    }
+    const dym = event.target.closest(".search-dym");
+    if (dym) {
+      input.value = dym.dataset.searchSuggestion;
+      renderInlineSearchHint(input.value);
+      renderSearchSuggestions(input.value);
+      input.focus();
+      return;
+    }
     const suggestion = event.target.closest("[data-search-suggestion]");
     if (suggestion) {
       input.value = suggestion.dataset.searchSuggestion;
@@ -5615,7 +6183,7 @@ function bindSearch() {
       input.focus();
       return;
     }
-    if (event.target === overlay) closeSearchOverlay(true);
+    /* P-113 owner rule: outside clicks never close a popup */ false;
   });
   document.getElementById("clear-recent-searches")?.addEventListener("click", () => {
     writeRecentSearches([]);
@@ -5961,7 +6529,7 @@ function bindScreenshotLightbox() {
     const dot = event.target.closest("[data-lightbox-index]");
     if (dot) setScreenshotLightboxIndex(dot.dataset.lightboxIndex);
   });
-  overlay?.addEventListener("click", event => { if (event.target === overlay) closeScreenshotLightbox(true); });
+  overlay?.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   figure?.addEventListener("pointerdown", event => {
     if (event.button !== undefined && event.button !== 0) return;
     lightboxPointerStartX = event.clientX;
@@ -6157,7 +6725,7 @@ window.openShareSheet = function(siteOrName) {
     overlay.className = "share-sheet-overlay";
     overlay.setAttribute("aria-hidden", "true");
     document.body.appendChild(overlay);
-    overlay.addEventListener("click", event => { if (event.target === overlay) window.closeShareSheet(); });
+    overlay.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
     document.addEventListener("keydown", event => { if (event.key === "Escape" && overlay.classList.contains("active")) window.closeShareSheet(); });
   }
   const targets = shareSheetTargets(site);
@@ -6256,7 +6824,7 @@ window.closeWebsiteQR = function(restoreFocus = true) {
 function bindWebsiteQR() {
   const overlay = document.getElementById("qr-overlay");
   document.getElementById("qr-close")?.addEventListener("click", () => closeWebsiteQR(true));
-  overlay?.addEventListener("click", event => { if (event.target === overlay) closeWebsiteQR(true); });
+  overlay?.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   document.getElementById("qr-copy")?.addEventListener("click", async () => {
     if (!qrCurrentSite) return;
     try { await window.navigator.clipboard.writeText(websiteDetailUrl(qrCurrentSite)); recordShareAchievement(); showToast("Website link copied."); }
@@ -6550,7 +7118,7 @@ window.closeSitePreview = function(restoreFocus = true) {
 function bindSitePreview() {
   const overlay = document.getElementById("site-preview-overlay");
   document.getElementById("site-preview-close")?.addEventListener("click", () => closeSitePreview(true));
-  overlay?.addEventListener("click", event => { if (event.target === overlay) closeSitePreview(true); });
+  overlay?.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   document.getElementById("site-preview-new-tab")?.addEventListener("click", () => {
     const top = previewWindows[previewWindows.length - 1];
     const url = top?.url || (currentPreviewSite?.siteUrl && currentPreviewSite.siteUrl !== "#" ? currentPreviewSite.siteUrl : "");
@@ -6575,15 +7143,10 @@ window.launchSite = function(siteName, button) {
     requirePersonalSession("open websites");
     return;
   }
-  /* P-097 — a website the Team marked "Under Review" is in MAINTENANCE: it cannot be used. */
+  /* P-097 — a website the Team marked "Under Review" is in MAINTENANCE: it cannot be used.
+     P-113 — shown in a FULL TAB now (no iframe), via the maintenance page. */
   if (teamSiteOverrideStatus(site.name) === "review") {
-    previewReturnFocus = button;
-    showSitePreview({ ...site, siteUrl: "" }, false);
-    const message = document.getElementById("site-preview-message");
-    if (message) {
-      message.hidden = false;
-      message.innerHTML = `<div class="preview-maintenance-card"><img src="assets/illustrations/maintenance.png" alt=""><strong>🔧 ${escapeHTML(site.name)} is under maintenance</strong><span>The Paragon Team marked this website "Under Review" — it is temporarily closed for checks. It returns right after the review. <a href="#" onclick="switchToTab('updates'); return false;">See Updates</a></span></div>`;
-    }
+    openFullTabConstruction(site, "maintenance");
     return;
   }
   previewReturnFocus = button;
@@ -6593,12 +7156,12 @@ window.launchSite = function(siteName, button) {
   try {
     if (hasPersonalSession() && String(launchUrl || site.siteUrl || "").includes("/sites/")) {
       accountProfile.productOpenCount = Number(accountProfile.productOpenCount || 0) + 1;
+      try { bumpDaily("productOpenCountToday"); } catch (_) {}
       persistPersonalState();
       renderAchievementsAccount();
     }
   } catch (_) {}
   const hasUrl = Boolean(launchUrl);
-  let frameLoaded = !hasUrl;
   let visualReady = false;
   let completed = false;
   progress.classList.add("launching");
@@ -6607,7 +7170,7 @@ window.launchSite = function(siteName, button) {
   let value = 0;
 
   const complete = () => {
-    if (completed || !visualReady || !frameLoaded) return;
+    if (completed || !visualReady) return;
     completed = true;
     value = 100;
     ring.style.strokeDashoffset = "0";
@@ -6616,12 +7179,18 @@ window.launchSite = function(siteName, button) {
     progress.classList.add("complete");
     detailView.classList.add("launch-complete");
     button.textContent = "READY ✓";
-    /* P-094 — the ONLY place a view is recorded: a successfully completed OPEN.
-       Detail views no longer count (owner rule). */
+    /* P-094 — the ONLY place a view is recorded: a completed OPEN. Detail views do not count. */
     siteMetrics?.recordView(site.name);
     recordLocalVisit(site.name);
     refreshHeroViews?.();
-    showSitePreview(launchSite, hasUrl);
+    /* P-113 owner rule: websites ALWAYS open in a FULL BROWSER TAB — never an iframe.
+       Built sites go straight to their own page; not-yet-built sites go to the
+       full-tab under-construction page. */
+    if (hasUrl) {
+      window.open(launchUrl, "_blank", "noopener");
+    } else {
+      openFullTabConstruction(launchSite, "building");
+    }
     setTimeout(() => {
       progress.classList.remove("launching", "complete");
       detailView.classList.remove("launch-complete");
@@ -6633,27 +7202,70 @@ window.launchSite = function(siteName, button) {
     }, 900);
   };
 
-  if (hasUrl && frame) {
-    frame.hidden = false;
-    frame.onload = () => { frameLoaded = true; complete(); };
-    frame.src = launchUrl;
-    setTimeout(() => { frameLoaded = true; complete(); }, 6500);
-  }
-
   const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const timer = setInterval(() => {
-    value = Math.min(hasUrl ? 94 : 100, value + (reduced ? 25 : 4)); // P-074 — livelier loading fill
+    value = Math.min(100, value + (reduced ? 25 : 4)); // P-074 — livelier loading fill
     ring.style.strokeDashoffset = String(100 - value);
     percentage.textContent = `${value}%`;
     progress.setAttribute("aria-valuenow", String(value));
     button.textContent = `OPENING ${value}%`;
-    if (value >= (hasUrl ? 94 : 100)) {
+    if (value >= 100) {
       clearInterval(timer);
       visualReady = true;
       complete();
     }
   }, reduced ? 30 : 32);
 };
+
+/* P-113 — full-tab "website state" page (replaces the iframe preview window).
+   Builds a self-contained page in a new tab: under-construction OR maintenance. */
+function openFullTabConstruction(site, mode) {
+  const isMaint = mode === "maintenance";
+  const art = isMaint ? "🔧" : "🚧";
+  const title = isMaint ? `${site.name} is under maintenance` : `${site.name} is still being built`;
+  const body = isMaint
+    ? `The Paragon Team marked this website <strong>"Under Review"</strong> — it is temporarily closed for checks and returns right after the review.`
+    : `This website is <strong>under construction</strong>. The Archive keeps its progress honest; it opens here in a full tab the moment it is ready. You can follow updates and request early access from the Archive.`;
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title} · Paragon Archive</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; padding:28px; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, rgba(109,94,252,.35), transparent 60%), #0b0e1a; color:#f4f5fb; }
+  .card { width:min(560px,94vw); text-align:center; border:1px solid rgba(255,255,255,.12); border-radius:22px; padding:34px 26px; background:rgba(20,24,42,.75); box-shadow:0 30px 80px rgba(0,0,0,.5); }
+  .art { font-size:58px; line-height:1; animation:bob 3s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-8px); } }
+  h1 { font-size:22px; margin:16px 0 8px; }
+  p { color:#b9bee0; font-size:14.5px; line-height:1.6; margin:0 0 18px; }
+  .icon { font-size:34px; margin-bottom:6px; }
+  .progress { height:10px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden; margin:6px 0 22px; }
+  .progress > i { display:block; height:100%; width:${Math.max(4, Math.min(100, Number(site.buildProgress) || (isMaint ? 100 : 30)))}%; border-radius:99px; background:linear-gradient(90deg,#2563eb,#6d5efc); }
+  .actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  a, button { border:0; cursor:pointer; border-radius:999px; padding:12px 20px; font-weight:800; font-size:14px; text-decoration:none; }
+  .primary { background:linear-gradient(120deg,#2563eb,#6d5efc); color:#fff; }
+  .ghost { background:rgba(255,255,255,.08); color:#fff; }
+  .brand { margin-top:20px; font-size:12px; color:#7d83ab; letter-spacing:.14em; text-transform:uppercase; }
+</style></head>
+<body><div class="card">
+  <div class="art">${art}</div>
+  <div class="icon">${site.icon || "🧩"}</div>
+  <h1>${title}</h1>
+  <p>${body}</p>
+  ${isMaint ? "" : `<div class="progress"><i></i></div><p style="font-size:12.5px">Build progress: <strong>${Math.max(0, Math.min(100, Number(site.buildProgress) || 0))}%</strong></p>`}
+  <div class="actions">
+    <a class="primary" href="javascript:window.close()">Back to the Archive</a>
+    <button class="ghost" onclick="history.back()">Go back</button>
+  </div>
+  <div class="brand">Paragon Archive</div>
+</div></body></html>`;
+  try {
+    const win = window.open("about:blank", "_blank");
+    if (win) { win.document.open(); win.document.write(html); win.document.close(); return; }
+  } catch (_) { /* popup blocked — fall through */ }
+  /* Pop-up blocker fallback: encode as a data URI in the same tab flow */
+  try { window.location.href = "data:text/html;charset=utf-8," + encodeURIComponent(html); } catch (_) {}
+}
 
 function bindReviewComposer() {
   const overlay = document.getElementById("review-overlay");
@@ -6665,7 +7277,7 @@ function bindReviewComposer() {
   });
   document.getElementById("review-close")?.addEventListener("click", () => closeReviewComposer(true));
   document.getElementById("review-cancel")?.addEventListener("click", () => closeReviewComposer(true));
-  overlay?.addEventListener("click", event => { if (event.target === overlay) closeReviewComposer(true); });
+  overlay?.addEventListener("click", event => { /* P-113 owner rule: outside clicks never close a popup */ false; });
   document.getElementById("review-form")?.addEventListener("submit", event => {
     event.preventDefault();
     const siteName = document.getElementById("review-site-name").value;
@@ -6683,6 +7295,7 @@ function bindReviewComposer() {
       localReviews[siteName] = [...list, { id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: "You", date: new Date().toISOString(), stars: reviewRating, text }];
     }
     reviewEditingId = "";
+    try { bumpDaily("reviewsToday"); } catch (_) {}
     persistPersonalState();
     closeReviewComposer(false);
     if (hasPersonalSession()) renderAccount(); else renderAccountReviews();
@@ -7247,3 +7860,46 @@ function bindScrollColor() {
   }, { passive: true });
 }
 
+
+/* P-113 — POPUP MODAL LOCK (owner rule): while ANY modal popup is open, the page behind it
+   must not scroll or click. Only content inside the popup receives actions; the popup panel
+   itself keeps scrolling normally. The × button or Esc closes; clicking the backdrop never does. */
+(function bindPopupModalLock() {
+  if (typeof document === "undefined" || !document.addEventListener) return;
+  window.isAnyPopupOpen = function () {
+    return document.body.classList.contains("popup-lock") ||
+      Boolean(document.querySelector(
+        ".utility-overlay.active, .install-popup-overlay.active, .share-sheet-overlay.active, #search-overlay.active, #trending-overlay.active, #staff-overlay.active, #recent-overlay.active, #category-overlay.active, #review-overlay.active, #auth-overlay.active, #collection-overlay.active, #collection-view-overlay.active, #request-overlay.active, #qr-overlay.active, #achievements-overlay.active, #site-preview-overlay.active, #privacy-controls-overlay.active, #paragon-ai-overlay.active, #screenshot-lightbox.active, #update-image-viewer, #welcome-splash"
+      ));
+  };
+  const isInsideOpenPopup = function (node) {
+    return Boolean(node && node.closest && node.closest(
+      ".install-popup-card, .utility-sheet, .share-sheet, .lightbox-figure, #welcome-splash .welcome-splash-card, .paragon-ai-dialog, .search-inner, .trending-shell, .update-image-viewer-card, .notification-panel, .preview-wm-window"
+    ));
+  };
+  const blockBackgroundScroll = function (event) {
+    if (!window.isAnyPopupOpen()) return;
+    if (isInsideOpenPopup(event.target)) return;
+    event.preventDefault();
+  };
+  document.addEventListener("wheel", blockBackgroundScroll, { passive: false });
+  document.addEventListener("touchmove", blockBackgroundScroll, { passive: false });
+  document.addEventListener("click", function (event) {
+    if (!window.isAnyPopupOpen()) return;
+    if (isInsideOpenPopup(event.target)) return;
+    const interactive = event.target.closest && event.target.closest("button, a, input, select, textarea, label, [onclick], [role='button']");
+    if (!interactive) { event.preventDefault(); event.stopPropagation(); }
+  }, true);
+  /* Hide the floating Ask-AI button while a popup (including AI itself) is open */
+  const syncFab = function () {
+    const fab = document.getElementById("paragon-ai-fab");
+    if (fab) fab.style.display = window.isAnyPopupOpen() ? "none" : "";
+  };
+  document.addEventListener("DOMContentLoaded", () => setInterval(syncFab, 350));
+})();
+
+/* P-113 — the AI brain calls this (if present) when the user sends a question, so the
+   "Ask Paragon AI" daily goal and XP register honestly. */
+window.paragonTrackAiAsk = function() {
+  try { bumpDaily("aiAsksToday"); } catch (_) {}
+};

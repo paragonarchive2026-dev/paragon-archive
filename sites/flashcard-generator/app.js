@@ -152,7 +152,7 @@
     meta.textContent = "Card " + (study.i + 1) + " / " + study.cards.length + (study.showBack ? " · back" : " · front");
   }
 
-  document.getElementById("themeToggle")?.addEventListener("click", kit.toggleTheme);
+  /* P-113 — per-site dark/light toggle removed; the Archive nav bar controls all sites. */
 
   if (document.getElementById("genDeck")) {
     document.getElementById("genDeck").addEventListener("click", function () {

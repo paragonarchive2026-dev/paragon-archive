@@ -299,16 +299,17 @@
   </div>
 </section>
 
-<!-- ========== PARAGON AI — WEBSITE DETAIL Q&A ========== -->
-<section id="paragon-ai-overlay" aria-label="Paragon AI website assistant" role="dialog" aria-modal="true" aria-hidden="true">
+<!-- ========== PARAGON AI — CHAT & WEBSITE Q&A (P-113: greetings, small talk, search) ========== -->
+<button id="paragon-ai-fab" type="button" onclick="window.ParagonAI?.openAssistant()" aria-label="Ask Paragon AI">🧠<span>Ask AI</span></button>
+<section id="paragon-ai-overlay" aria-label="Paragon AI assistant" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="paragon-ai-dialog">
-    <div class="review-dialog-head"><div><p class="eyebrow">One Paragon AI · Website Detail mode</p><h2 id="paragon-ai-title">Ask Paragon AI</h2><p id="paragon-ai-scope"></p></div><button id="paragon-ai-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close Paragon AI">×</button></div>
+    <div class="review-dialog-head"><div><p class="eyebrow">Paragon AI · chats and knows every website</p><h2 id="paragon-ai-title">Ask Paragon AI</h2><p id="paragon-ai-scope"></p></div><button id="paragon-ai-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close Paragon AI">×</button></div>
     <div id="paragon-ai-messages" class="paragon-ai-messages" aria-live="polite"></div>
     <form id="paragon-ai-form" class="paragon-ai-form">
-      <label for="paragon-ai-question">Ask about this website</label>
-      <div><input id="paragon-ai-question" type="text" maxlength="600" autocomplete="off" placeholder="What does this website do?"><button type="submit" class="primary-action">Ask</button></div>
+      <label for="paragon-ai-question" id="paragon-ai-label">Ask anything — greetings, ideas or questions</label>
+      <div><input id="paragon-ai-question" type="text" maxlength="600" autocomplete="off" placeholder="Try “hello”, “who are you?”, or “I need a tool for invoices”"><button type="submit" class="primary-action">Ask</button></div>
     </form>
-    <p class="local-data-note">Current answers are local and grounded in catalogue details. No external AI provider or browser API key is connected.</p>
+    <p class="local-data-note">Answers are local and grounded in real Paragon data — nothing is invented. No external AI provider or API key is connected.</p>
   </div>
 </section>
 

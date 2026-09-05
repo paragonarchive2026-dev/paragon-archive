@@ -43,6 +43,7 @@
     { pattern: /\b(journal|diary|mood track|reflection)\b/i, terms: ["journal", "mood", "reflection"], preferred: ["Paragon Journal"] }
   ];
 
+  const LAUNCH_DATE = "August 1, 2026"; /* P-113 — the day Paragon Archive started (weekly board anchor) */
   const normalize = value => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const tokenize = value => normalize(value).split(/\s+/).filter(token => token && !stopWords.has(token));
   const escapeHTML = value => String(value ?? "").replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
@@ -471,22 +472,83 @@
     return parts.join(" ");
   }
 
-  const INTENT_VOCABULARY = ["feature", "features", "include", "documentation", "docs", "update", "updates", "version", "release", "build", "built", "ready", "launch", "schedule", "progress", "price", "cost", "free", "premium", "open", "iframe", "category", "purpose", "about", "review", "reviews", "need", "needs", "want", "future", "upcoming", "roadmap", "added", "created", "creation", "everything", "complete", "status", "live", "finished", "users", "people", "when", "soon", "close"];
+  const INTENT_VOCABULARY = ["feature", "features", "include", "documentation", "docs", "update", "updates", "version", "release", "build", "built", "ready", "launch", "schedule", "progress", "price", "cost", "free", "premium", "open", "iframe", "category", "purpose", "about", "review", "reviews", "need", "needs", "want", "future", "upcoming", "roadmap", "added", "created", "creation", "everything", "complete", "status", "live", "finished", "users", "people", "when", "soon", "close", "hello", "hi", "hey", "greetings", "morning", "afternoon", "evening", "paragon", "archive", "website", "coin", "coins", "quiz", "leaderboard", "withdraw", "buy", "sell", "guest", "account", "search", "game", "games", "play", "install", "app", "help", "support", "thank", "thanks", "bye", "goodbye"];
+  /* P-113 — typo snap table for common chat words: "hwllo"→"hello", "thnak"→"thank"… */
+  const CHAT_VOCABULARY = ["hello", "hi", "hey", "helo", "hallo", "holla", "yo", "sup", "howdy", "morning", "afternoon", "evening", "greetings", "thanks", "thank", "thankyou", "bye", "goodbye", "please", "paragon", "archive", "website", "coin", "coins", "quiz", "leaderboard", "withdraw", "guest", "account", "search", "install", "help", "support", "started", "begin", "launch", "created", "who", "what", "when", "where", "how", "why", "are", "you", "your", "name", "doing", "going", "old", "work", "works", "play", "game", "games", "free", "money", "naira", "wallet"];
   function correctTypos(text) {
-    // P-080 — understand typos: snap each unknown word to the closest intent keyword (edit distance ≤ 2).
+    // P-080/P-113 — understand typos: snap each unknown word to the closest keyword (edit distance ≤ 2).
     return String(text || "").split(/\s+/).map(word => {
       const clean = word.toLowerCase().replace(/[^a-z']/g, "");
-      if (!clean || clean.length < 4 || INTENT_VOCABULARY.includes(clean)) return word;
+      if (!clean || clean.length < 3) return word;
+      if (INTENT_VOCABULARY.includes(clean) || CHAT_VOCABULARY.includes(clean)) return word;
       let best = null;
-      let bestDistance = 3;
-      INTENT_VOCABULARY.forEach(candidate => {
+      let bestDistance = clean.length <= 4 ? 2 : 3;
+      INTENT_VOCABULARY.concat(CHAT_VOCABULARY).forEach(candidate => {
         if (Math.abs(candidate.length - clean.length) > 2) return;
         const distance = editDistance(clean, candidate);
         if (distance < bestDistance) { bestDistance = distance; best = candidate; }
       });
-      return best && bestDistance <= 2 ? best : word;
+      return best && bestDistance <= (clean.length <= 4 ? 1 : 2) ? best : word;
     }).join(" ");
   }
+
+  /* P-113 — CONVERSATION BRAIN: greetings and small talk that are NOT about a website.
+     Used by the archive-wide assistant AND as a safety net inside website detail Q&A. */
+  function greetingReply() {
+    const hour = new Date().getHours();
+    const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+    const roll = Math.floor(Math.random() * 3);
+    const opens = [
+      `Good ${part}! 👋 Hi, I'm Paragon AI — the brain inside Paragon Archive.`,
+      `Hello! 👋 Great to see you. I'm Paragon AI.`,
+      `Hi there! 👋 Welcome — I'm Paragon AI, your guide around Paragon Archive.`
+    ];
+    return `${opens[roll]} I can help you find any of the ${sites.length} Paragon websites (even through typos 🤝), explain what each one does, tell you about coins, the weekly leaderboard, your account, or just chat. Try asking “what can you do?” or search an idea like “I want a tool for invoices”.`;
+  }
+
+  function answerConversation(rawQuestion) {
+    const q = normalize(correctTypos(rawQuestion));
+    if (!q) return null;
+    /* greetings */
+    if (/^(hi+|hello+|hey+|helo+|hallo+|holla+|yo|sup|howdy|good (morning|afternoon|evening|day)|greetings|hi paragon|hello paragon|hey paragon)\b/.test(q) || /^(hi+|hello+|hey+)\b/.test(q)) {
+      return { text: greetingReply(), evidence: ["greeting"], confidence: 1, mode: "conversation" };
+    }
+    if (/^(thank(s| you|you very much)|thanks a lot|thnks|tnx|appreciate|well done|good job|nice one)\b/.test(q)) {
+      return { text: "You're very welcome! 😊 I'm right here whenever you need to find a website, understand a feature, or anything about Paragon. Enjoy the Archive!", evidence: ["greeting"], confidence: 1, mode: "conversation" };
+    }
+    if (/^(bye|goodbye|good bye|see you|see ya|later|good night|gn)\b/.test(q)) {
+      return { text: "Goodbye for now! 👋 Everything you do is saved in your account or guest session. Come back anytime — Paragon Archive will be here. 🚀", evidence: ["greeting"], confidence: 1, mode: "conversation" };
+    }
+    /* identity */
+    if (/(who are you|what are you|your name|who is paragon ai|what is paragon ai|introduce yourself|about you)\b/.test(q)) {
+      return { text: `I'm Paragon AI 🧠 — the built-in assistant for Paragon Archive. I run right inside the app (no external service needed) and I know every Paragon website: what it does, how built it is, its reviews, updates, and how to open it. I also understand misspelled or vague words, so just type the way you talk. I never invent facts — if something isn't real yet, I say so honestly.`, evidence: ["identity"], confidence: 1, mode: "conversation" };
+    }
+    if (/(who (made|created|built|owns|owns?) paragon|who (made|created|built) this|paragon founder|who owns paragon)/.test(q)) {
+      return { text: `Paragon Archive is built and run by the Paragon Team (the Paragon founder), with real developer partners joining through the Developer Portal and the 8-point review gate for the Deployed category.`, evidence: ["identity"], confidence: 0.9, mode: "conversation" };
+    }
+    if (/(what can you do|help me|your features|what do you do|how do you work|how can you help|capabilities)\b/.test(q)) {
+      return { text: `Here's what I can do:\n• 🔎 Find a website from any idea or phrase — even misspelled — and tell you why it matches (e.g. “I need something for receipts”).\n• 🧾 Explain any website: purpose, features, build progress, reviews, version updates, price, how to open it.\n• 🪙 Explain Paragon Coins: buying, the ₦1 = 2 coins rate, selling/withdrawing, the weekly leaderboard and prizes.\n• 🏆 Explain how leaderboard points work (only eligible staked competitions earn them).\n• 👤 Explain accounts, guests, collections, saves, reviews and achievements.\n• 💬 And basic chat — greetings, “how are you”, thanks. Just ask!`, evidence: ["identity"], confidence: 1, mode: "conversation" };
+    }
+    /* small talk */
+    if (/(how are you|how (are|r) (you|u|ya)|how far|how (is|iz) (it|paragon)|you (okay|ok|fine|good)|hope you are well)/.test(q)) {
+      return { text: `I'm doing great, thank you for asking! 😄 I'm fully switched on and ready to help with anything in Paragon Archive — websites, coins, leaderboard, your account, whatever you need. How can I help you today?`, evidence: ["greeting"], confidence: 1, mode: "conversation" };
+    }
+    if (/(when did (this|the|paragon|these|the website|the websites|the archive|platform).*(start|begin|launch|come out|created|made)|when (was|did) paragon (start|begin|launch|created|founded)|how old is paragon|when did (this|the) (website|site) (start|begin|launch)|paragon (start|launch|founded) date|since when)/.test(q)) {
+      return { text: `Paragon Archive officially started on ${LAUNCH_DATE} — that's the anchor date for everything here, including the weekly coin leaderboard weeks (Aug 1, Aug 8, Aug 15, Aug 22, Aug 29, Sep 5, and so on). Websites are added and built in waves from that date, and each one shows its honest build progress. The Archive opened with a growing catalogue and the first product wave (Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop and more) went live through September 2026.`, evidence: ["launchDate"], confidence: 0.95, mode: "conversation" };
+    }
+    if (/(what day|what date) is (it|today|today'?s date)|current date|today'?s date/.test(q)) {
+      const today = new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+      return { text: `Today is ${today}. 🗓️ (Taken from your device's clock.)`, evidence: ["date"], confidence: 1, mode: "conversation" };
+    }
+    if (/(is (it|paragon) (free|safe|legit|real)|is paragon (free|safe)|free to use|do i pay|does it cost)/.test(q)) {
+      return { text: `Browsing Paragon Archive, playing free games and quizzes, saving, reviewing and exploring are completely FREE — you don't pay a thing. Coins are only used for optional competitive play and rewards; free mode always stays available, and guests can play free without an account. Your data stays yours, and nothing financial happens without verification.`, evidence: ["policy"], confidence: 0.95, mode: "conversation" };
+    }
+    if (/(i love|love (it|this|paragon)|nice|awesome|amazing|cool|great app|beautiful|well done paragon)/.test(q)) {
+      return { text: `Thank you so much! 🙌 That means a lot to the Paragon Team. Keep exploring — and if there's a website you wish existed, use “Request a Website” and the most-requested ones get built first.`, evidence: ["greeting"], confidence: 0.9, mode: "conversation" };
+    }
+    return null;
+  }
+
 
   function addedText(site) {
     const added = site.addedAt || site.addedDate || null;
@@ -504,6 +566,11 @@
     question = correctTypos(question);
     const query = normalize(question);
     if (!site) return { text: "I could not find that website in the current Paragon catalogue.", evidence: [], confidence: 0 };
+    /* P-113 — small talk & greetings get natural replies even inside a website Q&A. */
+    const chat = answerConversation(question);
+    if (chat && /^(hi+|hello+|hey+|yo|sup|howdy|good (morning|afternoon|evening)|greetings|thanks|thank you|bye|goodbye|how are you|how far|who are you|what are you|what can you do|help me|i love|love (it|this|paragon))/.test(query)) {
+      return { ...chat, site: site.name, mode: "website-detail" };
+    }
     const features = site.features || site.updates || [];
     const status = site.previewOnly ? "concept preview while the real product is still being built" : site.name === "Paragon Archive Hub" ? "available Archive Hub page" : "configured destination";
     let text;
@@ -558,11 +625,14 @@
   }
 
   function answerSearch(question) {
+    /* P-113 — greetings, small talk, identity & platform questions get direct answers first. */
+    const chat = answerConversation(question);
+    if (chat) return chat;
     // Strict pass: only confident matches count as an answer; genuinely unrelated
     // queries keep the honest Request fallback. (Closest-match SUGGESTIONS are a
     // separate flow via rankWebsites' ensure option in the Search Results screen.)
     const ranked = rankWebsites(question, { limit: 5, minimumScore: 60 }).filter(entry => entry.confidence >= 0.3 || entry.similarity >= 0.5);
-    if (!ranked.length) return { text: "I could not find a confident website match. Paragon is building more, so you can submit the idea through Request a Website.", matches: [], requestSuggested: true, confidence: 0, mode: "archive-search" };
+    if (!ranked.length) return { text: "I could not find a confident website match. Paragon is building more, so you can submit the idea through Request a Website. (I can still chat too — try “what can you do?”.)", matches: [], requestSuggested: true, confidence: 0, mode: "archive-search" };
     const matches = ranked.map(entry => ({ name: entry.site.name, reason: entry.reasons.join(", ") || entry.site.desc, confidence: entry.confidence }));
     return { text: `The closest match is ${matches[0].name}.`, matches, requestSuggested: false, confidence: matches[0].confidence, mode: "archive-search" };
   }
@@ -592,9 +662,11 @@
     const scope = document.getElementById("paragon-ai-scope");
     const messages = document.getElementById("paragon-ai-messages");
     if (title) title.textContent = `Ask about ${site.name}`;
-    if (scope) scope.textContent = `Grounded in ${site.name}'s current Archive details and AI Brain rules.`;
+    if (scope) scope.textContent = `Grounded in ${site.name}'s current Archive details — I also answer greetings and small talk.`;
+    const label = document.getElementById("paragon-ai-label");
+    if (label) label.textContent = `Ask about ${site.name} — or just say hello`;
     if (messages) messages.innerHTML = "";
-    appendMessage(`I can explain ${site.name}'s purpose, features, category, version, preview status, price policy, and how to open it.`);
+    appendMessage(`Hello! 👋 I'm Paragon AI. I know ${site.name} inside out — purpose, features, build state, reviews, updates and how to open it — and I understand typos and casual chat too. What would you like to know?`);
     overlay.classList.add("active");
     overlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("ai-open");
@@ -609,17 +681,58 @@
     document.body.classList.remove("ai-open");
   }
 
+  /* P-113 — archive-wide assistant: greetings, small talk and website search all work
+     without needing to open a website detail first. Reuses the same overlay. */
+  function openArchiveAssistant() {
+    const overlay = document.getElementById("paragon-ai-overlay");
+    if (!overlay) { openDetailAssistant?.("Paragon Archive Hub"); return; }
+    currentDetailSite = null;
+    const title = document.getElementById("paragon-ai-title");
+    const scope = document.getElementById("paragon-ai-scope");
+    const messages = document.getElementById("paragon-ai-messages");
+    if (title) title.textContent = "Ask Paragon AI";
+    if (scope) scope.textContent = "Greetings, chat, and the whole Paragon catalogue — typo-friendly.";
+    if (messages) messages.innerHTML = "";
+    appendMessage(greetingReply());
+    overlay.classList.add("active");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("ai-open");
+    requestAnimationFrame(() => document.getElementById("paragon-ai-question")?.focus({ preventScroll: true }));
+  }
+
   function bindUI() {
     const overlay = document.getElementById("paragon-ai-overlay");
     document.getElementById("paragon-ai-close")?.addEventListener("click", closeAssistant);
-    overlay?.addEventListener("click", event => { if (event.target === overlay) closeAssistant(); });
+    /* P-113 owner rule: clicking OUTSIDE a popup never closes it — only the × button (or Esc) does. */
     document.getElementById("paragon-ai-form")?.addEventListener("submit", async event => {
       event.preventDefault();
       const input = document.getElementById("paragon-ai-question");
       const question = input?.value.trim() || "";
-      if (!question || !currentDetailSite) return;
+      if (!question) return;
       appendMessage(question, "user");
       input.value = "";
+      try { window.paragonTrackAiAsk?.(); } catch (_) { /* P-113 daily goal + XP */ }
+      if (!currentDetailSite) {
+        /* Archive-wide mode: chat answers AND website matches, with tappable results. */
+        const response = await ask(question, { mode: "archive-search" });
+        appendMessage(response.text, "assistant");
+        if (Array.isArray(response.matches) && response.matches.length) {
+          const list = document.createElement("div");
+          list.className = "paragon-ai-result-list";
+          list.innerHTML = response.matches.slice(0, 4).map(match => `<button type="button" data-ai-site="${escapeHTML(match.name)}">◈ ${escapeHTML(match.name)}<small>${escapeHTML(match.reason || "")}</small></button>`).join("");
+          document.getElementById("paragon-ai-messages")?.appendChild(list);
+          list.querySelectorAll("[data-ai-site]").forEach(button => {
+            button.addEventListener("click", () => {
+              const siteName = button.getAttribute("data-ai-site");
+              closeAssistant();
+              if (typeof window.openDetail === "function") window.openDetail(siteName);
+            });
+          });
+          const messages = document.getElementById("paragon-ai-messages");
+          if (messages) messages.scrollTop = messages.scrollHeight;
+        }
+        return;
+      }
       const response = await ask(question, { mode: "website-detail", siteName: currentDetailSite });
       appendMessage(response.text, "assistant");
     });
@@ -633,13 +746,17 @@
     userNeedsText,
     futureText,
     documentationText,
-    version: "0.32.0-local",
+    version: "0.33.0-local",
     modes: modeRegistry,
     rankWebsites, applyIntentRouting, INTENT_ROUTES,
     answerSearch,
     answerDetail,
+    answerConversation,
+    correctTypos,
+    greetingReply,
     ask,
     openDetailAssistant,
+    openAssistant: openArchiveAssistant,
     close: closeAssistant,
     getSite: findSite,
     getConfiguration: () => ({ endpoint: window.ParagonConfig?.aiEndpoint || "", externalInferenceEnabled: false, providerSecretsInBrowser: false })

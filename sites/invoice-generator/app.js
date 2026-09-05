@@ -350,7 +350,7 @@
     });
   }
 
-  document.getElementById("themeToggle")?.addEventListener("click", kit.toggleTheme);
+  /* P-113 — per-site dark/light toggle removed; the Archive nav bar controls all sites. */
   renderHomeStats();
   bindInvoicePage();
   bindBusinessPage();
