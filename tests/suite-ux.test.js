@@ -2267,19 +2267,19 @@ const mon = new Date(2026, 7, 3, 0, 0, 0);
 check5(LB5.periodBounds("2026-08-03").end.getTime() === new Date(2026, 7, 10).getTime(), "period end is the next Monday (exclusive)");
 
 /* ---------- 3. Eligibility + anti-farming ---------- */
-const guest5 = LB5.recordResult({ player: "Guest (this device)", mode: "bet", gameType: "quiz", stakeCoins: 5, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+const guest5 = LB5.recordResult({ player: "Guest (this device)", mode: "bet", gameType: "quiz", stakeCoins: 100, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
 check5(guest5.code === "guest", "guest play earns nothing (rejected: guest)");
 const free5 = LB5.recordResult({ player: "a@x.com", mode: "free", gameType: "quiz", perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
 check5(free5.code === "free-play", "free play earns nothing (rejected: free-play)");
 const login5 = LB5.recordResult({ player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 0, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
 check5(login5.code === "below-min-stake", "a login without a real stake earns nothing (below-min-stake)");
-const self5 = LB5.recordResult({ player: "creator@x.com", creatorFor: "creator@x.com", mode: "bet", gameType: "quiz", stakeCoins: 5, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+const self5 = LB5.recordResult({ player: "creator@x.com", creatorFor: "creator@x.com", mode: "bet", gameType: "quiz", stakeCoins: 100, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
 check5(self5.code === "creator-self-play", "creator can NEVER earn points from their own quiz (creator-self-play)");
-const impossible5 = LB5.recordResult({ player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 5, perf: { score: 12, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+const impossible5 = LB5.recordResult({ player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 100, perf: { score: 12, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
 check5(impossible5.code === "impossible-result", "impossible scores are rejected");
 
 /* stake size never scales points: same perf, stake 1 vs stake 1000 */
-const small5 = LB5.recordResult({ id: "small", player: "a@x.com", displayName: "Ace", mode: "bet", gameType: "quiz", stakeCoins: 1, feeCoins: 10, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 30, 0));
+const small5 = LB5.recordResult({ id: "small", player: "a@x.com", displayName: "Ace", mode: "bet", gameType: "quiz", stakeCoins: 100, feeCoins: 10, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 30, 0));
 const big5 = LB5.recordResult({ id: "big", player: "b@x.com", displayName: "Bee", mode: "bet", gameType: "quiz", stakeCoins: 1000, feeCoins: 10, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 31, 0));
 check5(small5.ok && big5.ok && small5.entry.points === 90 && big5.entry.points === 90, "1 coin staked ≠ 1 point — performance-only scoring (90 pts both)");
 
@@ -2288,14 +2288,14 @@ const dup5 = LB5.recordResult({ id: "big2", player: "b@x.com", mode: "bet", game
 check5(dup5.code === "duplicate", "duplicate identical results are rejected");
 
 /* ---------- 4. Weekly ranking ---------- */
-LB5.recordResult({ id: "a2", player: "a@x.com", displayName: "Ace", mode: "bet", gameType: "quiz", stakeCoins: 2, feeCoins: 10, perf: { score: 8, total: 10 } }, new Date(2026, 7, 4, 11, 0, 0));
+LB5.recordResult({ id: "a2", player: "a@x.com", displayName: "Ace", mode: "bet", gameType: "quiz", stakeCoins: 100, feeCoins: 10, perf: { score: 8, total: 10 } }, new Date(2026, 7, 4, 11, 0, 0));
 const rows5 = LB5.liveStandings("2026-08-03");
 check5(rows5.length === 2 && rows5[0].player === "a@x.com" && rows5[0].points === 170 && rows5[1].points === 90, "weekly ranking ranks by total points descending");
 const tieEnv = makeLBContext({});
 vm5.runInContext(engineSource, tieEnv.context);
 const T5 = tieEnv.context.ParagonLeaderboards;
-T5.recordResult({ id: "t1", player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
-T5.recordResult({ id: "t2", player: "b@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 1, 0));
+T5.recordResult({ id: "t1", player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 100, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+T5.recordResult({ id: "t2", player: "b@x.com", mode: "bet", gameType: "quiz", stakeCoins: 100, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 1, 0));
 const tieRows5 = T5.liveStandings("2026-08-03");
 check5(tieRows5[0].rank === 1 && tieRows5[1].rank === 1, "equal points share the same rank (1,1)");
 
@@ -2321,7 +2321,7 @@ check5(LB5.standingsForView("2026-08-03").rows.length === 2, "frozen view keeps 
 /* A result timestamped INSIDE an already-frozen week is rejected (frozen = frozen). */
 const frozenEnv5 = makeLBContext({ "paragonTeamLeaderboardOps.v1": { "2026-08-03": { state: "closed", frozen: [], frozenIds: [] } } });
 vm5.runInContext(engineSource, frozenEnv5.context);
-const late5 = frozenEnv5.context.ParagonLeaderboards.recordResult({ id: "late", player: "c@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1, perf: { score: 10, total: 10 } }, new Date(2026, 7, 5, 13, 0, 0));
+const late5 = frozenEnv5.context.ParagonLeaderboards.recordResult({ id: "late", player: "c@x.com", mode: "bet", gameType: "quiz", stakeCoins: 100, perf: { score: 10, total: 10 } }, new Date(2026, 7, 5, 13, 0, 0));
 check5(late5.code === "period-closed", "results cannot change a frozen week (period-closed)");
 const revoked5 = LB5.setEntryEligibility("2026-08-03", "big", false, "Super Admin", "flagged review");
 check5(revoked5.ok && revoked5.status === "disqualified" && revoked5.state === "review", "anti-abuse review can disqualify an entry (period reopens as review)");
@@ -2342,8 +2342,8 @@ check5(LB5.auditLog().length >= 10 && LB5.auditLog().some(row => row.action === 
 const reopenEnv = makeLBContext({});
 vm5.runInContext(engineSource, reopenEnv.context);
 const R5 = reopenEnv.context.ParagonLeaderboards;
-R5.recordResult({ id: "r1", player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1, feeCoins: 500, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
-R5.recordResult({ id: "r2", player: "b@x.com", mode: "bet", gameType: "quiz", stakeCoins: 1, feeCoins: 500, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 1, 0));
+R5.recordResult({ id: "r1", player: "a@x.com", mode: "bet", gameType: "quiz", stakeCoins: 100, feeCoins: 500, perf: { score: 10, total: 10 } }, new Date(2026, 7, 4, 10, 0, 0));
+R5.recordResult({ id: "r2", player: "b@x.com", mode: "bet", gameType: "quiz", stakeCoins: 100, feeCoins: 500, perf: { score: 9, total: 10 } }, new Date(2026, 7, 4, 10, 1, 0));
 R5.recordRealizedFee({ id: "fee-r", feeCoins: 1000, realizedAt: new Date(2026, 7, 4, 10, 2, 0) });
 R5.closePeriod("2026-08-03", "team", new Date(2026, 7, 10, 12, 0, 0));
 R5.finalizePeriod("2026-08-03", "team");

@@ -3785,32 +3785,109 @@ window.openEmailAuth = function(mode = "signin") {
    • P-113: real money is ON (owner, 2026-09-05); server can force-disable via paragon_public_coin_config.
    • No fake bank confirmations. Purchase = team/RPC confirm after real transfer.
    ===================================================================== */
+/* P-113 — KYC-driven payment rail. The rail the user saved in their payout details decides
+   which PARAGON account they pay into: OPay users see Paragon's OPay account; Moniepoint users
+   see Paragon's Moniepoint account. The account numbers are honest PLACEHOLDERS until the
+   founder connects the OPay / Moniepoint APIs (auto-match transactions then credit coins).
+   Below it: live coin total as they type the amount, and the evidence fields for matching. */
+function readKycPayout() {
+  try { return JSON.parse(window.localStorage.getItem("paragon.kycPayout.v1") || "null"); } catch (_) { return null; }
+}
 function opayMoniepointPayMarkup() {
   const p = (window.ParagonCoinPublicConfig || {}).provider || {};
-  const rails = Array.isArray(p.preferred_rails) ? p.preferred_rails : ["opay", "moniepoint", "manual_bank"];
-  const opay = p.opay || {};
-  const moni = p.moniepoint || {};
   const esc = (v) => String(v || "").replace(/[<>]/g, "");
-  const card = (title, acct) => {
-    if (!acct || (!acct.account_number && !acct.account_name)) return "";
-    return `<div class="coin-rail-card"><strong>${esc(title)}</strong>
-      <div>${esc(acct.bank_name || title)}</div>
-      <div>${esc(acct.account_name || "")}</div>
-      <div class="coin-rail-number">${esc(acct.account_number || "— set by team —")}</div>
-      ${acct.label ? `<small>${esc(acct.label)}</small>` : ""}</div>`;
-  };
-  const cards = [
-    rails.includes("opay") ? card("OPay", opay) : "",
-    rails.includes("moniepoint") ? card("Moniepoint", moni) : ""
-  ].filter(Boolean).join("");
-  const instructions = esc(p.bank_transfer_instructions || p.support_contact_note ||
-    "Transfer with OPay or Moniepoint. Put your Paragon email in the narration. Coins credit only after confirmation — never from this click alone.");
-  return `<div class="install-popup-note coin-rails-block" style="margin-top:10px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.08)">
-    <b>How to pay (Nigeria — OPay / Moniepoint first) · real-money ON · coins credited after team confirms your transfer</b>
-    <p style="margin:8px 0;font-size:12px;line-height:1.45">${instructions}</p>
-    <div class="coin-rails-grid">${cards || "<small>Team will publish OPay/Moniepoint account numbers after phase5 SQL + settings update. Flutterwave is <em>not</em> required.</small>"}</div>
+  const kyc = readKycPayout();
+  const rail = kyc && /monie/i.test(kyc.rail || "") ? "moniepoint" : "opay";
+  const railName = rail === "moniepoint" ? "Moniepoint" : "OPay";
+  /* Real account numbers come from public config once the team sets them; until then a clear
+     placeholder is shown (never a fabricated number). */
+  const cfgAcct = rail === "moniepoint" ? (p.moniepoint || {}) : (p.opay || {});
+  const accountNumber = esc(cfgAcct.account_number || "");
+  const accountName = esc(cfgAcct.account_name || "Paragon Archive");
+  const numberBlock = accountNumber
+    ? `<div class="coin-rail-number" id="pay-rail-number">${accountNumber}</div><button type="button" class="coin-copy-num" onclick="copyPayRailNumber()">Copy number</button>`
+    : `<div class="coin-rail-number coin-rail-placeholder" id="pay-rail-number">— Paragon ${railName} number appears here once the team connects ${railName} —</div>`;
+  const kycPrompt = kyc
+    ? `<p class="coin-rail-matched">✓ Paying to Paragon's <b>${railName}</b> account (from your payout details). <button type="button" class="coin-inline-link" onclick="openKycPayoutDraft()">Change rail</button></p>`
+    : `<p class="coin-rail-matched coin-rail-warn">Set your payout details first so we show the right account: <button type="button" class="coin-inline-link" onclick="openKycPayoutDraft()">Add OPay / Moniepoint details</button></p>`;
+  return `<div class="coin-rails-block">
+    <b class="coin-rails-title">How to pay — transfer to Paragon's ${railName} account</b>
+    ${kycPrompt}
+    <div class="coin-rail-card">
+      <strong>${railName}</strong>
+      <div class="coin-rail-acctname">${accountName}</div>
+      ${numberBlock}
+      <small>Put your Paragon email in the transfer narration.</small>
+    </div>
+    <p class="coin-rails-api-note">Coins are added only after the transfer is confirmed and matched. Automatic matching via the ${railName} API is being connected; until then the team verifies each transfer against the details you enter below. Your own payout details (sender name/bank) already come from your KYC.</p>
+    <div class="coin-pay-calc">
+      <label class="wallet-field"><span>Amount you are transferring (₦)</span>
+        <input id="pay-amount" type="number" min="500" step="100" placeholder="e.g. 1000" oninput="updatePayCoinTotal()">
+      </label>
+      <div class="coin-pay-total" id="pay-coin-total">Enter an amount to see how many coins you get.</div>
+    </div>
+    <div class="coin-evidence">
+      <label class="wallet-field"><span>Transaction / transfer reference</span><input id="pay-ref" maxlength="100" placeholder="From your ${railName} receipt, e.g. M4938201"></label>
+      <div class="coin-evidence-row">
+        <label class="wallet-field"><span>Transfer date &amp; time</span><input id="pay-date" type="datetime-local"></label>
+        <label class="wallet-field"><span>Amount sent (₦)</span><input id="pay-amount-confirm" type="number" min="500" placeholder="Same as transfer"></label>
+      </div>
+      <label class="wallet-field"><span>Sender name on the transfer (from your KYC)</span><input id="pay-sender" maxlength="80" value="${esc(kyc?.name || "")}" placeholder="Name your ${railName} account is in"></label>
+      <button type="button" class="primary-action" id="pay-submit-claim" onclick="submitPaymentClaim()">📨 I have transferred — submit for matching</button>
+      <small class="coin-evidence-note">This is evidence for matching, not proof of payment. The verified ${railName} record is final; one reference can never be credited twice (duplicates are rejected). Max 5 claims per 24 hours.</small>
+    </div>
   </div>`;
 }
+window.updatePayCoinTotal = function() {
+  const el = document.getElementById("pay-amount");
+  const out = document.getElementById("pay-coin-total");
+  const confirm = document.getElementById("pay-amount-confirm");
+  if (!el || !out) return;
+  const naira = Math.round(Number(el.value) || 0);
+  if (confirm && el.ownerDocument.activeElement !== confirm) confirm.value = naira || "";
+  const rate = coinConfigFlags().nairaPerCoinBuy || 1;
+  if (!naira) { out.innerHTML = "Enter an amount to see how many coins you get."; return; }
+  const coins = Math.round(naira * rate);
+  out.innerHTML = `₦${naira.toLocaleString()} = <b>${coins.toLocaleString()} coins</b> added after the transfer is confirmed.`;
+};
+window.copyPayRailNumber = function() {
+  const num = document.getElementById("pay-rail-number")?.textContent?.trim() || "";
+  if (/—/.test(num)) { showToast("The account number is not published yet.", "warning"); return; }
+  try { navigator.clipboard?.writeText(num); showToast("Account number copied."); } catch (_) {}
+};
+window.submitPaymentClaim = function() {
+  const naira = Math.round(Number(document.getElementById("pay-amount")?.value || 0));
+  const ref = String(document.getElementById("pay-ref")?.value || "").trim();
+  const when = String(document.getElementById("pay-date")?.value || "").trim();
+  const sender = String(document.getElementById("pay-sender")?.value || "").trim();
+  const kyc = readKycPayout();
+  const rail = kyc && /monie/i.test(kyc.rail || "") ? "moniepoint" : "opay";
+  if (!isRegisteredMember()) { showToast("Sign in to submit a payment.", "warning"); return; }
+  if (naira < 500) { showToast("Enter the naira amount you transferred (min ₦500).", "warning"); return; }
+  if (ref.length < 3) { showToast("Enter the transaction/transfer reference from your receipt.", "warning"); return; }
+  if (!when) { showToast("Enter the transfer date and time.", "warning"); return; }
+  if (!sender) { showToast("Enter the sender name on the transfer (or complete your payout details).", "warning"); return; }
+  try {
+    const list = JSON.parse(window.localStorage.getItem("paragon.paymentClaimsLocal.v1") || "[]");
+    const idem = "claim-" + (authUser?.id || "u") + "-" + Date.now().toString(36);
+    list.push({ id: idem, user: walletUserEmail(), rail, naira, ref, when, sender, status: "awaiting_match", createdAt: new Date().toISOString() });
+    window.localStorage.setItem("paragon.paymentClaimsLocal.v1", JSON.stringify(list.slice(-100)));
+    // Also record a purchase intent so it appears in order history
+    accountProfile.paymentIntents = [{ id: idem, naira, coins: Math.round(naira * (coinConfigFlags().nairaPerCoinBuy || 1)), status: "awaiting_transfer", created_at: new Date().toISOString() }, ...(accountProfile.paymentIntents || [])].slice(0, 15);
+    persistPersonalState();
+  } catch (_) {}
+  // Server claim when Supabase is configured (honest attempt; local queue already saved).
+  supabaseRest("/rest/v1/rpc/paragon_coin_claim_payment", {
+    method: "POST",
+    body: JSON.stringify({ p_intent_id: "", p_claim_ref: ref.slice(0, 200), p_claim_note: `rail=${rail}; amount=${naira}; when=${when}; sender=${sender}` })
+  }).then(() => {
+    showToast(`Claim submitted — ₦${naira.toLocaleString()} (${rail}) will be matched and ${Math.round(naira * (coinConfigFlags().nairaPerCoinBuy || 1)).toLocaleString()} coins added after confirmation.`);
+    refreshCoinAccountFromServer().finally(afterCoinIntent);
+  }).catch(() => {
+    showToast(`Claim saved on this device — ₦${naira.toLocaleString()} awaits team/${rail} matching. Not credited yet.`);
+    try { afterCoinIntent(); } catch (_) {}
+  });
+};
 
 function coinConfigFlags() {
   const cfg = window.ParagonCoinPublicConfig || {};
@@ -5757,43 +5834,120 @@ function acceptInlineSearchHint() {
   return true;
 }
 
+/* P-113 — Google-grade instant search. Highlights matched text, groups by relevance,
+   surfaces a typo-aware "Did you mean", supports full arrow-key navigation, and runs
+   debounced so typing feels instant without wasteful re-ranking. */
+let searchDebounceTimer = null;
+let searchActiveIndex = -1;
+let searchCurrentSuggestions = [];
+
+function highlightMatch(text, query) {
+  const safe = String(text || "");
+  const terms = getSearchTerms(query);
+  if (!terms.length) return escapeHTML(safe);
+  let out = escapeHTML(safe);
+  terms
+    .filter(t => t.length >= 2)
+    .sort((a, b) => b.length - a.length)
+    .forEach(term => {
+      const pattern = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      out = out.replace(new RegExp("(" + pattern + ")", "ig"), "<mark>$1</mark>");
+    });
+  return out;
+}
+
+/* Returns { site, score, confidence, reasons, similarity }[] using the AI brain first. */
+function rankSitesForSearch(query, limit = 8) {
+  const clean = String(query || "").trim();
+  if (!clean) return [];
+  const aiRanked = window.ParagonAI?.rankWebsites?.(clean, { limit, minimumScore: 12, ensure: limit });
+  if (Array.isArray(aiRanked) && aiRanked.length) return aiRanked;
+  return sites
+    .map(site => ({ site, score: scoreSiteForSearch(site, clean) }))
+    .filter(entry => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.site.name.localeCompare(b.site.name))
+    .slice(0, limit);
+}
+
+/* Best single-name correction (e.g. "invoic" -> "Paragon Invoice") for a Did-you-mean line. */
+function searchDidYouMean(query) {
+  const clean = String(query || "").trim().toLowerCase();
+  if (!clean || clean.length < 3) return "";
+  const best = rankSitesForSearch(query, 6)[0];
+  if (!best) return "";
+  // Only suggest when the user did NOT already type the name close to correctly.
+  const name = String(best.site?.name || "").toLowerCase();
+  if (name.includes(clean) || clean.includes(name.replace(/^paragon\s+/, ""))) return "";
+  if ((best.similarity || 0) >= 0.55 || (best.confidence || 0) >= 0.4) return best.site.name;
+  return "";
+}
+
 function renderSearchSuggestions(query = document.getElementById("search-input")?.value || "") {
   const suggestions = document.getElementById("search-suggestions");
   const input = document.getElementById("search-input");
   if (!suggestions) return [];
   const normalizedQuery = normalizeSearchText(query);
+  searchActiveIndex = -1;
   if (!normalizedQuery || searchResultsMode) {
     suggestions.innerHTML = "";
     suggestions.hidden = true;
     input?.setAttribute("aria-expanded", "false");
+    searchCurrentSuggestions = [];
     return [];
   }
-  /* P-113 — Google-style instant suggestions: prefer the AI brain (typo-tolerant, ranks from
-     full catalogue knowledge). Fall back to local scoring only if the brain is unavailable. */
-  let ranked = window.ParagonAI?.rankWebsites?.(query, { limit: 10, minimumScore: 12 });
-  let matches = (Array.isArray(ranked) ? ranked.map(entry => entry.site).filter(Boolean) : []);
-  if (!matches.length) {
-    matches = sites
-      .map(site => ({ site, name: normalizeSearchText(site.name), suffix: normalizeSearchText(site.name.replace(/^Paragon\s+/i, "")), score: scoreSiteForSearch(site, query) }))
-      .filter(entry => entry.score > 0)
-      .sort((first, second) => Number(second.suffix.startsWith(normalizedQuery) || second.name.startsWith(normalizedQuery)) - Number(first.suffix.startsWith(normalizedQuery) || first.name.startsWith(normalizedQuery)) || second.score - first.score || first.site.name.localeCompare(second.site.name))
-      .slice(0, 10)
-      .map(entry => entry.site);
-  }
-  if (!matches.length) {
+  const ranked = rankSitesForSearch(query, 8);
+  searchCurrentSuggestions = ranked;
+  if (!ranked.length) {
+    /* No match: the autocomplete closes silently (Google behaviour). The richer "no results"
+       / did-you-mean message appears on the results screen after Enter. */
     suggestions.innerHTML = "";
     suggestions.hidden = true;
     input?.setAttribute("aria-expanded", "false");
     return [];
   }
-  suggestions.innerHTML = matches.map(site => `
-    <button type="button" class="search-suggestion-card" role="option" data-search-suggestion="${escapeHTML(site.name)}">
-      <span class="search-suggestion-icon" aria-hidden="true">${site.icon}</span>
-      <span class="search-suggestion-copy"><strong>${escapeHTML(site.name)}</strong><small>${escapeHTML(site.category)} · ${escapeHTML(site.desc)}</small></span>
-    </button>`).join("");
+  const dym = searchDidYouMean(query);
+  const dymLine = dym && !ranked.some(r => r.site.name === dym)
+    ? `<div class="search-dym-line">Did you mean <button type="button" class="search-dym" data-search-suggestion="${escapeHTML(dym)}"><mark>${escapeHTML(dym)}</mark></button>?</div>` : "";
+  const cards = ranked.map((entry, index) => {
+    const site = entry.site;
+    const iconArt = SITE_ICON_ART[site.name] ? `<img class="search-sugg-art" src="${SITE_ICON_ART[site.name]}" alt="">` : `<span class="search-sugg-emoji">${site.icon || "🧩"}</span>`;
+    const reason = (entry.reasons && entry.reasons.length) ? entry.reasons[0] : site.tag || site.category;
+    return `<button type="button" class="search-suggestion-card" role="option" id="search-sugg-${index}" data-search-suggestion="${escapeHTML(site.name)}">
+      <span class="search-suggestion-icon" aria-hidden="true">${iconArt}</span>
+      <span class="search-suggestion-copy">
+        <strong>${highlightMatch(site.name, query)}</strong>
+        <small><span class="search-sugg-cat" style="color:${getCategoryColor(site.category)}">●</span> ${highlightMatch(site.category, query)} · ${highlightMatch(site.desc, query)}</small>
+        <small class="search-sugg-reason">${escapeHTML(reason)}</small>
+      </span>
+      <span class="search-sugg-go" aria-hidden="true">↵</span>
+    </button>`;
+  }).join("");
+  suggestions.innerHTML = dymLine + `<div class="search-sugg-list" role="listbox">${cards}</div>
+    <button type="button" class="search-sugg-ask" data-search-ask="1">✦ Ask Paragon AI about “${escapeHTML(String(query).trim())}”</button>`;
   suggestions.hidden = false;
   input?.setAttribute("aria-expanded", "true");
-  return matches;
+  return ranked.map(r => r.site);
+}
+
+function moveSearchSuggestion(delta) {
+  const cards = [...document.querySelectorAll("#search-suggestions .search-suggestion-card")];
+  if (!cards.length) return;
+  searchActiveIndex = (searchActiveIndex + delta + cards.length) % cards.length;
+  cards.forEach((card, i) => {
+    const on = i === searchActiveIndex;
+    card.classList.toggle("is-active", on);
+    if (on) { card.scrollIntoView({ block: "nearest" }); card.setAttribute("aria-selected", "true"); }
+    else card.setAttribute("aria-selected", "false");
+  });
+  const input = document.getElementById("search-input");
+  const active = cards[searchActiveIndex];
+  if (input && active) input.setAttribute("aria-activedescendant", active.id);
+}
+
+function chooseActiveSuggestion() {
+  const active = document.querySelector("#search-suggestions .search-suggestion-card.is-active");
+  if (active) { const name = active.getAttribute("data-search-suggestion"); const input = document.getElementById("search-input"); if (input) input.value = name; submitSearch(); return true; }
+  return false;
 }
 
 function renderSearchResults(query = document.getElementById("search-input")?.value || "") {
@@ -5804,6 +5958,8 @@ function renderSearchResults(query = document.getElementById("search-input")?.va
   const clean = String(query || "").trim();
   const matches = getSearchMatches(clean);
   const exactNameMatch = matches.some(site => site.name.toLowerCase() === clean.toLowerCase());
+  const dym = searchDidYouMean(clean);
+  const dymBlock = dym ? `<div class="search-dym-line">Did you mean <button type="button" class="search-dym" onclick="(function(){var i=document.getElementById('search-input');if(i){i.value='${escapeHTML(dym).replace(/'/g, "\\'")}';setSearchResultsMode(false);setTimeout(function(){submitSearch();},0);}})()"><mark>${escapeHTML(dym)}</mark></button>?</div>` : "";
   /* P-094 — ONE search AI, ONE presentation (owner rule after the "two AI" complaint):
      exact name gives plain results; ANY non-exact search (including zero matches) gives the single
      ✦ Paragon AI block with real icon art, confidence, match reasons — no padded lists, no
@@ -5879,7 +6035,21 @@ function setSearchResultsMode(active, query = document.getElementById("search-in
   if (entry) entry.hidden = searchResultsMode;
   if (results) results.hidden = !searchResultsMode;
   if (title) title.textContent = searchResultsMode ? "Search Results" : "Search";
-  if (searchResultsMode) renderSearchResults(query);
+  if (searchResultsMode) {
+    renderSearchResults(query);
+    const dym2 = searchDidYouMean(query);
+    const resultsEl = document.getElementById("search-results");
+    if (dym2 && resultsEl && !resultsEl.querySelector(".search-dym-line") && !getSearchMatches(query).some(s => s.name === dym2)) {
+      const line = document.createElement("div");
+      line.className = "search-dym-line";
+      line.innerHTML = `Did you mean <button type="button" class="search-dym" data-dym="${escapeHTML(dym2)}"><mark>${escapeHTML(dym2)}</mark></button>?`;
+      line.querySelector(".search-dym")?.addEventListener("click", () => {
+        const i = document.getElementById("search-input");
+        if (i) { i.value = dym2; submitSearch(); }
+      });
+      resultsEl.insertBefore(line, resultsEl.firstChild);
+    }
+  }
   else {
     renderSearchSuggestions(query);
     renderInlineSearchHint(query);
@@ -5954,23 +6124,51 @@ function bindSearch() {
   setSearchResultsMode(false);
   document.getElementById("search-btn")?.addEventListener("click", () => openSearchOverlay(true));
   input?.addEventListener("input", event => {
-    renderInlineSearchHint(event.target.value);
-    renderSearchSuggestions(event.target.value);
-    renderRecentSearches();
+    const value = event.target.value;
+    /* Debounce so instant search feels fast but doesn't re-rank on every keystroke. */
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+      renderInlineSearchHint(value);
+      renderSearchSuggestions(value);
+      renderRecentSearches();
+    }, 90);
   });
   input?.addEventListener("keydown", event => {
-    const atEnd = event.currentTarget.selectionStart === event.currentTarget.value.length && event.currentTarget.selectionEnd === event.currentTarget.value.length;
-    if ((event.key === "Tab" || event.key === "ArrowRight") && atEnd && inlineHintValue) {
+    const suggestionsOpen = document.getElementById("search-suggestions") && !document.getElementById("search-suggestions").hidden;
+    if (suggestionsOpen && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
       event.preventDefault();
-      acceptInlineSearchHint();
+      moveSearchSuggestion(event.key === "ArrowDown" ? 1 : -1);
       return;
     }
     if (event.key === "Enter") {
       event.preventDefault();
+      if (suggestionsOpen && chooseActiveSuggestion()) return;
       submitSearch();
+      return;
+    }
+    const atEnd = event.currentTarget.selectionStart === event.currentTarget.value.length && event.currentTarget.selectionEnd === event.currentTarget.value.length;
+    if ((event.key === "Tab" || event.key === "ArrowRight") && atEnd && inlineHintValue) {
+      event.preventDefault();
+      acceptInlineSearchHint();
     }
   });
   overlay?.addEventListener("click", event => {
+    const ask = event.target.closest("[data-search-ask]");
+    if (ask) {
+      recordRecentSearch(input?.value || "");
+      window.ParagonAI?.openAssistant?.();
+      const q = input?.value?.trim();
+      if (q) setTimeout(() => { const form = document.getElementById("paragon-ai-form"); const aiInput = document.getElementById("paragon-ai-question"); if (aiInput) { aiInput.value = q; form?.requestSubmit(); } }, 250);
+      return;
+    }
+    const dym = event.target.closest(".search-dym");
+    if (dym) {
+      input.value = dym.dataset.searchSuggestion;
+      renderInlineSearchHint(input.value);
+      renderSearchSuggestions(input.value);
+      input.focus();
+      return;
+    }
     const suggestion = event.target.closest("[data-search-suggestion]");
     if (suggestion) {
       input.value = suggestion.dataset.searchSuggestion;

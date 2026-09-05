@@ -29,7 +29,7 @@
 | Creator quiz rules | 🟡 | Prize lock/award RPCs phase4; **paid quiz play server** still not full product |
 | Weekly leaderboard/reward system | 🟡 | Periods + settle + top-10 shares phase4; needs team to open periods + feed scores |
 | 30% fee-revenue → rewards | ✅ | Stage1 hardening: fee credits `reward_reserve`; settle draws policy |
-| ₦10,000+ withdrawal → 50-coin fee | ✅ | `withdraw_fee_coins_at_or_above = 10000`, `withdraw_fee_coins = 50` |
+| ₦10,000+ withdrawal → 100-coin fee (P-113, N50 x 2) | ✅ | `withdraw_fee_coins_at_or_above = 10000`, `withdraw_fee_coins = 100` |
 | 2 withdrawals/24h + 5/7 days | ✅ | Enforced in `paragon_coin_request_withdrawal` (stage1 hardening) |
 | 5 payment claims/24h | ✅ | Enforced in `paragon_coin_claim_payment` (stage1 hardening) |
 | Payment reconciliation | ✅ | phase3 match/confirm + webhook inbox + Team probe |

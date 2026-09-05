@@ -46,7 +46,7 @@
   rapid-fire / repeated-opponent signals flag rows for review — flags never auto-punish.
 - **Revenue-funded reward pool**: 30% of eligible REALIZED competition-fee revenue per week
   (`paragonCompetitionFeeLedger.v1`); pool 0 = ₦0 = nothing paid — never an invented prize.
-- **Top 3 + ranks 4–10**: distribution `30/20/15/10/7/5/4/3/2/4` (#1–#10, total 100%);
+- **Top 3 + ranks 4–10**: distribution `30/20/15/10/9/6/4/3/2/1` (P-113 owner correction) (#1–#10, total 100%);
   remainder coins go to #1 so the whole pool pays out.
 - **Reward settlement (§12.1)**: Team desk settings panel → "🏆 Weekly leaderboard & reward
   settlement" — close & freeze → anti-abuse review (disqualify/restore with notes, reopens
@@ -66,7 +66,7 @@
 - **Engine `paragon-wallets.js`** (loaded before app.js on the Archive and before
   team-pages.js on the desk): `window.ParagonWallets` —
   - **Your ₦10,000 fee rule (§22.1):** below ₦10,000 = NO Paragon fee; ₦10,000+ carries the
-    50-coin fee, tracked separately and never treated as profit. Placeholder rate ₦1 = 2 coins.
+    100-coin fee (P-113), tracked separately and never treated as profit. Placeholder rate ₦1 = 2 coins.
   - **Limits (§23):** max 2 requests per rolling 24 h and 5 per rolling 7 days (configurable);
     they never trap funds — every failure/cancel refunds its locked coins (FAILED → COINS_UNLOCKED).
   - **Payout state machine (§25):** REQUESTED → ELIGIBILITY_CHECK → RISK_CHECK → LOCKED →
@@ -107,7 +107,7 @@
    built (Stage 5):** close → freeze → review → final ranking → prizes → approve & credit.
 6. **Withdrawals/selling coins back to Paragon:** user requests → coins lock → team verifies
    → pays naira to the user's own verified account → coins close the loop. **BUILT in Stages
-   6+7 (P-100):** request UI, ₦10,000+ 50-coin fee rule, rolling limits, payout state machine,
+   6+7 (P-100):** request UI, ₦10,000+ 100-coin fee (P-113) rule, rolling limits, payout state machine,
    claims/reconciliation, dup protection, finance desks — real on-device, honest labels,
    backend SQL prepared for owner activation. (Real rate/fees/provider = owner.)
 
