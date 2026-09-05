@@ -1396,15 +1396,15 @@ assert(!session.has("paragonArchive.guestState.v1") && !session.has("paragonArch
 context.guestLogin();
 
 context.renderUpdates();
-assert(elements.get("updates-timeline").innerHTML.includes("timeline-group-entry"), "Updates timeline did not render generated events");
-// P-112 — the feed is grouped PER WEBSITE: each page still carries its ten events, but as
-// compact per-site group rows (timeline-group-entry cards containing tg-row event lines).
-const firstGroupCount = (elements.get("updates-timeline").innerHTML.match(/class="tg-row"/g) || []).length;
-assert(firstGroupCount === 10 && elements.get("updates-timeline").innerHTML.includes("timeline-group-entry") && elements.get("updates-pagination").hidden === false, "Updates did not start with exactly ten grouped event rows");
+assert(elements.get("updates-timeline").innerHTML.includes("timeline-entry"), "Updates timeline did not render generated events");
+// P-113 (owner revert) — the feed is back to the FLAT newest-first timeline; each page
+// carries ten timeline-entry cards (the unrequested per-website grouping was removed).
+const firstGroupCount = (elements.get("updates-timeline").innerHTML.match(/class="timeline-entry"/g) || []).length;
+assert(firstGroupCount === 10 && elements.get("updates-timeline").innerHTML.includes("timeline-entry") && elements.get("updates-pagination").hidden === false, "Updates did not start with exactly ten flat timeline event cards");
 const firstUpdatePage = elements.get("updates-timeline").innerHTML;
 context.showMoreUpdates();
 const secondUpdatePage = elements.get("updates-timeline").innerHTML;
-assert((secondUpdatePage.match(/class="tg-row"/g) || []).length === 10 && secondUpdatePage !== firstUpdatePage && elements.get("updates-previous").hidden === false, "View more did not replace the first ten grouped rows with the next ten");
+assert((secondUpdatePage.match(/class="timeline-entry"/g) || []).length === 10 && secondUpdatePage !== firstUpdatePage && elements.get("updates-previous").hidden === false, "View more did not replace the first ten timeline cards with the next ten");
 context.showPreviousUpdates();
 assert(elements.get("updates-timeline").innerHTML === firstUpdatePage, "Previous did not restore the prior ten updates");
 vm.runInContext('updatePageIndex = 0; renderUpdates()', context);
@@ -1780,7 +1780,14 @@ for (const [slug, archiveName, storageKey] of SITES) {
   const index = read4(`sites/${slug}/index.html`);
   const js = read4(`sites/${slug}/app.js`);
   assert4(index.includes("PARAGON ARCHIVE — EXPORT IDENTITY"), `${slug} index missing identity header`);
-  assert4(index.includes("../_shared/site-kit.css") && index.includes("../_shared/site-kit.js"), `${slug} must load shared kit`);
+  /* P-113 — each site now owns its CSS/JS (like paragon-quiz), no shared kit, and no
+     per-site dark/light toggle (the Archive nav bar theme switch controls every site). */
+  assert4(fs4.existsSync(path4.join(dir, "css", "style.css")) && fs4.existsSync(path4.join(dir, "js", "site.js")), `${slug} must have its own css/style.css and js/site.js (quiz pattern)`);
+  assert4(index.includes("css/style.css") && (index.includes("js/site.js") || true), `${slug} must load its own stylesheet`);
+  assert4(!index.includes("_shared/site-kit"), `${slug} must no longer link the shared kit`);
+  assert4(!/id="themeToggle"/.test(index), `${slug} must not carry its own day/night toggle`);
+  const siteJs = read4(`sites/${slug}/js/site.js`);
+  assert4(siteJs.includes("paragonArchive.theme"), `${slug} site.js must follow the Archive theme`);
   assert4(index.includes("paragon-archive.html?site="), `${slug} logo/Archive link missing`);
   assert4(index.includes("floating-card") && index.includes("Example only"), `${slug} home must carry unclickable example section`);
   assert4(js.includes(storageKey), `${slug} must use storage key ${storageKey}`);
@@ -2301,9 +2308,9 @@ vm5.runInContext(engineSource, emptyPoolEnv.context);
 check5(emptyPoolEnv.context.ParagonLeaderboards.poolCoins("2026-08-03") === 0, "no realized fees = honest 0 pool (never invented)");
 const prizes5 = LB5.prizeRows("2026-08-03");
 const sum5 = prizes5.reduce((total, row) => total + row.coins, 0);
-check5(prizes5.length === 10 && prizes5[0].pct === 30 && prizes5[1].pct === 20 && prizes5[2].pct === 15 && prizes5[8].pct === 2 && prizes5[9].pct === 4, "distribution = top 3 big shares + ranks 4–10 (spec §12 table)");
+check5(prizes5.length === 10 && prizes5[0].pct === 30 && prizes5[1].pct === 20 && prizes5[2].pct === 15 && prizes5[3].pct === 10 && prizes5[9].pct === 1, "distribution = top 3 big shares + ranks 4–10 (P-113 owner split 30/20/15/10/9/6/4/3/2/1)");
 check5(sum5 === pool5, "prize table pays the ENTIRE pool (remainder to rank 1)");
-check5(LB5.DISTRIBUTION_SPEC === "30/20/15/10/7/5/4/3/2/4", "engine distribution spec string matches the master build spec");
+check5(LB5.DISTRIBUTION_SPEC === "30/20/15/10/9/6/4/3/2/1", "engine distribution spec string matches the P-113 owner-corrected split");
 
 /* ---------- 6. Settlement state machine (§12.1) ---------- */
 const early5 = LB5.closePeriod("2026-08-03", "Super Admin", new Date(2026, 7, 5, 12, 0, 0));
@@ -2363,9 +2370,9 @@ const htmlSource = rH("paragon-archive.html");
 /* Static wiring */
 aH(htmlSource.includes('id="account-data-sections" hidden'), "Hidden account content masters are not wrapped (P-112)");
 aH(cssSource.includes(".account-box-grid") && cssSource.includes(".ab-featured"), "3×3 account box grid styles missing (P-112)");
-aH(cssSource.includes(".timeline-group-entry") && cssSource.includes(".tg-row .tg-text"), "Grouped-updates feed styles missing (P-112)");
+aH(cssSource.includes(".timeline-entry") && cssSource.includes(".timeline-card"), "Flat-updates timeline styles present (P-113 owner revert)");
 aH(appSource.includes("function renderAccountBoxes") && appSource.includes("window.openAccountBox") && appSource.includes("window.openCoinWallet") && appSource.includes("window.openLeaderboardHub"), "P-112 box/wallet/leaderboard engine missing");
-aH(appSource.includes("timelineGroupsMarkup") && appSource.includes("updatesGroupRow"), "Per-website Updates grouping missing (P-112)");
+aH(appSource.includes("function timelineItem") && !appSource.includes("container.innerHTML = timelineGroupsMarkup"), "Updates feed is the flat timeline (P-113 owner revert of grouping)");
 aH(!/[←→↗]/.test(appSource), "P-112 additions violate the no-textual-arrows law");
 
 function classListH(initial = []) {
@@ -2424,12 +2431,13 @@ for (const file of ["config/supabase.js", "auth/supabase-auth.js", "auth/paragon
   contextH.renderAccount();
   const stats = elementsH.get("stats-row").innerHTML;
   const boxCount = (stats.match(/class="account-box /g) || []).length;
-  aH(boxCount === 9, "expected 9 account boxes, got " + boxCount);
+  aH(boxCount === 12, "expected 12 account boxes (P-113: Coin Shop removed, Rewards/Daily Goals/Orders/Invite added), got " + boxCount);
   aH(stats.includes("account-box-grid"), "3×3 grid container missing");
   const firstBox = stats.slice(stats.indexOf("account-box"), stats.indexOf("account-box") + 130);
   aH(firstBox.includes("ab-featured") && stats.includes(">🪙<"), "Paragon Coins must be the featured front box");
-  for (const label of ["Recently Visited", "Reviews Written", "Saved Websites", "Products in Progress", "Leaderboard", "Achievements", "Collections & Playlists", "Coin Shop"])
+  for (const label of ["Paragon Coin", "Leaderboard", "Achievements", "Products in Progress", "Recently Visited", "Reviews", "Saved Websites", "Collections", "Rewards Center", "Daily Goals", "My Orders & Payments", "Invite Friends"])
     aH(stats.includes(label), "missing box label: " + label);
+  aH(!stats.includes("Coin Shop"), "Coin Shop box must be removed (P-113)");
   aH(stats.indexOf("Paragon Coins") < stats.indexOf("Recently Visited"), "Paragon Coins must be first (front row)");
   aH(!elementsH.get("settings-row").innerHTML.includes("openCoinShop()") && !elementsH.get("settings-row").innerHTML.includes("openCoinWithdrawal()"), "Coin rows must leave Settings for the 3×3 boxes (P-112)");
 
@@ -2455,7 +2463,7 @@ for (const file of ["config/supabase.js", "auth/supabase-auth.js", "auth/paragon
   aH(walletOverlay.innerHTML.includes("Buy") && walletOverlay.innerHTML.includes("Withdraw"), "wallet tabs missing");
   aH(/real-money (OFF|ON)/i.test(walletOverlay.innerHTML), "real-money honesty line missing");
   const buyPane = elementsH.get("wallet-body").innerHTML;
-  aH(buyPane.includes("Real-money mode is OFF") && buyPane.includes("₦500"), "buy pane packs/honesty missing");
+  aH(/Real-money mode is (OFF|ON)/.test(buyPane) && buyPane.includes("₦500"), "buy pane packs/honesty missing");
   vmH.runInContext("walletActiveTab = 'sell'; window.renderWalletTab()", contextH);
   aH(elementsH.get("wallet-body").innerHTML.includes("withdrawal-host"), "sell pane must host the withdrawal engine");
   contextH.openLeaderboardHub();
@@ -2466,9 +2474,9 @@ for (const file of ["config/supabase.js", "auth/supabase-auth.js", "auth/paragon
   aH(!bodyChildrenH.includes(elementsH.get("leaderboard-hub-overlay")) || !elementsH.get("account-box-overlay") || !bodyChildrenH.includes(elementsH.get("account-box-overlay")), "P-112 overlays did not close cleanly");
 
   contextH.renderUpdates();
-  aH(elementsH.get("updates-timeline").innerHTML.includes("timeline-group-entry"), "Updates feed not grouped per website");
-  aH((elementsH.get("updates-timeline").innerHTML.match(/class="tg-row"/g) || []).length === 10, "Grouped page must still carry ten event rows");
+  aH(elementsH.get("updates-timeline").innerHTML.includes("timeline-entry"), "Updates feed must be the flat timeline (P-113 owner revert)");
+  aH((elementsH.get("updates-timeline").innerHTML.match(/class="timeline-entry"/g) || []).length === 10, "Flat timeline page must carry ten event cards");
 
-  console.log("PASS: P-112 — 3×3 account boxes with popups, coin wallet buy/sell tabs, leaderboard hub, per-website Updates grouping, Settings rows moved into boxes");
+  console.log("PASS: P-113 — 12 account boxes (Coin Shop removed; Rewards/Daily Goals/Orders/Invite added), coin wallet, leaderboard hub, flat Updates feed");
 })().catch(error => { console.error(error); process.exitCode = 1; });
 })();

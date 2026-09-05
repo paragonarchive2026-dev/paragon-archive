@@ -145,7 +145,7 @@
     };
   }
 
-  document.getElementById("themeToggle")?.addEventListener("click", kit.toggleTheme);
+  /* P-113 — per-site dark/light toggle removed; the Archive nav bar controls all sites. */
 
   if (document.getElementById("saveRec")) {
     document.getElementById("saveRec").addEventListener("click", function () {

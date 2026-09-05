@@ -3,7 +3,7 @@
   REAL FILE NAME: index.html
   EXPECTED PROJECT PATH: /sites/flashcard-generator/index.html
   ROLE: Paragon Flash — Home
-  RESTORE-LOAD NOTE: In-project product site (D-191). Loads ../_shared/site-kit.css|js then local app.js.
+  RESTORE-LOAD NOTE: In-project product site (D-191). P-113: loads its own css/style.css + js/site.js (quiz pattern) then local app.js.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +15,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
   <link rel="shortcut icon" href="../../assets/brand/favicon.ico">
   <link rel="apple-touch-icon" href="../../assets/brand/apple-touch-180.png">
-  <link rel="stylesheet" href="../_shared/site-kit.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="header">
@@ -30,9 +30,6 @@
             <a href="app.html" class="nav-link">Decks</a>
             <a href="study.html" class="nav-link">Study</a>
     </nav>
-    <div class="header-actions">
-      <button type="button" class="icon-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
-    </div>
   </header>
 
   <main>
@@ -91,7 +88,7 @@
     <p><a href="../../paragon-archive.html?site=Paragon%20Flash">Open in Paragon Archive</a>
        · <a href="../../paragon-archive-hub.html">Archive Hub</a></p>
   </footer>
-  <script src="../_shared/site-kit.js"></script>
+  <script src="js/site.js"></script>
   <script src="app.js"></script>
   
 </body>

@@ -13,9 +13,10 @@
         the browser is never authoritative for money; the server ledger is authoritative
         at activation via supabase/finance-schema.sql).
   RULES ENFORCED HERE (no fake money):
-    • Your ₦10,000 rule (§22.1): withdrawals BELOW ₦10,000 pay NO Paragon fee; withdrawals
-      of ₦10,000 OR MORE carry the 50-coin withdrawal fee (tracked separately, never
-      treated as profit). Rate placeholder: ₦1 = 2 coins (owner sets the real rate).
+    • Your ₦10,000 rule (§22.1 / §25, P-113 owner correction): withdrawals BELOW
+      ₦10,000 pay NO Paragon fee; withdrawals of ₦10,000 OR MORE carry a fee worth
+      ₦50. At the locked rate ₦1 = 2 coins that is 100 coins (not 50) — tracked
+      separately, never treated as profit.
     • Frequency limits (§23): max 2 withdrawal requests per rolling 24 h and max 5 per
       rolling 7 days — configurable, and they never trap legitimate funds: every failed /
       cancelled request returns its locked coins.
@@ -52,8 +53,8 @@
   /* Spec §23 defaults + COIN-SYSTEM placeholder rate — server-controlled later. */
   var CONFIG = {
     nairaRate: 2,                 /* placeholder ₦1 = 2 coins (owner sets the real rate) */
-    withdrawalFeeThresholdNaira: 10000,  /* ₦10,000+ → 50-coin fee (spec §22.1) */
-    withdrawalFeeCoins: 50,
+    withdrawalFeeThresholdNaira: 10000,  /* ₦10,000+ → fee worth ₦50 (spec §22.1/§25) */
+    withdrawalFeeCoins: 100,             /* P-113 owner correction: ₦50 × 2 coins per ₦1 = 100 coins */
     minWithdrawalNaira: 1000,
     dailyLimit: 2,                /* max requests per rolling 24 h */
     weeklyLimit: 5,               /* max requests per rolling 7 days */
@@ -183,6 +184,9 @@
       claimDailyLimit: CONFIG.claimDailyLimit
     };
     if (!stored || typeof stored !== "object") return out;
+    /* P-113: pre-correction mirrors (50-coin fee, no version marker) are stale and ignored.
+       Only server mirrors stamped configVersion 2+ may override the built-in 100-coin fee. */
+    if (Number(stored.configVersion || 0) < 2) return out;
     if (Number(stored.nairaRate) > 0) out.nairaRate = Number(stored.nairaRate);
     if (Number(stored.withdrawalFeeThresholdNaira) > 0) out.withdrawalFeeThresholdNaira = Number(stored.withdrawalFeeThresholdNaira);
     if (Number(stored.withdrawalFeeCoins) >= 0) out.withdrawalFeeCoins = Number(stored.withdrawalFeeCoins);
