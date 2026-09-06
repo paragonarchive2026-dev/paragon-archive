@@ -6,7 +6,7 @@
   RESTORE/LOAD NOTE: Keep at project root so its scope covers all path-based Paragon assets.
 */
 
-const CACHE_NAME = "paragon-archive-v88";
+const CACHE_NAME = "paragon-archive-v89";
 const APP_SHELL = [
   "./paragon-archive.html",
   "./paragon-archive-hub.html",
@@ -21,6 +21,18 @@ const APP_SHELL = [
   "./vendor/qrcode.min.js",
   "./paragon-leaderboards.js",
   "./paragon-wallets.js",
+  // P-116 — games framework + Paragon Cards (free play must work offline)
+  "./games/manifest.js",
+  "./games/engine.js",
+  "./games/_shared/game-kit.js",
+  "./games/_shared/game-kit.css",
+  "./games/cards/index.html",
+  "./games/cards/play.html",
+  "./games/cards/css/style.css",
+  "./games/cards/js/cards.js",
+  "./games/cards/js/home.js",
+  "./sites/_shared/site-kit.css",
+  "./sites/_shared/site-kit.js",
   "./manifest.webmanifest",
   "./config/supabase.js",
   "./auth/supabase-auth.js",

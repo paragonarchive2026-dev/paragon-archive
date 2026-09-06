@@ -1,5 +1,38 @@
 # 📦 Changed files
 
+## 2026-09-06 — P-116 games wave (first playable game)
+**Shared game framework (GAMES-BUILD-PLAN.md §2):** `games/engine.js` (ParagonGameEngine —
+session lifecycle, seeded RNG, save/resume checkpoints, personal bests, the free-vs-stake gate,
+plausibility flags → Risk cases, append-only audit, and the staked-only leaderboard hook) and
+`games/manifest.js` (one registry row per game; Paragon Cards is `live`, the other ten games are
+declared `planned` with no fake paths). `games/_shared/game-kit.js` + `game-kit.css` give every
+game the same screen: FREE PLAY chip, honest STAKE · LOCKED chip that lists every reason staking
+is closed, stat bar, one-tap rules card, inline quit/resume panels (no `confirm()`) and a result
+overlay that prints the session seed, duration and action-log hash.
+**Paragon Cards (`games/cards/`):** two rule sets on one seeded deck — **Higher · Lower** (ten
+rounds, you and the house call the same card; 10 × streak points capped at 5x; equal ranks push)
+and **Blackjack 21** (100 play chips to 200, bets 10/25/50, dealer draws to 17, blackjack 3:2,
+six-deck shoe reshuffled below 78 cards). Play chips are labelled everywhere as NOT Paragon Coins.
+**Rules enforced:** free play is open to guests and offline, never moves coins and never earns
+leaderboard points; stake sessions are refused until registered member + team-approved KYC +
+real-money ON + no financial pause + no per-game kill switch; an impossibly fast result is
+flagged and opens a Risk case, never a ban.
+**Wiring:** Paragon Cards is wired into the catalogue (`siteUrl: games/cards/index.html`, build
+progress 90 until the owner demo pass), the LIVE_SITES fixture in `tests/suite-ux.test.js`
+learned the `/games/` root, and the service worker precaches the games shell at cache v89.
+**Tests:** new `tests/suite-games.test.js` — 121 checks (gate, seeded fairness, resume,
+anti-cheat, audit, honest counters, catalogue wiring). All five suites green.
+
+**New files:** `games/engine.js`, `games/manifest.js`, `games/_shared/game-kit.js`,
+`games/_shared/game-kit.css`, `games/cards/index.html`, `games/cards/play.html`,
+`games/cards/css/style.css`, `games/cards/js/cards.js`, `games/cards/js/home.js`,
+`games/cards/SPEC.md`, `tests/suite-games.test.js`.
+**Changed:** `data/catalogue-expansion-45-100.js`, `service-worker.js`, `tests/suite-ux.test.js`,
+`tests/suite-core.test.js`, `tests/suite-finance.test.js`, `README.md`, `docs/SOP.md`,
+`GAMES-BUILD-PLAN.md`, `docs/CHANGES.md`.
+
+---
+
 ## 2026-09-06 — P-114/P-115 wave
 **P-114:** Google-style Search (shared bar above entry+results, results tabs **All / AI Mode /
 Images / Videos / News / Articles**, compact lined-up results, honest per-tab empty states); the AI

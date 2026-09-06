@@ -5,8 +5,10 @@ ecosystem — a curated, honestly-labelled catalogue of Paragon-built websites w
 reviews, collections, coins, weekly leaderboards and a built-in AI.
 
 - Entry point: `paragon-archive.html`
+- Games hub plan: [`GAMES-BUILD-PLAN.md`](GAMES-BUILD-PLAN.md) · first game: `games/cards/`
 - Documentation hub: `paragon-archive-hub.html`
 - Quiz product: `paragon-quiz/`
+- Games: `games/` (framework in `games/engine.js` + `games/manifest.js`; Paragon Cards in `games/cards/`)
 - Team dashboard: `team/desk.html` (routed `?page=…`)
 - Community board: `community-board.html` · Developer portal: `developer-portal.html`
 
@@ -19,6 +21,9 @@ reviews, collections, coins, weekly leaderboards and a built-in AI.
   Q&A, and the full AI Mode page. It knows the catalogue, coins & KYC, the leaderboard,
   365-day Daily Goals, accounts/guests, the Updates feed, the official FAQ and every
   documentation page — and it handles pleasantries and general chat naturally.
+- 🃏 **Paragon Cards** — the first game on the shared game framework: **Higher · Lower**
+  against the house and **Blackjack 21** against the dealer. Seeded, replayable decks,
+  save/resume, local bests — free forever, with the stake path built but switched off.
 - 🎯 **365-day Daily Goals** — three new deterministic missions every day for a full year
   (365 unique day-sets). Complete all three to earn exactly **1 leaderboard point** that day;
   guests bank the point and it posts automatically when they sign in before the session ends.
@@ -50,6 +55,7 @@ node tests/suite-core.test.js
 node tests/suite-ux.test.js
 node tests/suite-ai-team.test.js
 node tests/suite-finance.test.js
+node tests/suite-games.test.js
 ```
 
 ## Key files
@@ -59,6 +65,8 @@ node tests/suite-finance.test.js
 | `app.js` | Main app: navigation, search, details, Account/Updates, coins, KYC, goals |
 | `ai/paragon-archive-ai.js` | Paragon Mind — the one local AI core (see `docs/AI-BRAIN.md`) |
 | `paragon-leaderboards.js` | Weekly leaderboard engine + daily-goal points |
+| `games/engine.js` | Shared game framework — sessions, seeded RNG, stake gate, bests, audit (P-114/116) |
+| `games/manifest.js` | Game registry: what is live, what is planned, stake limits |
 | `paragon-wallets.js` | Withdrawals, payout state machine, claims, risk, audit |
 | `data/*.js` | Catalogue + updates data |
 | `style.css` | The whole design system |

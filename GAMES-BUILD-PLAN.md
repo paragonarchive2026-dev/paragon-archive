@@ -4,6 +4,14 @@ Owner note: "Maybe I should start building all the games — let's think on how 
 This plan is written against what ALREADY exists in the repo, so each game plugs into real engines
 instead of inventing new money/leaderboard logic.
 
+> **STATUS — 2026-09-06 (P-116).** §2 (shared framework) is **BUILT**: `games/engine.js`,
+> `games/manifest.js`, `games/_shared/game-kit.{js,css}`. §5 (anti-cheat) and §6 (UX shell) are
+> **BUILT into the framework**. The first game is **Paragon Cards** (`games/cards/`) with two rule
+> sets live — Higher·Lower and Blackjack 21 — wired into the catalogue at buildProgress 90 pending
+> the owner's demo pass. Remaining build order: **Arcade → Chess → (Quiz onto the engine) → Cards
+> second rule wave (solitaire/memory) → Bet LAST**. Solo/vs-computer ships first; local hot-seat
+> and online multiplayer follow (the seat model already allows both).
+
 ---
 
 ## 1. What already exists (build on this — never duplicate it)
@@ -59,8 +67,10 @@ Free/stake split the engine enforces:
    leaderboard points).
 2. **Paragon Arcade** — 3–5 tiny reflex games (tap-timing, memory match, reaction) sharing one
    arcade shell; scores in coins ONLY through tournaments, never direct.
-3. **Paragon Cards** — one deck, one rule set first (e.g. higher-lower), then blackjack-style.
-   Card RNG must be seeded server-side for stake games.
+3. **Paragon Cards** — **DONE (P-116)** as the first game: `games/cards/` ships Higher·Lower
+   (head-to-head against the house) and Blackjack 21 (against the dealer) on a seeded six-deck
+   shoe, with save/resume, local bests and the published rules card. Second wave (solitaire,
+   memory match, snap) and server-side seed issuance for stake games come later.
 4. **Paragon Chess** — integrate an existing OSS engine (e.g. chess.js for rules + stockfish.wasm
    lightly weighted) — stake only against humans via the 1v1 desk; free vs AI.
 5. **Paragon Bet** — prediction/reaction markets on real in-app events ONLY (never sports booking
@@ -94,9 +104,10 @@ paragon_game_settle(p_match_id, p_game_key, p_result_json, p_signature)
 
 ## 7. Definition of done (per game)
 
-- [ ] Free mode playable by guest, signed-in, offline (PWA)
-- [ ] Stake mode gated: account + KYC approved + kill switch respected
-- [ ] Coins lock/unlock correctly on abandon/disconnect (never trapped)
-- [ ] Leaderboard points only via eligible staked results
-- [ ] Audit row appended for every money-touching action
-- [ ] Tests in `tests/suite-finance.test.js` extended for its settle path
+- [x] Free mode playable by guest, signed-in, offline (PWA) — Paragon Cards, P-116
+- [x] Stake mode gated: account + KYC approved + kill switch respected (gate built + tested; no stake UI ships yet)
+- [ ] Coins lock/unlock correctly on abandon/disconnect (never trapped) — pending stake UI + server settle
+- [x] Leaderboard points only via eligible staked results (`recordStakedResult` refuses zero stake)
+- [x] Audit row appended for every money-touching action (session start, finish, plausibility flag)
+- [x] Tests: `tests/suite-games.test.js` (121 checks). `tests/suite-finance.test.js` gains its
+      settle-path checks when the stake UI ships (plan §4).
