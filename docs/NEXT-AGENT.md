@@ -8,7 +8,7 @@
 
 # 🤝 NEXT-AGENT HANDOFF BRIEF — READ THIS FIRST
 
-**Last updated:** 2026-09-03 (EOP v1.04.0, prompt P-110)
+**Last updated:** 2026-09-06 (EOP v1.07.0, prompt P-116 — see §7r at the end)
 **You are:** the owner's dedicated build agent for **Paragon Archive**, a large multi-product front-end platform.
 
 ## 1. WHO THE OWNER IS & HOW TO WORK WITH THEM
@@ -261,3 +261,25 @@ Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop (shopper). Meal Plann
 **State:** cache **v88**; 4/4 suites green; finance engine still device-honest with the authoritative server layer prepared and GATED (`supabase/finance-schema.sql`, real_money OFF until the owner orders activation). No textual arrows in app.js additions; no browser dialogs; browser never settles money.
 
 **Next (owner-announced):** the owner builds the game and the rest of the quiz with ANOTHER agent, then commits/merges that code; when it lands on `main`, pull and LINK the new games/quiz to the coin engine + leaderboard (record results through `ParagonLeaderboards.recordResult` for bet modes, gate stakes through ParagonWallets, keep server-settle rules for anything real-money). Vercel: owner confirmed the deploy pipeline works; deploy the NEW merged main (cache v88) and hard-refresh to drop the old service worker.
+
+## 7r. WHERE WE STOPPED — after P-116 / EOP v1.07.0 (2026-09-06) — GAMES WAVE: framework + Paragon Cards
+
+**Shipped (branch `arena/01a076fa-paragon-archive` → PR to `main`):**
+- `games/engine.js` = `window.ParagonGames` — the ONE framework every game imports: `start({gameKey, variant, mode, resume})` → `api.random()/int()/pick()` (seeded, draw counter persisted so resume replays exactly), `api.action()/score()/checkpoint()/finish()/abandon()`, `gate()` (returns EVERY reason: unknown game · no stake support · range/step · kill switch · financial pause · real-money OFF · KYC · guest), `best()/bests()/stats()`, `audit()` + `flagForReview()` via ParagonWallets, `recordStakedResult()` (refuses zero stake → ParagonLeaderboards.recordResult as `mode: "bet"`), `setHost()` so app.js can inject live identity/KYC/real-money hooks.
+- `games/manifest.js` = `window.ParagonGameManifest` — cards `live`; arcade/chess/puzzle/trivia/race/spin/survival/bet `planned` (empty paths — never present planned as built). Each variant declares `rules[]`, `summary`, `scoreUnit`, `minDurationMs`.
+- `games/_shared/game-kit.js` = `window.ParagonGameKit.mount({hud, gameKey, variant, stats, onStart(engine, savedState, resumed, shell), onQuit})` — shell renders chips (FREE PLAY + STAKE · LOCKED/AVAILABLE/FREE ONLY), stat bar, rules card, resume/quit panels (inline — never confirm()), result overlay (seed · duration · log hash · **engine-decided** personal best · variant score unit). `shell.finish({outcome, lines, actions})` is the only way a game ends.
+- `games/cards/` — index.html (home + real-zero counters via js/home.js), play.html?v=higher-lower|blackjack (js/cards.js), css/style.css, SPEC.md. Pure rules exported on `window.ParagonCards` (`buildShoe, handValue, isBlackjack, settleHand, canDoubleDown, houseCallFor, scoreCall`).
+- Catalogue: Paragon Cards `siteUrl: games/cards/index.html`, live, buildProgress 90 (→ 100 only after the owner demo pass). suite-ux LIVE_SITES accepts `games/` root. Cache **v90**. suite-games **143 checks**; 5/5 suites green.
+
+**Finish-up fixes this session (the first session stopped before PR/docs):** Blackjack double-down double-charge → single `settleHand()` path; zero-score "personal best" → engine requires score > 0 and owns the verdict (`opts.onSettled`); overlay unit label per variant.
+
+**HOW TO ADD THE NEXT GAME (Arcade is next per GAMES-BUILD-PLAN §3):**
+1. Add/flip its manifest row to `status: "live"` with real `path/playPath`, variants + rules + `scoreUnit` + `minDurationMs`.
+2. `games/<slug>/index.html` + `play.html` copying the Cards load order (site-kit → game-kit.css → own css; site-kit.js → manifest → engine → game-kit → own js). Identity headers. Logo → `paragon-archive.html?site=<Name>`.
+3. Game JS owns rules + drawing ONLY: draw through `engine.int()/next()`, log through `engine.action()`, save through `engine.checkpoint()`, end through `shell.finish()`. Never compute bests, never touch coins.
+4. Export pure rules on `window.Paragon<Game>` and add a section to `tests/suite-games.test.js`; add the files to the service-worker APP_SHELL and bump the cache (+ the 19 test assertions: `sed -i 's/paragon-archive-vNN/paragon-archive-vNN+1/g' service-worker.js tests/suite-*.test.js`).
+5. Wire the catalogue row (`siteUrl`, `live: true`, honest `buildProgress` < 100) and add the name to LIVE_SITES in suite-ux.
+
+**Standing gotchas (new):** free play NEVER calls addCoins/spendCoins/recordResult (suite-games greps for it); the stake gate is the only door to `mode: "stake"` and the browser never settles a stake — when real money is switched on, build the stake UI on top of `gate()` + the `paragon_game_settle` contract (plan §4) and add the settle-path checks to suite-finance; play chips ≠ coins in every string; personal bests need a real score (> 0).
+
+**Owner next:** demo pass on Paragon Cards (then buildProgress 90 → 100), then say "build Arcade" (or another game) — the framework absorbs it in one folder.

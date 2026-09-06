@@ -175,11 +175,13 @@
       var statRow = games.stats(gameKey);
       var lines = Array.isArray(opts.lines) ? opts.lines : [];
       var outcomeLabel = { win: "You win", loss: "House wins", draw: "Draw", abandoned: "Game left", incomplete: "Round over" }[String(opts.outcome || "incomplete")] || "Round over";
+      /* The score unit is the variant's own (points, play chips, moves…) — never assumed. */
+      var unit = String(opts.unit || (variantRow && variantRow.scoreUnit) || (entry && entry.scoreUnit) || "points");
 
       overlay.innerHTML = '<div class="gk-overlay-card" role="dialog" aria-modal="true">' +
         '<p class="gk-result-eyebrow">' + esc(entry ? entry.name : gameKey) + " · " + esc(variantRow ? variantRow.name : variantKey) + "</p>" +
         '<h3 class="gk-result-title">' + esc(outcomeLabel) + "</h3>" +
-        '<p class="gk-result-score">' + esc(session ? session.score : 0) + '<small>points</small></p>' +
+        '<p class="gk-result-score">' + esc(session ? session.score : 0) + "<small>" + esc(unit) + "</small></p>" +
         (opts.isBest ? '<p class="gk-result-best">🏆 New personal best</p>' : "") +
         (lines.length ? '<ul class="gk-result-lines">' + lines.map(function (line) { return "<li>" + esc(line) + "</li>"; }).join("") + "</ul>" : "") +
         '<p class="gk-result-stats">Played ' + esc(statRow.plays) + " · won " + esc(statRow.wins) + " · drawn " + esc(statRow.draws) + " · lost " + esc(statRow.losses) +
@@ -286,8 +288,16 @@
       hidePanel: hidePanel,
       finish: function (options) {
         var opts = options || {};
-        if (api && !api.isFinished()) api.finish(opts);
-        showResult(Object.assign({}, opts, { isBest: !!(opts.isBest) }));
+        /* The ENGINE decides whether this was a personal best (it owns the bests store and
+           the real-zero rule) — a game may only ever hand a hint in, never overrule it. */
+        var settled = null;
+        if (api && !api.isFinished()) {
+          api.finish(Object.assign({}, opts, {
+            onSettled: function (summary) { settled = summary; }
+          }));
+        }
+        var isBest = settled ? settled.isBest === true : false;
+        showResult(Object.assign({}, opts, { isBest: isBest }));
       },
       quit: quit
     };

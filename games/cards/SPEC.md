@@ -78,7 +78,8 @@ engine.finish({ outcome }) · engine.abandon(reason)
 - [x] Stake mode gated: account + KYC + real money + no pause + no kill switch
 - [x] Leaderboard points impossible in free play
 - [x] Audit row written for every session start, finish and plausibility flag
-- [x] `node tests/suite-games.test.js` — 121 checks green
+- [x] `node tests/suite-games.test.js` — 143 checks green (incl. settlement table + double-down + real-zero best)
+- [x] Real-DOM playthrough (jsdom) of both modes incl. reload → resume, quit panel, shoe end at ≥ 200 or 0
 - [ ] **Owner demo pass** → then `buildProgress` 90 → 100
 
 ## 8. Rules exactly as shipped
@@ -89,4 +90,10 @@ The house calls: rank ≤ 6 → higher, rank ≥ 8 → lower, ranks 7–8 → se
 
 **Blackjack 21:** start 100 play chips, target 200, six-deck shoe reshuffled below 78 cards.
 Bets 10/25/50. Blackjack pays 3:2. Dealer draws to 17 and stands (soft 17 included). Double
-down doubles the bet for exactly one card. Play chips are **not** Paragon Coins.
+down doubles the bet for exactly one card and is offered only while the bankroll covers the
+doubled bet; the bet is settled ONCE at the end of the hand (+bet / +1.5 × bet / −bet / 0) and
+the next hand returns to the chip you chose. Under 10 chips the next hand is all in. The shoe
+ends at 200 or more (won) or exactly 0 (over). Play chips are **not** Paragon Coins.
+
+**Personal bests:** decided by the engine, never by the game, and only for a real score above
+zero — a busted shoe or ten wrong calls is a play and a loss, never a "new best".

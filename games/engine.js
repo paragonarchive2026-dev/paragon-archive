@@ -519,7 +519,11 @@
       var all = bests();
       var key = bestKey(session.gameKey, session.variant, session.mode);
       var current = all[key];
-      var isBest = !current || Number(session.score) > Number(current.score || 0);
+      /* P-009 honesty: a personal best needs a REAL score. A first game that ends on zero
+         (a busted shoe, ten wrong calls) is recorded in stats but is never celebrated as
+         a "new personal best" — the home page keeps showing an honest 0 until one is set. */
+      var scoreNow = Math.max(0, Number(session.score) || 0);
+      var isBest = scoreNow > 0 && (!current || scoreNow > Number(current.score || 0));
       if (isBest) {
         all[key] = {
           score: Math.max(0, Number(session.score) || 0),
@@ -568,6 +572,9 @@
         flags: session.flags.slice()
       };
 
+      if (typeof opts.onSettled === "function") {
+        try { opts.onSettled(summary); } catch (error) { /* a broken UI must never corrupt the record */ }
+      }
       if (typeof cfg.onFinish === "function") {
         try { cfg.onFinish(summary); } catch (error) { /* a broken UI must never corrupt the record */ }
       }

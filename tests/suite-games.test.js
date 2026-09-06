@@ -161,6 +161,19 @@
   check(g2.best("cards", "higher-lower", "free").score === 120, "a worse game never overwrites the personal best");
   check(g2.stats("cards").currentStreak === 0, "a loss resets the win streak");
 
+  /* Real-zero honesty: a first game that ends on 0 is a play, never a "personal best". */
+  const zeroEnv = loadEngine({});
+  const gz = zeroEnv.context.ParagonGames;
+  let settledSummary = null;
+  const z1 = gz.start({ gameKey: "cards", variant: "blackjack", mode: "free" });
+  z1.api.finish({ outcome: "loss", score: 0, onSettled: summary => { settledSummary = summary; } });
+  check(settledSummary && settledSummary.isBest === false, "a busted shoe (score 0) is never celebrated as a personal best");
+  check(gz.best("cards", "blackjack", "free") === null, "no personal best is stored for a zero score — the home page keeps its honest 0");
+  check(gz.stats("cards").plays === 1 && gz.stats("cards").losses === 1, "the zero game still counts as a play and a loss");
+  const z2 = gz.start({ gameKey: "cards", variant: "blackjack", mode: "free" });
+  z2.api.finish({ outcome: "win", score: 205, onSettled: summary => { settledSummary = summary; } });
+  check(settledSummary.isBest === true && gz.best("cards", "blackjack", "free").score === 205, "the first real score becomes the personal best and onSettled reports it");
+
   /* ---------- 5. Save / resume is honest and deterministic ---------- */
   const resumeEnv = loadEngine({});
   const g3 = resumeEnv.context.ParagonGames;
@@ -276,6 +289,33 @@
   check(push.kind === "push" && push.points === 0 && push.streak === 3, "equal ranks push: no points, streaks are kept");
   check(rules.scoreCall("lower", up, nextLow, 0, 0).points === 10, "calling lower on a lower card scores");
 
+  /* Blackjack settlement is ONE pure path — the bet moves exactly once (P-116 follow-up:
+     the first cut deducted a doubled bet at double time AND again at settlement). */
+  const A = { r: 1, s: "s" }, K = { r: 13, s: "h" }, T = { r: 10, s: "d" }, N9 = { r: 9, s: "c" }, S7 = { r: 7, s: "s" }, S6 = { r: 6, s: "h" }, S5 = { r: 5, s: "d" };
+  const win = rules.settleHand({ player: [T, N9], dealer: [T, S7], bet: 25, chips: 100 });
+  check(win.result === "win" && win.chips === 125 && win.delta === 25, "a plain win pays 1:1 (100 → 125 on a 25 bet)");
+  const loss = rules.settleHand({ player: [T, S7], dealer: [T, N9], bet: 25, chips: 100 });
+  check(loss.result === "loss" && loss.chips === 75, "a plain loss costs exactly the bet (100 → 75)");
+  const pushHand = rules.settleHand({ player: [T, N9], dealer: [T, N9], bet: 50, chips: 100 });
+  check(pushHand.result === "push" && pushHand.chips === 100 && pushHand.delta === 0, "a push returns the bet untouched");
+  const natural = rules.settleHand({ player: [A, K], dealer: [T, N9], bet: 10, chips: 100 });
+  check(natural.result === "win" && natural.chips === 115, "a natural pays 3:2 (10 bet → +15)");
+  const bothNatural = rules.settleHand({ player: [A, K], dealer: [A, T], bet: 50, chips: 100 });
+  check(bothNatural.result === "push" && bothNatural.chips === 100, "two naturals push");
+  const dealerNatural = rules.settleHand({ player: [T, N9], dealer: [A, K], bet: 25, chips: 100 });
+  check(dealerNatural.result === "loss" && dealerNatural.chips === 75, "a dealer natural beats a 19");
+  const bust = rules.settleHand({ player: [T, N9, S5], dealer: [T, S6], bet: 25, chips: 100 });
+  check(bust.result === "loss" && bust.chips === 75 && /over 21/.test(bust.note), "a bust loses the bet even when the dealer has not played");
+  const dealerBust = rules.settleHand({ player: [T, S7], dealer: [T, S6, N9], bet: 25, chips: 100 });
+  check(dealerBust.result === "win" && dealerBust.chips === 125, "a dealer bust pays 1:1");
+  const doubledLoss = rules.settleHand({ player: [S5, S6, S7], dealer: [T, N9], bet: 50, chips: 100 });
+  check(doubledLoss.playerTotal === 18 && doubledLoss.chips === 50 && /50 chips lost/.test(doubledLoss.note), "a doubled 25 bet (18 vs 19) loses exactly 50 — never 75 (double-charge regression)");
+  const doubledWin = rules.settleHand({ player: [S5, S6, T], dealer: [T, S7], bet: 50, chips: 100 });
+  check(doubledWin.playerTotal === 21 && doubledWin.chips === 150 && /win 50 chips/.test(doubledWin.note), "a doubled 25 bet (21 vs 17) wins exactly 50 and the note says so");
+  check(rules.canDoubleDown({ phase: "player", player: [S5, S6], bet: 25, chips: 50 }) === true, "doubling is offered when the bankroll covers the doubled bet");
+  check(rules.canDoubleDown({ phase: "player", player: [S5, S6], bet: 25, chips: 49 }) === false, "doubling is refused when the bankroll cannot cover 2 × bet");
+  check(rules.canDoubleDown({ phase: "player", player: [S5, S6, T], bet: 10, chips: 100 }) === false, "doubling is only offered on the first two cards");
+
   check(rules.houseCallFor(3, () => 0.99) === "higher", "the house calls higher on a low up-card");
   check(rules.houseCallFor(12, () => 0.01) === "lower", "the house calls lower on a high up-card");
   check(rules.houseCallFor(7, () => 0.1) === "higher", "the house coin-flips the middle ranks from the seeded RNG");
@@ -288,6 +328,12 @@
   check(kitSource.includes("gk-panel") && !/window\.confirm\s*\(/.test(kitSource), "quit and resume use inline panels, never window.confirm");
   check(kitSource.includes("Carry on where you left off?"), "the shell offers to resume an unfinished game");
   check(kitSource.includes("seed"), "the result overlay prints the session seed + log hash (auditable results)");
+  check(kitSource.includes("onSettled") && !/isBest:\s*!!\(opts\.isBest\)/.test(kitSource), "the personal-best verdict on the result card comes from the engine, never from the game");
+  check(kitSource.includes("scoreUnit") && !kitSource.includes("<small>points</small>"), "the result card prints the variant's own score unit (points vs play chips)");
+  const manifestSource = read("games/manifest.js");
+  check(/key: "blackjack"[\s\S]{0,200}scoreUnit: "play chips"/.test(manifestSource), "Blackjack declares its unit as play chips");
+  check(!/isBest:\s*!bestBefore/.test(cardsSource), "cards.js no longer computes its own personal-best verdict");
+  check(!/state\.chips -= state\.bet;\s*\n\s*state\.bet = state\.bet \* 2/.test(cardsSource), "double down never pre-deducts the bet (settleHand moves it exactly once)");
 
   const playHtml = read("games/cards/play.html");
   const indexHtml = read("games/cards/index.html");

@@ -19,9 +19,24 @@ real-money ON + no financial pause + no per-game kill switch; an impossibly fast
 flagged and opens a Risk case, never a ban.
 **Wiring:** Paragon Cards is wired into the catalogue (`siteUrl: games/cards/index.html`, build
 progress 90 until the owner demo pass), the LIVE_SITES fixture in `tests/suite-ux.test.js`
-learned the `/games/` root, and the service worker precaches the games shell at cache v89.
+learned the `/games/` root, and the service worker precaches the games shell (cache v89, now v90).
 **Tests:** new `tests/suite-games.test.js` — 121 checks (gate, seeded fairness, resume,
 anti-cheat, audit, honest counters, catalogue wiring). All five suites green.
+
+**Finish-up (second session, same day — the first session pushed but never opened the PR or
+closed the docs):** a real-DOM playthrough of both games caught three defects before the owner
+demo. (1) Blackjack **double down charged the bet twice** — a doubled 25 lost 75 and a shoe could
+end with the HUD showing 25 chips under a card that said 0; settlement is now ONE pure
+`settleHand()` that moves the bet exactly once, doubling is offered only when the bankroll covers
+2 × bet, and the doubled bet returns to the chosen chip next hand. (2) A **zero-score first game
+was celebrated as a "new personal best"** — the engine now requires a real score (P-009) and owns
+the verdict through `ui.finish()`. (3) The result card said **"points" for Blackjack chips** —
+variants declare `scoreUnit`. Cache v89 → **v90**; suite-games 121 → **143 checks**; SOP §11
+P-114/115/116 entries, EOP v1.07.0 and NEXT-AGENT §7r written.
+**Changed (finish-up):** `games/engine.js`, `games/_shared/game-kit.js`, `games/manifest.js`,
+`games/cards/js/cards.js`, `games/cards/SPEC.md`, `service-worker.js`, `tests/suite-games.test.js`,
+`tests/suite-ux.test.js`, `tests/suite-core.test.js`, `tests/suite-finance.test.js`,
+`GAMES-BUILD-PLAN.md`, `docs/SOP.md`, `docs/EOP.md`, `docs/NEXT-AGENT.md`, `docs/CHANGES.md`.
 
 **New files:** `games/engine.js`, `games/manifest.js`, `games/_shared/game-kit.js`,
 `games/_shared/game-kit.css`, `games/cards/index.html`, `games/cards/play.html`,

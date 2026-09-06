@@ -85,6 +85,54 @@
     return (cards || []).length === 2 && handValue(cards) === 21;
   }
 
+  /* Pure settlement for ONE blackjack hand (exported for tests). The bet is never taken
+     out of the bankroll in advance — it is applied exactly once, here: +bet on a win,
+     +1.5 × bet on a natural, −bet on a loss, unchanged on a push. A doubled hand simply
+     carries a doubled bet, so it wins or loses exactly twice the original stake, and the
+     note printed to the player always states the real number of chips that moved. */
+  function settleHand(hand) {
+    var player = Array.isArray(hand && hand.player) ? hand.player : [];
+    var dealer = Array.isArray(hand && hand.dealer) ? hand.dealer : [];
+    var bet = Math.max(0, Math.round(Number(hand && hand.bet) || 0));
+    var chips = Math.round(Number(hand && hand.chips) || 0);
+    var playerTotal = handValue(player);
+    var dealerTotal = handValue(dealer);
+    var playerBJ = isBlackjack(player);
+    var dealerBJ = isBlackjack(dealer);
+    var delta = 0;
+    var result = "push";
+    var note = "";
+
+    if (playerTotal > 21) {
+      delta = -bet; result = "loss"; note = "You went over 21 — " + bet + " chips lost.";
+    } else if (playerBJ && !dealerBJ) {
+      delta = Math.round(bet * 1.5); result = "win"; note = "Blackjack! 3:2 pays " + delta + " chips.";
+    } else if (dealerBJ && !playerBJ) {
+      delta = -bet; result = "loss"; note = "Dealer blackjack — " + bet + " chips lost.";
+    } else if (playerBJ && dealerBJ) {
+      delta = 0; result = "push"; note = "Both blackjack — a push, your bet is returned.";
+    } else if (dealerTotal > 21) {
+      delta = bet; result = "win"; note = "Dealer busts — you win " + bet + " chips.";
+    } else if (playerTotal > dealerTotal) {
+      delta = bet; result = "win"; note = "You win " + bet + " chips.";
+    } else if (playerTotal < dealerTotal) {
+      delta = -bet; result = "loss"; note = "Dealer wins — " + bet + " chips lost.";
+    } else {
+      delta = 0; result = "push"; note = "Push — your bet is returned.";
+    }
+
+    return { chips: chips + delta, delta: delta, result: result, note: note, playerTotal: playerTotal, dealerTotal: dealerTotal };
+  }
+
+  /* Doubling is only offered when the bankroll can cover the DOUBLED bet — the original
+     bet is still in the bankroll (nothing is deducted at deal time), so the honest test
+     is chips >= 2 × bet, not chips >= bet. */
+  function canDoubleDown(state) {
+    return !!state && state.phase === "player" &&
+      Array.isArray(state.player) && state.player.length === 2 &&
+      Number(state.chips) >= Number(state.bet) * 2;
+  }
+
   /* The house's rule for Higher·Lower — a fixed, published policy, not a hidden advantage:
      low card → call higher, high card → call lower, the two middle ranks are a coin flip
      taken from the seeded RNG so the whole game stays replayable. */
@@ -183,11 +231,10 @@
 
     function finish() {
       var outcome = state.myScore > state.houseScore ? "win" : (state.myScore < state.houseScore ? "loss" : "draw");
-      var bestBefore = games.best("cards", "higher-lower", "free");
       engine.score(state.myScore);
+      /* Personal-best verdict comes from the engine inside ui.finish — never computed here. */
       ui.finish({
         outcome: outcome,
-        isBest: !bestBefore || state.myScore > Number(bestBefore.score || 0),
         lines: [
           "You " + state.myScore + " · House " + state.houseScore,
           "Best streak this game: " + state.myBestStreak + " (" + Math.min(5, state.myBestStreak) + "x multiplier)",
@@ -270,6 +317,7 @@
       return {
         chips: START_CHIPS,
         bet: 10,
+        baseBet: 0,
         shoe: [],
         index: 0,
         player: [],
@@ -333,8 +381,10 @@
 
     function doubleDown() {
       if (!state || state.phase !== "player" || state.player.length !== 2) return;
-      if (state.chips < state.bet) { state.message = "Not enough play chips to double."; render(); return; }
-      state.chips -= state.bet;
+      if (!canDoubleDown(state)) { state.message = "Not enough play chips to double — you need " + (state.bet * 2) + " to cover a doubled bet."; render(); return; }
+      /* The bet is NOT taken from the bankroll here: settleHand() applies the doubled bet
+         exactly once at the end of the hand (the bug this replaces charged it twice). */
+      state.baseBet = state.bet;
       state.bet = state.bet * 2;
       state.player.push(draw());
       engine.action("double", "bet " + state.bet);
@@ -357,57 +407,27 @@
     }
 
     function settle(forced) {
-      var playerTotal = handValue(state.player);
-      var dealerTotal = handValue(state.dealer);
-      var bet = state.bet;
-      var playerBJ = isBlackjack(state.player);
-      var dealerBJ = isBlackjack(state.dealer);
-      var note = "";
-
-      if (forced === "bust") {
-        state.chips -= bet;
-        note = "You went over 21 — " + bet + " chips lost.";
-        state.result = "loss";
-      } else if (playerBJ && !dealerBJ) {
-        var payout = Math.round(bet * 1.5);
-        state.chips += payout;
-        note = "Blackjack! 3:2 pays " + payout + " chips.";
-        state.result = "win";
-      } else if (dealerBJ && !playerBJ) {
-        state.chips -= bet;
-        note = "Dealer blackjack — " + bet + " chips lost.";
-        state.result = "loss";
-      } else if (playerBJ && dealerBJ) {
-        note = "Both blackjack — a push, your bet is returned.";
-        state.result = "push";
-      } else if (dealerTotal > 21) {
-        state.chips += bet;
-        note = "Dealer busts — you win " + bet + " chips.";
-        state.result = "win";
-      } else if (playerTotal > dealerTotal) {
-        state.chips += bet;
-        note = "You win " + bet + " chips.";
-        state.result = "win";
-      } else if (playerTotal < dealerTotal) {
-        state.chips -= bet;
-        note = "Dealer wins — " + bet + " chips lost.";
-        state.result = "loss";
-      } else {
-        note = "Push — your bet is returned.";
-        state.result = "push";
-      }
-
-      state.message = note;
+      /* One settlement path for every ending (bust, natural, dealer bust, compare, push):
+         the pure settleHand() moves the bet exactly once, so a doubled hand can never be
+         charged twice and the note always matches the chips that actually moved. */
+      var outcomeRow = settleHand({ player: state.player, dealer: state.dealer, bet: state.bet, chips: state.chips });
+      state.chips = outcomeRow.chips;
+      state.result = outcomeRow.result;
+      state.message = outcomeRow.note;
+      engine.action("settle", (forced === "bust" ? "bust " : "") + outcomeRow.result + " " + (outcomeRow.delta >= 0 ? "+" : "") + outcomeRow.delta + " chips " + state.chips);
       engine.checkpoint(state);
 
       if (state.chips >= GOAL_CHIPS || state.chips <= 0) {
         var outcome = state.chips >= GOAL_CHIPS ? "win" : "loss";
+        state.phase = "over";
         engine.score(state.chips);
-        var bestBefore = games.best("cards", "blackjack", "free");
         engine.checkpoint(state);
+        /* Paint the final hand + the true chip count BEHIND the overlay first, so the HUD
+           never shows a stale bankroll under a result that says otherwise. */
+        render();
+        /* Personal-best verdict comes from the engine inside ui.finish — never computed here. */
         ui.finish({
           outcome: outcome,
-          isBest: !bestBefore || state.chips > Number(bestBefore.score || 0),
           lines: [
             (outcome === "win" ? "Shoe won — " : "Shoe over — ") + state.chips + " play chips after " + state.hands + " hands",
             "Target was " + GOAL_CHIPS + " play chips from a 100-chip start",
@@ -426,7 +446,12 @@
       state.player = [];
       state.dealer = [];
       state.hideDealer = true;
-      state.bet = Math.min(state.bet, Math.max(10, state.chips));
+      /* A doubled bet belongs to the hand that doubled it — the next hand goes back to the
+         chip the player actually chose (10/25/50), never silently to 20/50/100. */
+      if (state.baseBet) { state.bet = state.baseBet; state.baseBet = 0; }
+      /* Below the 10-chip minimum the only honest bet is everything you have left. */
+      state.bet = Math.max(1, Math.min(state.bet, state.chips));
+      if (state.chips < 10) state.message += " Under 10 chips left — the next hand is all in (" + state.chips + ").";
       engine.score(state.chips);
       render();
     }
@@ -436,7 +461,7 @@
       if (!stage) return;
       var playerTotal = handValue(state.player);
       var dealerTotal = state.hideDealer ? handValue(state.dealer.slice(0, 1)) : handValue(state.dealer);
-      var canDouble = state.phase === "player" && state.player.length === 2 && state.chips >= state.bet;
+      var canDouble = canDoubleDown(state);
 
       ui.setStat("chips", state.chips);
       ui.setStat("bet", state.bet);
@@ -562,6 +587,8 @@
     buildShoe: buildShoe,
     handValue: handValue,
     isBlackjack: isBlackjack,
+    settleHand: settleHand,
+    canDoubleDown: canDoubleDown,
     houseCallFor: houseCallFor,
     scoreCall: scoreCall,
     cardHtml: cardHtml

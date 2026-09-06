@@ -109,5 +109,6 @@ paragon_game_settle(p_match_id, p_game_key, p_result_json, p_signature)
 - [ ] Coins lock/unlock correctly on abandon/disconnect (never trapped) — pending stake UI + server settle
 - [x] Leaderboard points only via eligible staked results (`recordStakedResult` refuses zero stake)
 - [x] Audit row appended for every money-touching action (session start, finish, plausibility flag)
-- [x] Tests: `tests/suite-games.test.js` (121 checks). `tests/suite-finance.test.js` gains its
+- [x] Tests: `tests/suite-games.test.js` (143 checks — incl. the blackjack settlement table, double-down
+      eligibility and the real-zero personal-best rule). `tests/suite-finance.test.js` gains its
       settle-path checks when the stake UI ships (plan §4).

@@ -33,6 +33,7 @@
           key: "higher-lower",
           name: "Higher · Lower",
           seats: "you vs the house",
+          scoreUnit: "points",
           summary: "The same card is shown to you and the house. Call higher or lower before it turns. Ten cards each — most points wins.",
           rules: [
             "Ten rounds. Both you and the house see the SAME up-card and the SAME next card, so luck is shared and only the call decides it.",
@@ -47,6 +48,7 @@
           key: "blackjack",
           name: "Blackjack 21",
           seats: "you vs the dealer",
+          scoreUnit: "play chips",
           summary: "Beat the dealer without going over 21. Start with 100 play chips; reach 200 to win the shoe, hit zero and the shoe is over.",
           rules: [
             "You start every shoe with 100 play chips. These are PLAY CHIPS — they are not Paragon Coins and they can never be bought, sold or withdrawn.",
