@@ -83,26 +83,29 @@
       <button id="search-back" type="button" class="search-nav-btn search-prominent-back" onclick="handleSearchBack()" aria-label="Go back">Back</button>
     </div>
 
-    <div id="search-entry-view">
-      <div class="search-field">
-        <svg class="search-field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="11" cy="11" r="7"></circle>
-          <path d="m20 20-3.8-3.8"></path>
-        </svg>
-        <input
-          id="search-input"
-          type="search"
-          placeholder="Search by name, purpose, feature, or idea..."
-          aria-label="Search websites by name, purpose, feature, or idea"
-          aria-controls="search-suggestions search-results"
-          aria-autocomplete="list"
-          autocomplete="off"
-          enterkeyhint="search"
-        />
-        <div id="search-inline-hint" class="search-inline-hint" aria-hidden="true"></div>
-      </div>
-      <div id="search-suggestions" class="search-suggestions" role="listbox" aria-label="Website suggestions" hidden></div>
+    <!-- P-114 — one shared search bar (Google style): it stays on top in BOTH the entry
+         view and the results view, so results appear lined up right under what you typed. -->
+    <div class="search-field" id="search-shared-field">
+      <svg class="search-field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.8-3.8"></path>
+      </svg>
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Search by name, purpose, feature, or idea..."
+        aria-label="Search websites by name, purpose, feature, or idea"
+        aria-controls="search-suggestions search-results"
+        aria-autocomplete="list"
+        autocomplete="off"
+        enterkeyhint="search"
+      />
+      <div id="search-inline-hint" class="search-inline-hint" aria-hidden="true"></div>
+      <button id="search-submit-btn" type="button" class="search-submit-btn" onclick="submitSearch()" aria-label="Run search">Search</button>
+    </div>
+    <div id="search-suggestions" class="search-suggestions" role="listbox" aria-label="Website suggestions" hidden></div>
 
+    <div id="search-entry-view">
       <section id="recent-searches" class="recent-searches" aria-labelledby="recent-searches-title" hidden>
         <div class="recent-searches-head"><h3 id="recent-searches-title">Recent searches</h3><button id="clear-recent-searches" type="button">Clear</button></div>
         <div id="recent-search-list" class="recent-search-list"></div>
@@ -110,9 +113,39 @@
     </div>
 
     <section id="search-results-view" class="search-results-view" hidden>
-      <div class="search-results-query"><span>Results for</span><strong id="search-results-query"></strong></div>
-      <h3 id="search-results-heading" class="search-results-heading">Search Results</h3>
-      <div class="recent-list" id="search-results" aria-labelledby="search-results-heading"></div>
+      <!-- P-114 — Google-style result navigation: every tab is its own results page. -->
+      <nav id="search-results-nav" class="search-results-nav" role="tablist" aria-label="Search results navigation">
+        <button type="button" class="results-nav-tab active" role="tab" aria-selected="true" data-results-tab="all">All</button>
+        <button type="button" class="results-nav-tab results-nav-ai" role="tab" aria-selected="false" data-results-tab="ai"><span class="ai-nav-diamond" aria-hidden="true"></span>AI Mode</button>
+        <button type="button" class="results-nav-tab" role="tab" aria-selected="false" data-results-tab="images">Images</button>
+        <button type="button" class="results-nav-tab" role="tab" aria-selected="false" data-results-tab="videos">Videos</button>
+        <button type="button" class="results-nav-tab" role="tab" aria-selected="false" data-results-tab="news">News</button>
+        <button type="button" class="results-nav-tab" role="tab" aria-selected="false" data-results-tab="articles">Articles</button>
+      </nav>
+
+      <div id="search-tab-all" class="search-tab-panel" role="tabpanel">
+        <div class="search-results-query"><span>Results for</span><strong id="search-results-query"></strong><span id="search-results-stats" class="search-results-stats"></span></div>
+        <h3 id="search-results-heading" class="search-results-heading">Search Results</h3>
+        <div class="recent-list search-results-list" id="search-results" aria-labelledby="search-results-heading"></div>
+      </div>
+
+      <div id="search-tab-ai" class="search-tab-panel search-ai-panel" role="tabpanel" hidden>
+        <div class="ai-mode-hero">
+          <img class="ai-mode-mark" src="assets/brand/logo-mark.png" alt="">
+          <div><h3>Paragon Mind · AI Mode</h3><p>The full Archive brain — every website, update, coin rule, leaderboard state, account path and documentation page. Ask it anything.</p></div>
+        </div>
+        <div id="ai-mode-messages" class="ai-mode-messages" aria-live="polite"></div>
+        <form id="ai-mode-form" class="ai-mode-form">
+          <label for="ai-mode-input" class="sr-only">Ask Paragon Mind</label>
+          <input id="ai-mode-input" type="text" maxlength="600" autocomplete="off" placeholder="Ask about websites, coins, the leaderboard, accounts, docs…">
+          <button type="submit" class="primary-action">Ask</button>
+        </form>
+      </div>
+
+      <div id="search-tab-images" class="search-tab-panel" role="tabpanel" hidden></div>
+      <div id="search-tab-videos" class="search-tab-panel" role="tabpanel" hidden></div>
+      <div id="search-tab-news" class="search-tab-panel" role="tabpanel" hidden></div>
+      <div id="search-tab-articles" class="search-tab-panel" role="tabpanel" hidden></div>
     </section>
   </div>
 </section>
@@ -299,15 +332,15 @@
   </div>
 </section>
 
-<!-- ========== PARAGON AI — CHAT & WEBSITE Q&A (P-113: greetings, small talk, search) ========== -->
-<button id="paragon-ai-fab" type="button" onclick="window.ParagonAI?.openAssistant()" aria-label="Ask Paragon AI">🧠<span>Ask AI</span></button>
-<section id="paragon-ai-overlay" aria-label="Paragon AI assistant" role="dialog" aria-modal="true" aria-hidden="true">
+<!-- ========== PARAGON MIND — floating AI for the main tabs (P-114: brand diamond mark) ========== -->
+<button id="paragon-ai-fab" type="button" onclick="window.ParagonAI?.openAssistant()" aria-label="Ask Paragon Mind"><span class="ai-fab-mark" aria-hidden="true"><img src="assets/brand/logo-mark.png" alt=""></span><span class="ai-fab-label">Paragon Mind</span></button>
+<section id="paragon-ai-overlay" aria-label="Paragon Mind assistant" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="paragon-ai-dialog">
-    <div class="review-dialog-head"><div><p class="eyebrow">Paragon AI · chats and knows every website</p><h2 id="paragon-ai-title">Ask Paragon AI</h2><p id="paragon-ai-scope"></p></div><button id="paragon-ai-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close Paragon AI">×</button></div>
+    <div class="review-dialog-head"><div><p class="eyebrow">Paragon Mind · the brain of the Archive</p><h2 id="paragon-ai-title">Ask Paragon Mind</h2><p id="paragon-ai-scope"></p></div><button id="paragon-ai-close" type="button" class="search-nav-btn search-close-btn" aria-label="Close Paragon Mind">×</button></div>
     <div id="paragon-ai-messages" class="paragon-ai-messages" aria-live="polite"></div>
     <form id="paragon-ai-form" class="paragon-ai-form">
       <label for="paragon-ai-question" id="paragon-ai-label">Ask anything — greetings, ideas or questions</label>
-      <div><input id="paragon-ai-question" type="text" maxlength="600" autocomplete="off" placeholder="Try “hello”, “who are you?”, or “I need a tool for invoices”"><button type="submit" class="primary-action">Ask</button></div>
+      <div><input id="paragon-ai-question" type="text" maxlength="600" autocomplete="off" placeholder="Try “hello”, “how many coins do I have?”, or “I need a tool for invoices”"><button type="submit" class="primary-action">Ask</button></div>
     </form>
     <p class="local-data-note">Answers are local and grounded in real Paragon data — nothing is invented. No external AI provider or API key is connected.</p>
   </div>

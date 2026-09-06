@@ -1541,8 +1541,10 @@ assert(css.includes(".update-image-viewer") && css.includes(".welcome-splash-vei
 // P-096 — the merged pill was REVERTED per owner order: original bar + percent line restored, restyled.
 assert(css.includes(".construction-bar-wrap") && css.includes(".construction-percent") && !css.includes(".construction-pill {"), "Construction stage must use the restored bar + percentage layout (P-096)");
 
-/* ONE search AI (owner complaint: two AI blocks) */
-assert((app.match(/ai-suggest-block/g) || []).length === 1, "There must be exactly ONE Paragon AI suggestion block in search (P-094)");
+/* P-114 owner rule: the separate search-side AI suggestion block is REMOVED entirely.
+   Search results are a clean Google-style list; AI lives only in the AI Mode tab + the
+   floating Paragon Mind assistant. */
+assert((app.match(/ai-suggest-block/g) || []).length === 0, "The removed search AI suggestion block must stay dead (P-114)");
 assert(!app.includes("Similar websites based on your idea") && !app.includes("ensure: 3"), "The old padded second AI block must stay dead (P-094)");
 
 /* Views count on successful OPEN only; OPEN needs a guest-or-login session */
@@ -1550,10 +1552,12 @@ assert(!app.includes("siteMetrics?.recordView(name);"), "Detail view still recor
 assert(app.includes("siteMetrics?.recordView(site.name);"), "A completed launch should record exactly one view (P-094)");
 assert(app.includes('requirePersonalSession("open websites")'), "OPEN lost its guest-or-login gate (P-094)");
 
-/* Splash v4: preload-first + replay on every login */
+/* Splash v5: preload-first, plays ONCE per browser (P-114 owner rule: never replays —
+   not on icon clicks, not after login). */
 // P-096 — the preload gate was REMOVED (owner bug: late pop-in); the splash shows instantly with the veil.
 assert(app.includes("welcome-splash-veil") && app.includes("welcome-splash-tagline"), "Splash legibility layer is missing (P-094)");
-assert(app.includes('window.sessionStorage.removeItem("paragonArchive.welcomeSplash.v1")'), "Login no longer replays the welcome splash (P-094)");
+assert(app.includes("welcomeSplash.everShown.v1"), "Splash once-per-browser flag is missing (P-114)");
+assert(!app.includes('window.sessionStorage.removeItem("paragonArchive.welcomeSplash.v1")'), "Login must NOT replay the welcome splash (P-114)");
 
 /* Logged-in editable display name + guest merge stays real */
 assert(app.includes("accountProfile.displayName || authUser?.user_metadata?.display_name") && app.includes("saveProfileName"), "Editable saved display name is missing (P-094)");
