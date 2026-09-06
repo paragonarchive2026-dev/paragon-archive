@@ -1,0 +1,70 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: play.html
+  EXPECTED PROJECT PATH: /games/cards/play.html
+  ROLE: Paragon Cards play screen — game-kit HUD (mode chip, stats, rules card, quit panel)
+        plus the game stage that js/cards.js renders into. ?v=higher-lower (default) or
+        ?v=blackjack selects the rule set.
+  RESTORE-LOAD NOTE: Loads site-kit.css, ../_shared/game-kit.css, css/style.css, then
+        site-kit.js, ../manifest.js, ../engine.js, ../_shared/game-kit.js and js/cards.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Cards — Play</title>
+  <meta name="description" content="Play Higher·Lower or Blackjack 21 on Paragon Cards — free, fair and seeded.">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="shortcut icon" href="../../assets/brand/favicon.ico">
+  <link rel="apple-touch-icon" href="../../assets/brand/apple-touch-180.png">
+  <link rel="stylesheet" href="../../sites/_shared/site-kit.css">
+  <link rel="stylesheet" href="../_shared/game-kit.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Cards" title="View Paragon Cards in the Paragon Archive">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-cards.png" alt="">
+        <span class="brand-name">Paragon Cards</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="play.html?v=higher-lower" class="nav-link" data-nav="higher-lower">Higher·Lower</a>
+      <a href="play.html?v=blackjack" class="nav-link" data-nav="blackjack">Blackjack 21</a>
+    </nav>
+  </header>
+
+  <main class="game-main">
+    <div id="game-hud"></div>
+    <section id="game-stage" class="game-stage" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer">
+    <p><strong>Paragon Cards</strong> · free Paragon game · no coins move in free play</p>
+    <p>
+      <a href="index.html">Paragon Cards home</a>
+      · <a href="../../paragon-archive.html?site=Paragon%20Cards">Open in Paragon Archive</a>
+    </p>
+  </footer>
+
+  <script src="../../sites/_shared/site-kit.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../engine.js"></script>
+  <script src="../_shared/game-kit.js"></script>
+  <script src="js/cards.js"></script>
+  <script>
+    /* Underline the live mode in the topbar — markup only, no behaviour invented. */
+    (function () {
+      try {
+        var asked = new URLSearchParams(window.location.search).get("v") || "higher-lower";
+        document.querySelectorAll("[data-nav]").forEach(function (link) {
+          link.classList.toggle("active", link.getAttribute("data-nav") === asked);
+        });
+      } catch (error) { /* search unsupported */ }
+    })();
+  </script>
+</body>
+</html>
