@@ -6369,6 +6369,7 @@ function setSearchResultsMode(active, query = document.getElementById("search-in
   if (title) title.textContent = searchResultsMode ? "Search Results" : "Search";
   if (heading) heading.textContent = searchResultsMode ? "Search Results" : "Search";
   if (submitBtn) submitBtn.hidden = !searchResultsMode;
+  document.getElementById("search-shared-field")?.classList.toggle("results-mode", searchResultsMode);
   if (searchResultsMode) {
     switchSearchTab(searchActiveTab === "ai" ? "ai" : "all");
     if (searchActiveTab !== "ai") renderSearchResults(query);

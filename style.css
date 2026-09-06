@@ -4429,5 +4429,6 @@ html.light .g-article-copy b { color: #1a56db; }
 /* P-114 — shared search bar rows the submit button INSIDE the gradient ring (results mode) */
 #search-shared-field { display: flex; align-items: center; gap: 8px; }
 #search-shared-field input[type="search"] { flex: 1 1 auto; width: auto; min-width: 0; }
-#search-shared-field .search-inline-hint { left: 50px; right: 110px; }
-@media (max-width: 640px) { #search-shared-field .search-inline-hint { right: 24px; } }
+#search-shared-field .search-inline-hint { left: 50px; right: 24px; }
+#search-shared-field.results-mode .search-inline-hint { right: 110px; }
+@media (max-width: 640px) { #search-shared-field.results-mode .search-inline-hint { right: 24px; } }
