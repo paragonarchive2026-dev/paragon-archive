@@ -1,5 +1,53 @@
 # 📦 Changed files
 
+## 2026-09-06 — P-116 games wave (first playable game)
+**Shared game framework (GAMES-BUILD-PLAN.md §2):** `games/engine.js` (ParagonGameEngine —
+session lifecycle, seeded RNG, save/resume checkpoints, personal bests, the free-vs-stake gate,
+plausibility flags → Risk cases, append-only audit, and the staked-only leaderboard hook) and
+`games/manifest.js` (one registry row per game; Paragon Cards is `live`, the other ten games are
+declared `planned` with no fake paths). `games/_shared/game-kit.js` + `game-kit.css` give every
+game the same screen: FREE PLAY chip, honest STAKE · LOCKED chip that lists every reason staking
+is closed, stat bar, one-tap rules card, inline quit/resume panels (no `confirm()`) and a result
+overlay that prints the session seed, duration and action-log hash.
+**Paragon Cards (`games/cards/`):** two rule sets on one seeded deck — **Higher · Lower** (ten
+rounds, you and the house call the same card; 10 × streak points capped at 5x; equal ranks push)
+and **Blackjack 21** (100 play chips to 200, bets 10/25/50, dealer draws to 17, blackjack 3:2,
+six-deck shoe reshuffled below 78 cards). Play chips are labelled everywhere as NOT Paragon Coins.
+**Rules enforced:** free play is open to guests and offline, never moves coins and never earns
+leaderboard points; stake sessions are refused until registered member + team-approved KYC +
+real-money ON + no financial pause + no per-game kill switch; an impossibly fast result is
+flagged and opens a Risk case, never a ban.
+**Wiring:** Paragon Cards is wired into the catalogue (`siteUrl: games/cards/index.html`, build
+progress 90 until the owner demo pass), the LIVE_SITES fixture in `tests/suite-ux.test.js`
+learned the `/games/` root, and the service worker precaches the games shell (cache v89, now v90).
+**Tests:** new `tests/suite-games.test.js` — 121 checks (gate, seeded fairness, resume,
+anti-cheat, audit, honest counters, catalogue wiring). All five suites green.
+
+**Finish-up (second session, same day — the first session pushed but never opened the PR or
+closed the docs):** a real-DOM playthrough of both games caught three defects before the owner
+demo. (1) Blackjack **double down charged the bet twice** — a doubled 25 lost 75 and a shoe could
+end with the HUD showing 25 chips under a card that said 0; settlement is now ONE pure
+`settleHand()` that moves the bet exactly once, doubling is offered only when the bankroll covers
+2 × bet, and the doubled bet returns to the chosen chip next hand. (2) A **zero-score first game
+was celebrated as a "new personal best"** — the engine now requires a real score (P-009) and owns
+the verdict through `ui.finish()`. (3) The result card said **"points" for Blackjack chips** —
+variants declare `scoreUnit`. Cache v89 → **v90**; suite-games 121 → **143 checks**; SOP §11
+P-114/115/116 entries, EOP v1.07.0 and NEXT-AGENT §7r written.
+**Changed (finish-up):** `games/engine.js`, `games/_shared/game-kit.js`, `games/manifest.js`,
+`games/cards/js/cards.js`, `games/cards/SPEC.md`, `service-worker.js`, `tests/suite-games.test.js`,
+`tests/suite-ux.test.js`, `tests/suite-core.test.js`, `tests/suite-finance.test.js`,
+`GAMES-BUILD-PLAN.md`, `docs/SOP.md`, `docs/EOP.md`, `docs/NEXT-AGENT.md`, `docs/CHANGES.md`.
+
+**New files:** `games/engine.js`, `games/manifest.js`, `games/_shared/game-kit.js`,
+`games/_shared/game-kit.css`, `games/cards/index.html`, `games/cards/play.html`,
+`games/cards/css/style.css`, `games/cards/js/cards.js`, `games/cards/js/home.js`,
+`games/cards/SPEC.md`, `tests/suite-games.test.js`.
+**Changed:** `data/catalogue-expansion-45-100.js`, `service-worker.js`, `tests/suite-ux.test.js`,
+`tests/suite-core.test.js`, `tests/suite-finance.test.js`, `README.md`, `docs/SOP.md`,
+`GAMES-BUILD-PLAN.md`, `docs/CHANGES.md`.
+
+---
+
 ## 2026-09-06 — P-114/P-115 wave
 **P-114:** Google-style Search (shared bar above entry+results, results tabs **All / AI Mode /
 Images / Videos / News / Articles**, compact lined-up results, honest per-tab empty states); the AI

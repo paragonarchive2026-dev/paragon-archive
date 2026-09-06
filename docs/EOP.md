@@ -5662,3 +5662,28 @@ Stage 6 — Withdrawals and Stage 7 — Team/administration are complete as a re
 
 ### Result
 Main contains both full lineages from base `e8167bc`; the stale-download problem is resolved at the source. Owner's next step: another agent will build/merge game + quiz code; when that lands on `main`, this workspace pulls it and wires games/quiz into the coin engine and the leaderboard (P-110 Stage 3 + P-111 Stage 4 patterns already exist as the reference).
+
+## v1.07.0 — 2026-09-06 — Games wave P-116: shared game framework + Paragon Cards, finished and hardened (D-235)
+
+**Request reference:** SOP §11, Prompt P-116 (owner: "Let's start building the game"; second session: "the arena ai was doing something then didn't finish up, so finish it").
+**Status:** `[x]` completed
+
+### Executed actions
+1. **Recovered the unfinished session.** Commit `3a9b6ae` (branch `arena/01a0768e-paragon-archive`) held the whole games wave but was never opened as a PR and never closed its docs (no SOP §11 prompt entry, no EOP entry, no NEXT-AGENT hand-off). It was cherry-picked cleanly onto `main` (`ee9db1d`) and finished here.
+2. **Framework (GAMES-BUILD-PLAN §2/§5/§6):** `games/engine.js` (`window.ParagonGames` — session lifecycle, mulberry32 seeded RNG with persisted draw counter for exact resume, scoring + personal bests, save/resume checkpoints, the free-vs-stake gate returning EVERY reason, plausibility flags → `ParagonWallets.openRiskCase` (never a ban), append-only audit through `ParagonWallets.appendAudit`, and `recordStakedResult` that refuses zero stake). `games/manifest.js` (one row per game; Paragon Cards `live`, ten games `planned` with empty paths). `games/_shared/game-kit.{js,css}` (FREE PLAY chip, honest STAKE · LOCKED chip listing every reason, stat bar, one-tap rules card, inline quit/resume panels, result overlay with seed + duration + action-log hash).
+3. **Paragon Cards (`games/cards/`):** Higher · Lower (ten rounds, you and the house call the same card, 10 × streak capped at 5x, equal ranks push, aces low) and Blackjack 21 (100 play chips to 200, bets 10/25/50, hit/stand/double, dealer draws to 17 incl. soft 17, blackjack 3:2, six-deck seeded shoe reshuffled below 78 cards). Play chips labelled NOT Paragon Coins on every screen.
+4. **Real-DOM playthrough (jsdom, outside the repo) found three defects — all fixed and regression-locked:**
+   - Blackjack double down **charged the bet twice** (deducted when doubling, then again at settlement): a doubled 25 lost 75, and a shoe could end with the HUD showing 25 chips under a card saying 0. Settlement is now ONE pure `settleHand()` (exported) that moves the bet exactly once; `canDoubleDown()` offers doubling only when chips ≥ 2 × bet; the doubled bet returns to the chosen chip next hand; the final hand renders behind the overlay; below 10 chips the next hand is honestly all-in.
+   - A **zero-score first game was celebrated as a "new personal best"** (`!current` short-circuit). The engine now requires a real score > 0 (P-009 real-zero) and the verdict flows engine → `opts.onSettled` → `ui.finish()`; `cards.js` no longer computes `isBest` itself.
+   - The result card said **"points" for Blackjack chips**; variants now declare `scoreUnit` and the kit prints it.
+5. **Wiring:** catalogue row `siteUrl: games/cards/index.html`, `live: true`, `buildProgress: 90` (owner demo pass pending); `tests/suite-ux.test.js` LIVE_SITES learned the `/games/` root; service worker precaches the games shell — cache **v90** (v89 from the first session, bumped again because precached game files changed, P-016); README, GAMES-BUILD-PLAN status block, `games/cards/SPEC.md`, CHANGES, SOP D-235 + P-114/115/116 prompt entries, this EOP entry, NEXT-AGENT 7r.
+6. **Tests:** `tests/suite-games.test.js` **143 checks** (121 + 22 for the fixes: settlement table incl. doubled win/loss, double-down eligibility, zero-score honesty, `onSettled` verdict, unit label, source guards). Five suites green: core, ux, ai-team, finance (107), games (143).
+
+### Validation
+- [x] jsdom playthrough: Higher · Lower 3 rounds → reload → resume panel → same session id/seed/score at round 4 → ten rounds → overlay with seed + log hash → resume slot cleared → home counters `1 played / Best: N pts`.
+- [x] jsdom playthrough: Blackjack to shoe end six times — every shoe terminates at ≥ 200 or exactly 0 (before the fix: 25, 7, 1); doubled 25 settles to 50 / 150 / 100 only; mid-hand reload resumes the player phase with the dealer hole card still hidden; quit panel + "Keep playing" behave.
+- [x] Free play never calls `addCoins`/`spendCoins`/`recordResult`; stake sessions refused on a standalone page with every reason listed; kill switch + financial pause close stakes but never free play; impossible-speed flag opens a Risk case and an audit row.
+- [x] No `window.alert/prompt/confirm`; identity headers on every new file; no textual arrows added to `app.js`.
+
+### Result
+The games programme has its shared framework and its first honest, playable, offline-capable game, with the money path built and gated exactly as the platform law demands. Next in the build order (GAMES-BUILD-PLAN §3): **Arcade → Chess → (Quiz onto the engine) → Cards second rule wave → Bet LAST**; stake UI + `paragon_game_settle` server contract when the owner turns real money on.

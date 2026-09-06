@@ -24,7 +24,7 @@
 
     { name: "Paragon Puzzle", group: "Games", category: "Games", inside: "Puzzle games hub", features: ["Jigsaw", "Sliding puzzles", "Sudoku", "Word scramble", "Crossword", "Brain teasers"], icon: "🧩", tag: "Puzzles" },
     { name: "Paragon Chess", group: "Games", category: "Games", inside: "Chess", features: ["Play versus AI", "Multiple difficulties", "Move hints", "Game history"], icon: "♟️", tag: "Chess" },
-    { name: "Paragon Cards", group: "Games", category: "Games", inside: "Card games", features: ["Solitaire", "Snap", "Memory match", "Blackjack", "Card flip"], icon: "🃏", tag: "Card Games" },
+    { name: "Paragon Cards", group: "Games", category: "Games", inside: "Card games — Higher·Lower and Blackjack 21 are live", features: ["Higher·Lower duel against the house", "Blackjack 21 against the dealer", "Seeded, replayable deck", "Save and resume mid-game", "Local personal bests", "Free forever — no coins move in free play"], icon: "🃏", tag: "Card Games", siteUrl: "games/cards/index.html", version: "v1.0 — Sep 6, 2026", live: true, buildProgress: 90, previewOnly: false },
     { name: "Paragon Trivia", group: "Games", category: "Games", inside: "Trivia game show", features: ["Categories", "Timed questions", "Streak scoring", "Leaderboard"], icon: "🎤", tag: "Trivia" },
     { name: "Paragon Arcade", group: "Games", category: "Games", inside: "Mini arcade", features: ["Snake", "Tetris", "Breakout", "Space Invaders", "Pac-Man-style games"], icon: "🕹️", tag: "Arcade" },
     { name: "Paragon Race", group: "Games", category: "Games", inside: "Racing game", features: ["Browser racing", "Keyboard controls", "Tracks", "Time trial"], icon: "🏎️", tag: "Racing" },
@@ -92,7 +92,12 @@
       icon: definition.icon, siteUrl: definition.siteUrl || "#", tag: definition.tag, about,
       version: definition.version || "v1.0 — New", updates: [...definition.features], features: [...definition.features],
       reviews: [], isNew: true, addedAt: definition.addedAt || "2026-08-04T13:00:00+01:00",
-      addedSequence: sequence, addedDateStatus: "recorded"
+      addedSequence: sequence, addedDateStatus: "recorded",
+      /* P-116 — a game/product defined for the first time in this file must be able to ship
+         wired, exactly like the records that already existed in the base catalogue. */
+      ...(definition.siteUrl ? { previewOnly: false } : {}),
+      ...(definition.live ? { live: true } : {}),
+      ...(definition.buildProgress != null ? { buildProgress: definition.buildProgress } : {})
     };
     catalogue.push(site);
     byName.set(site.name.toLowerCase(), site);
