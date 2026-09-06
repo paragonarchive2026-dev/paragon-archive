@@ -4432,3 +4432,19 @@ html.light .g-article-copy b { color: #1a56db; }
 #search-shared-field .search-inline-hint { left: 50px; right: 24px; }
 #search-shared-field.results-mode .search-inline-hint { right: 110px; }
 @media (max-width: 640px) { #search-shared-field.results-mode .search-inline-hint { right: 24px; } }
+
+/* ============================================================
+   P-115 — 365-DAY DAILY GOALS mission board
+   ============================================================ */
+.goals-head { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; padding: 13px 15px; border: 1px solid var(--accent-glow); border-radius: 14px; background: radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%), var(--surface); }
+.goals-head-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; font-family: var(--font-display); }
+.goals-head-top b { color: var(--accent-soft); font-size: 15px; }
+.goals-head-top span { color: var(--text-faint); font-size: 11.5px; }
+.goals-head-today { color: var(--text); font-size: 13px; }
+.goals-head-today b { font-size: 15px; }
+.goal-point-chip { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--card); color: var(--text-dim); font-size: 11px; font-weight: 700; }
+.goal-point-chip.earned { border-color: rgba(74,222,128,0.55); background: rgba(74,222,128,0.12); color: #4ade80; }
+.goals-year-note { margin: 12px 2px 0; font-size: 11.5px; color: var(--text-faint); line-height: 1.55; }
+.goal-mark-btn { flex: 0 0 auto; padding: 7px 12px; font-size: 11px; }
+.goal-row .goal-check { flex: 0 0 auto; font-size: 16px; color: var(--text-faint); }
+.goal-row.is-complete .goal-check { color: #4ade80; }

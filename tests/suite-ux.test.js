@@ -57,6 +57,8 @@ for (const phrase of [
   "I forgot my password. What do I do?",
   "How do I delete my account?",
   "Can I download my data?",
+  "What are Daily Goals and how do they earn leaderboard points?",
+  "What is Paragon Mind?",
   "How do I open a website?",
   "How do I request a website that does not exist yet?",
   "How do I opt out of analytics tracking?",
@@ -72,7 +74,7 @@ for (const phrase of [
   "Screenshot placeholder"
 ]) assert(html.includes(phrase), `Help page is missing supplied copy: ${phrase}`);
 
-assert((html.match(/<details>/g) || []).length === 15, "FAQ does not contain all fifteen supplied questions");
+assert((html.match(/<details>/g) || []).length === 17, "FAQ does not contain all seventeen supplied questions");
 assert((html.match(/class="docs-step"/g) || []).length === 6, "Documentation guide does not contain all six steps");
 assert((html.match(/class="docs-shot-placeholder /g) || []).length === 6, "Documentation screenshot placeholders are incomplete");
 for (const icon of ["⚙️", "👤", "◈", "🌐", "🔖", "↻"]) assert(html.includes(`<span>${icon}</span>`), `Confirmed guide icon is missing: ${icon}`);
@@ -490,7 +492,7 @@ assert(/data\/sites\.js[\s\S]*data\/catalogue-expansion\.js[\s\S]*data\/catalogu
 assert(sw.includes('"./paragon-product-preview.html"') && sw.includes('"./product-preview.js"'), "Product preview is missing from PWA shell");
 const catalogue = { console }; catalogue.window = catalogue; vm.createContext(catalogue);
 for (const file of ["data/sites.js", "data/catalogue-expansion.js", "data/catalogue-expansion-45-100.js"]) vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), catalogue);
-assert(brain.includes("# PARAGON ARCHIVE — AI BRAIN") && brain.includes("Hybrid retrieval") && brain.includes("Backend/API design") && brain.includes("Hallucination and honesty rules"), "AI Brain is missing knowledge/retrieval/backend/safety foundations");
+assert(brain.includes("# PARAGON MIND — THE AI BRAIN OF PARAGON ARCHIVE") && brain.includes("Hybrid retrieval") && brain.includes("Backend/API design") && brain.includes("Hallucination and honesty rules") && brain.includes("pleasantriesReply"), "AI Brain is missing knowledge/retrieval/backend/safety foundations");
 for (const site of catalogue.ParagonSites) assert(brain.includes(`| ${site.name} |`) || brain.includes(`| ${site.name.replace('|','\\|')} |`), `AI Brain is missing catalogue knowledge for ${site.name}`);
 const hub = catalogue.ParagonSites.find(site => site.name === "Paragon Archive Hub");
 assert(hub.siteUrl === "paragon-archive-hub.html" && !hub.previewOnly, "Archive Hub real destination was replaced by a concept preview");

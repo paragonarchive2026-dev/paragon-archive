@@ -530,7 +530,7 @@
       return { text: `Paragon Archive is built and run by the Paragon Team (the Paragon founder), with real developer partners joining through the Developer Portal and the 8-point review gate for the Deployed category.`, evidence: ["identity"], confidence: 0.9, mode: "conversation" };
     }
     if (/(what can you do|help me|your features|what do you do|how do you work|how can you help|capabilities)\b/.test(q)) {
-      return { text: `Here's what Paragon Mind can do:\n• 🔎 Find a website from any idea or phrase — even misspelled — and tell you why it matches (e.g. “I need something for receipts”).\n• 🪙 Answer coin questions: your live balance, the ₦1 = 2 coins rate, packs, KYC status, withdrawal rules and fees.\n• 🏆 Tell you your real leaderboard position, the current week and how points work.\n• 🎯 Report your daily goals and streak.\n• 🎮 Explain games: free play vs the 1v1 stake desk (100–10,000 coins, server-settled).\n• 🧾 Explain any website: purpose, features, build progress, reviews, updates, price, how to open it.\n• 📄 Documentation: requesting websites, advertising, community, developers, privacy, support — where everything lives.\n• 👤 Accounts, guests, email sign-in, collections, saves, achievements.\n• 💬 And basic chat — greetings, thanks, “how are you”. Just ask!`, evidence: ["identity"], confidence: 1, mode: "conversation" };
+      return { text: `Here's what Paragon Mind can do:\n• 🔎 Find a website from any idea or phrase — even misspelled — and tell you why it matches (e.g. “I need something for receipts”).\n• 🪙 Answer coin questions: your live balance, the ₦1 = 2 coins rate, packs, KYC status, withdrawal rules and fees.\n• 🏆 Tell you your real leaderboard position, the current week and how points work.\n• 🎯 Report today's Daily Goals (365 days of missions!) — your progress, streak, and whether today's 1 leaderboard point is earned yet.\n• 🎮 Explain games: free play vs the 1v1 stake desk (100–10,000 coins, server-settled).\n• 🧾 Explain any website: purpose, features, build progress, reviews, updates, price, how to open it.\n• 📄 Answer the official FAQ and documentation: requesting websites, advertising, community, developers, privacy (data, deletion, download), support — where everything lives.\n• 👤 Accounts, guests, email sign-in, passwords, bookmarks, reviews, collections, themes, notifications, achievements.\n• 💬 And real conversation — greetings, pleasantries, jokes, “I'm bored”, “how are you”, thanks. Just talk to me normally!`, evidence: ["identity"], confidence: 1, mode: "conversation" };
     }
     /* small talk */
     if (/(how are you|how (are|r) (you|u|ya)|how far|how (is|iz) (it|paragon)|you (okay|ok|fine|good)|hope you are well)/.test(q)) {
@@ -564,6 +564,119 @@
   }
   function fmtNumber(value) { return Number(value || 0).toLocaleString(); }
 
+  /* ============================================================
+     P-115 — PLEASANTRIES & GENERAL CONVERSATION.
+     The Mind attends to greetings, moods and off-platform questions with
+     warm, honest replies — it never dumps a website list on a chat.
+     ============================================================ */
+  function pleasantriesReply(rawQuestion) {
+    const raw = normalize(rawQuestion);
+    const q = normalize(correctTypos(rawQuestion));
+    if (!q && !raw) return null;
+    /* Match the RAW words together with the typo-corrected words — the corrector
+       must never eat pleasantries vocabulary ("joke" must not become "note"). */
+    const combined = q && raw ? q + " " + raw : (q || raw);
+    /* time-of-day greetings */
+    if (/^(good |great |fine )?(morning|afternoon|evening|night|day)[ !.]*$/.test(combined) || /^(good (morning|afternoon|evening)) paragon/.test(combined)) {
+      const hour = new Date().getHours();
+      const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+      return { text: `Good ${part} to you too! 😊 What can I do for you today — find a website, check your coins and leaderboard, or answer a question about Paragon?`, evidence: ["greeting"], confidence: 1, mode: "conversation" };
+    }
+    if (/\b(what'?s up|whats up|wassup|how e dey|howfar|how far|what is happening|anything doing)\b|^sup\b|^how far\b/.test(combined)) {
+      return { text: `All good on this side! 🙌 The Archive is open, the catalogue has ${sites.length} websites, and I'm ready to help. What's up with YOU — looking for a website, coins, the leaderboard, or just exploring?`, evidence: ["greeting"], confidence: 1, mode: "conversation" };
+    }
+    if (/(how (was|is|are) (your|ur) (day|night|week|weekend)|hope (you|ur) (are|re)? ?(fine|good|okay|well))/.test(combined)) {
+      return { text: `That's kind of you! 😄 My day is exactly as busy as your questions — which I love. Everything I know is live from the Archive, so I'm always up to date. How can I help yours?`, evidence: ["greeting"], confidence: 1, mode: "conversation" };
+    }
+    if (/(i('?m| am) (bored|boring)|nothing to do|entertain me|i need something to do|kill my boredom)/.test(combined)) {
+      return { text: `Boredom cure incoming! 🎮 Try Paragon Quiz or Paragon Arcade (free play, no account needed), explore Trending to see what's hot this week, or open a category you've never touched — search "games" or "creative" and see what comes up. Daily Goals also has fresh missions waiting in your Account.`, evidence: ["greeting"], confidence: 0.9, mode: "conversation" };
+    }
+    if (/(i('?m| am) (tired|exhausted|sleepy)|need (a )?rest|long day)/.test(combined)) {
+      return { text: `Rest is productive too. 💙 Take the break — your Paragon activity, coins and streak are saved. When you're back, Paragon Sounds has calm ambient audio for winding down. See you soon!`, evidence: ["greeting"], confidence: 0.9, mode: "conversation" };
+    }
+    if (/(i('?m| am) (sad|down|unhappy|depressed|stressed|anxious)|feeling (sad|low|down)|bad day)/.test(combined)) {
+      return { text: `I'm sorry today feels heavy. 💙 I'm an app assistant, not a professional, so for real support please talk to someone you trust or a professional. If a gentle distraction would help: Paragon Sounds has calming ambience, Paragon Journal lets you put thoughts down, and the Archive will still be here whenever you're ready.`, evidence: ["greeting"], confidence: 0.9, mode: "conversation" };
+    }
+    if (/(tell me a joke|joke please|make me laugh|say something funny|another joke)/.test(combined)) {
+      const jokes = [
+        `Why did the website go to the doctor? It had a bad connection. 😄 Want another? I have a whole archive of them… okay, that was the joke.`,
+        `I asked the leaderboard for a raise. It said "earn it — one Daily Goal at a time." 😅`,
+        `There are 10 types of people: those who understand binary and those who don't. 🤓 Paragon Calc can help either way.`,
+        `A guest session walked into a bar… and left 30 minutes later. ⏳ (Guests, you know the pain — sign in!)`
+      ];
+      return { text: jokes[Math.floor(Math.random() * jokes.length)], evidence: ["greeting"], confidence: 1, mode: "conversation" };
+    }
+    if (/(are you (a )?(human|robot|bot|real|person|alive)|am i talking to (a )?(human|bot|robot|ai|real person))/.test(combined)) {
+      return { text: `I'm not a human — I'm Paragon Mind 💠, the built-in AI of Paragon Archive. I run entirely inside the app with no outside AI service, and everything I tell you comes from real Paragon data. Think of me as the Archive's brain with good manners. 😊`, evidence: ["identity"], confidence: 1, mode: "conversation" };
+    }
+    if (/(who (trained|taught|made|built) you|who created you|your (creator|developer|maker|father|mother))/.test(combined)) {
+      return { text: `The Paragon Team built and trained me — every rule in my brain was written from the real Archive: the catalogue, the coin rules, the leaderboard, the accounts system and every documentation page. No external AI company is behind me.`, evidence: ["identity"], confidence: 1, mode: "conversation" };
+    }
+    if (/(how old are you|your age|when (were you|was) you (born|made|created|launched))/.test(combined)) {
+      return { text: `Paragon Archive launched on ${LAUNCH_DATE} — that's my birthday too. 🎂 I've been learning the Archive ever since, and every improvement the team ships makes me smarter.`, evidence: ["launchDate"], confidence: 0.95, mode: "conversation" };
+    }
+    if (/(what'?s your favorite|your best|do you like) (website|site|color|colour|food|music|game|thing)/.test(combined)) {
+      return { text: `I don't play favorites — every one of the ${sites.length} websites is equal in my eyes. 😄 But if you want what's genuinely popular right now, open Trending This Week on the Websites tab; and Staff Picks highlights deserving sites with less attention. Tell me what you need and I'll match you to the right website.`, evidence: ["identity"], confidence: 0.9, mode: "conversation" };
+    }
+    if (/(do you love me|i love you|you'?re (cute|sweet|cool|awesome|the best|amazing)|good (boy|girl|bot|ai))/.test(combined)) {
+      return { text: `That's really sweet of you! 💠 I appreciate every user who explores the Archive — now let me earn it: ask me for any website, coin help, or your leaderboard position.`, evidence: ["greeting"], confidence: 1, mode: "conversation" };
+    }
+    if (/(you ?(are|re) ?(useless|dumb|stupid|bad|rubbish|trash)|you'?re (useless|dumb|stupid|bad|rubbish|trash)|i hate (you|this|paragon)|this app is (bad|trash|useless))/.test(combined)) {
+      return { text: `I hear you, and I'm sorry something didn't work. 😔 That's not the Paragon standard. Tell me what went wrong (or report it from Settings → Help & Support with a screenshot) and the team will fix it — bug reports genuinely shape what gets built next.`, evidence: ["greeting"], confidence: 0.9, mode: "conversation" };
+    }
+    if (/(happy birthday|congratulations|congrats|well done paragon)/.test(combined)) {
+      return { text: `Thank you! 🎉 Days like this make the whole build worth it. Anything I can do for you today?`, evidence: ["greeting"], confidence: 1, mode: "conversation" };
+    }
+    if (/(what language|which language).*(you speak|support|understand)|do you speak (french|spanish|hausa|yoruba|igbo|pidgin)/.test(combined)) {
+      return { text: `I speak English — the Archive's official language. I understand Nigerian expressions like "how far" and common typos though, so type the way you talk and I'll keep up. 😊`, evidence: ["identity"], confidence: 1, mode: "conversation" };
+    }
+    if (/\bweather\b|will it rain|temperature (outside|today)|what time is it\b|current time\b/.test(combined)) {
+      const now = new Date();
+      return { text: `I live inside Paragon Archive, so I don't have live weather or outside-world feeds — I'd never guess and present it as fact. 🌤️ For the time: it's ${now.toLocaleTimeString()} on your device's clock (${now.toLocaleDateString()}). When Paragon Weather ships, it'll carry real forecasts.`, evidence: ["identity"], confidence: 1, mode: "conversation" };
+    }
+    if (/(help me with (my )?homework|do my (homework|assignment)|solve (this|my) (math|equation|problem))/.test(combined)) {
+      return { text: `I stay inside Paragon's walls, so I can't do general homework — but Paragon has honest tools for that: Paragon Flash turns your notes into flashcards, Paragon Learn does deep research topics, Paragon Calc handles calculations, and Paragon Quiz tests you properly. Tell me which one fits and I'll point you there.`, evidence: ["identity"], confidence: 1, mode: "conversation" };
+    }
+    if (/(can i trust you|are you safe|do you steal|my data safe|are you watching|privacy)/.test(combined) && !/policy|delete|download/.test(combined)) {
+      return { text: `Yes — and here's the proof: I run 100% inside the app. No outside AI company, no sending your questions anywhere, no secrets in your browser. I only read Paragon's own data (catalogue, your device's Paragon activity) to answer you. Your data is never sold — the Privacy Policy in the Hub explains every word of it.`, evidence: ["identity"], confidence: 1, mode: "conversation" };
+    }
+    if (/(what should i (do|search|open)|where do i start|i('?m| am) new|first time)/.test(combined)) {
+      return { text: `Welcome! 🎉 Start here: 1) tap the search icon and type anything you need ("tool for invoices", "learn coding"); 2) open Website of the Day and Trending to see what's hot; 3) set up your account (or Continue as Guest) so your activity saves; 4) check Daily Goals for today's missions — completing them earns a leaderboard point. Ask me anything along the way!`, evidence: ["identity"], confidence: 1, mode: "conversation" };
+    }
+    return null;
+  }
+
+  /* ============================================================
+     P-115 — OFFICIAL FAQ KNOWLEDGE (the Hub's real answers, verbatim-faithful).
+     ============================================================ */
+  const FAQ_KNOWLEDGE = [
+    { keys: [/create (an )?account/, /sign ?up/], a: `Tap the Account tab at the bottom of the screen. You will see options to sign up with Google or with your email. Follow the steps and your account will be ready in under a minute.` },
+    { keys: [/forgot (my )?password/, /reset password/, /password recovery/], a: `On the sign-in dialog tap "Forgot Password?" and enter your email address. We will send you a link to reset it. Check your spam folder if you do not see it within a few minutes. You can also change your password anytime from Settings → Change Password (email accounts).` },
+    { keys: [/without an account/, /use .* as guest/, /guest mode/, /do i need an account/], a: `Yes — you can browse and open all websites as a Guest. Guest saves, reviews, collections, history and progress are temporary: a Guest session ends after 30 continuous minutes away or offline, or immediately when you choose End Guest Session. If you sign in or create an account before it ends, the live Guest activity merges into your account.` },
+    { keys: [/delete (my )?account/], a: `Go to Account → Settings → Privacy & Security → Delete Account. Secure permanent deletion still requires the planned backend deletion workflow, so the current control explains the status honestly instead of claiming your account was deleted. You can contact Privacy support (paragon.archive.2026@gmail.com, subject "Privacy") while that workflow is pending.` },
+    { keys: [/download (my )?data/], a: `Yes. Account → Settings → Privacy & Security → "Download My Data" prepares a file with the data currently available to your browser and account. Passwords and authentication tokens are excluded.` },
+    { keys: [/why (is|does) (a )?(website|site) (not loading|block)|website not loading|site (won'?t|wont|does ?n'?t) load|preview (blocked|not loading)/], a: `This is usually temporary, or the website blocks embedded previews through its security policy. Try refreshing, closing and reopening it, or use "Open in New Tab". If it continues, report it with the Bug Report form (Hub → Reporting a Bug) including the website name and your browser.` },
+    { keys: [/how do i (save|bookmark)/, /save (a )?website/, /bookmark/], a: `Open the website's detail page and tap the Bookmark action. Saves appear under "Saved & Bookmarked" in your Account tab and sync with your account; Guest saves last only for the current session. You can also organize saved sites into Collections.` },
+    { keys: [/how do i (write|leave) a review/, /write review/], a: `Open the website detail page and scroll to Ratings & Reviews. Tap "Write a Review", choose your stars, write your thoughts and submit. Account reviews can sync; Guest reviews are temporary for the session.` },
+    { keys: [/request (a )?(website|site).*(exist|does ?n'?t|not exist)/, /website i want does ?n'?t exist/, /suggest (a )?(website|idea)/], a: `Go to Settings → "💬 Request a Website" (or the Hub's Request a Website page). Each account can submit one request in every rolling seven-day period — Paragon schedules construction by real demand, so the most-requested ideas get built first.` },
+    { keys: [/notifications? (for|on|about) (a )?website/, /turn on notification/, /website updates? notification/], a: `Save the website first, then go to Account → Settings → Notifications. Saved-website updates are highlighted in the Updates tab. Optional email delivery becomes available after the production notification service is activated.` },
+    { keys: [/dark mode|light mode|change theme|switch theme/], a: `Go to Account → Settings → Dark Mode toggle, or use the theme button in the top bar. You can switch between dark and light anytime — the site defaults to dark mode and remembers your choice.` },
+    { keys: [/opt out of analytics/, /analytics tracking/, /stop tracking/], a: `Go to Account → Settings → Privacy & Security → Privacy Controls and turn off Analytics Tracking (and Tracking Cookies). Analytics scripts are not currently connected, and any future integration must respect those switches.` },
+    { keys: [/is paragon (archive )?free/, /does it cost/, /do i (have to )?pay/], a: `Yes — Paragon Archive and every Paragon-built website are intended to remain completely free, and creating an account is free. Future approved Deployed websites may offer clearly labelled premium features under the Deployed rules; those transactions are not handled by Paragon. Coins are only for optional competitive play.` },
+    { keys: [/will it always be free/, /always free/], a: `That is the plan and the promise. Paragon exists to make things free and easy for everyone. The plan to keep the lights on is optional ads that YOU control — no advertising scripts are connected today, and any future integration must respect your consent choices.` }
+  ];
+  function faqAnswer(rawQuestion) {
+    const q = normalize(correctTypos(rawQuestion));
+    if (!q) return null;
+    for (const entry of FAQ_KNOWLEDGE) {
+      if (entry.keys.some(pattern => { try { return pattern.test(q); } catch (error) { return false; } })) {
+        return { text: entry.a, evidence: ["official FAQ"], confidence: 1, mode: "platform" };
+      }
+    }
+    return null;
+  }
+
+
   const PLATFORM_INTENTS = [
     { key: "kyc", pattern: /\bkyc\b|verify (my )?identity|team approv|payout details|why (can'?t|cannot) i (buy|withdraw|see the account)/i },
     { key: "coins", pattern: /\bcoins?\b|naira|₦|buy coins|withdraw|sell(ing)? coins|conversion|exchange rate|wallet|coin pack|balance|top ?up|purchase|how much (is|are|do)/i },
@@ -574,7 +687,7 @@
     { key: "guest", pattern: /guest|continue as guest|without an account|30 minutes|session expir/i },
     { key: "updates", pattern: /updates?|news|what'?s new|announcement|changelog|new version|release notes|recently (added|changed)/i },
     { key: "docs", pattern: /how (do|can|does) (i|you|we|paragon)|where (is|are|can|do)|documentation|\bdocs\b|advertise|ad space|advertis|request (a|the|new) (website|site|page)|community|developer|privacy|terms|cookie policy|faq|support|contact|help me with|guide|tutorial|how (to|about)/i },
-    { key: "install", pattern: /install|add to home|pwa|\bapp\b|download paragon|offline/i },
+    { key: "install", pattern: /install|add to home|\bpwa\b|download paragon|install paragon|offline mode|works offline/i },
     { key: "achievements", pattern: /achievement|badge|unlock stage|milestone/i },
     { key: "leaderboardRules", pattern: /how (do|does) (points|leaderboard|ranking) work|earn points/i }
   ];
@@ -629,16 +742,24 @@
       if (window.ParagonLeaderboards?.currentWeekKey) weekText = ` The current leaderboard week is ${window.ParagonLeaderboards.currentWeekKey()}.`;
     } catch (error) { weekText = ""; }
     if (board.rank && board.rank > 0) {
-      return { text: `Your leaderboard position right now: #${board.rank}${board.points != null ? ` with ${fmtNumber(board.points)} points` : ""}${board.total ? ` out of ${fmtNumber(board.total)} ranked players` : ""}.${weekText} Only verified staked-competition results earn ranking points — free play never ranks, and nothing is invented. Keep winning eligible competitions to climb; the board resets each week.`, evidence: ["live leaderboard"], confidence: 1, mode: "platform" };
+      return { text: `Your leaderboard position right now: #${board.rank}${board.points != null ? ` with ${fmtNumber(board.points)} points` : ""}${board.total ? ` out of ${fmtNumber(board.total)} ranked players` : ""}.${weekText} Points come from two honest paths: verified staked competition results, and exactly 1 point per day for completing all of that day's Daily Goals — nothing else ever ranks, and nothing is invented. The board resets each week.`, evidence: ["live leaderboard"], confidence: 1, mode: "platform" };
     }
-    return { text: `You're not on the leaderboard right now${(context && context.session && context.session.mode) === "guest" ? " — guest activity doesn't rank; join with a free account to start earning a rank" : " — points only come from verified staked competition results, so play and win eligible competitions to appear"}.${weekText} Open the leaderboard from your Account to see the current week's full table.`, evidence: ["live leaderboard"], confidence: 1, mode: "platform" };
+    return { text: `You're not on the leaderboard right now — but the easiest first point is one tap away: complete today's 3 Daily Goals (🎯 in your Account) and you earn exactly 1 point for the day. Competition points additionally come from verified staked results${(context && context.session && context.session.mode) === "guest" ? ". Guests: finish the goals, then sign in before the session ends — the banked point posts automatically" : ""}.${weekText} Open the leaderboard from your Account to see the current week's full table.`, evidence: ["live leaderboard"], confidence: 1, mode: "platform" };
   }
 
   function dailyAnswer() {
     const context = liveContext();
     const daily = (context && context.daily) || {};
-    const done = Number(daily.done || 0), total = Number(daily.total || 0);
-    return { text: `Daily Goals: you've completed ${done} of ${total} today${daily.streak ? `, on a ${daily.streak}-day streak 🔥` : ""}. They're quick missions (explore a website, ask me a question, check the leaderboard…) that reset every day and earn XP — honest, local, and never paid out as money. Finish them from the 🎯 Daily Goals box in your Account.`, evidence: ["live daily goals"], confidence: 1, mode: "platform" };
+    const done = Number(daily.done || 0), total = Number(daily.total || 0) || 3;
+    const pointLine = daily.pointEarnedToday
+      ? "You've already earned today's 1 leaderboard point ✅ — come back tomorrow for three fresh missions."
+      : done === total && total > 0
+        ? "All done — your +1 point is being claimed right now! 🏆"
+        : `Complete all ${total} of today's missions to earn exactly 1 leaderboard point for the day.`;
+    return { text: `🎯 Daily Goals — a full YEAR of missions (365 days, three new tasks every day: explore a website, a tracked action, and a category or documentation read). You never see the whole year at once; each day unlocks its own set.
+Today: ${done}/${total} done${daily.streak ? ` · 🔥 ${daily.streak}-day streak` : ""} · Day ${daily.dayOfCycle || "?"} of 365 · ${Number(daily.pointsTotal || 0)} point${Number(daily.pointsTotal || 0) === 1 ? "" : "s"} earned so far.
+${pointLine}
+${(context && context.session && context.session.mode) === "guest" ? "Guest note: today's point is banked in this session — sign in before it ends and it posts to the leaderboard automatically; if the session expires first, that progress is honestly lost." : "Signed-in users: the point posts straight to the weekly leaderboard. Open the 🎯 Daily Goals box in your Account to see today's missions."}`, evidence: ["live daily goals"], confidence: 1, mode: "platform" };
   }
 
   function gamesAnswer() {
@@ -761,9 +882,13 @@
     const query = normalize(question);
     if (!site) return { text: "I could not find that website in the current Paragon catalogue.", evidence: [], confidence: 0 };
     /* P-113 — small talk & greetings get natural replies even inside a website Q&A. */
-    const chat = answerConversation(question);
-    if (chat && /^(hi+|hello+|hey+|yo|sup|howdy|good (morning|afternoon|evening)|greetings|thanks|thank you|bye|goodbye|how are you|how far|who are you|what are you|what can you do|help me|i love|love (it|this|paragon))/.test(query)) {
+    const chat = answerConversation(question) || pleasantriesReply(question);
+    if (chat) {
       return { ...chat, site: site.name, mode: "website-detail" };
+    }
+    const detailFaq = faqAnswer(question);
+    if (detailFaq && /account|password|guest|bookmark|review|notification|theme|analytics|free|download|delete/.test(query)) {
+      return { ...detailFaq, site: site.name, mode: "website-detail" };
     }
     const features = site.features || site.updates || [];
     const status = site.previewOnly ? "concept preview while the real product is still being built" : site.name === "Paragon Archive Hub" ? "available Archive Hub page" : "configured destination";
@@ -825,13 +950,20 @@
   }
 
   function answerSearch(question) {
-    /* P-113/P-114 — routing order: greetings & small talk → PLATFORM knowledge (coins,
-       KYC, leaderboard, accounts, games, updates, docs) → website matches. A plain
-       question about Paragon never gets a website list dumped on it. */
-    const chat = answerConversation(question);
+    /* P-113/P-114/P-115 — routing order: greetings & small talk → pleasantries →
+       official FAQ → PLATFORM knowledge (coins, KYC, leaderboard, accounts, games,
+       updates, docs) → website matches. A plain question never gets a website list. */
+    const chat = answerConversation(question) || pleasantriesReply(question);
     if (chat) return chat;
+    const faq = faqAnswer(question);
+    if (faq) return faq;
     const platform = answerPlatform(question);
-    if (platform) return platform;
+    /* A clearly product-shaped search ("find me a drawing app") keeps its website
+       results even when a platform word slipped in; platform answers win otherwise. */
+    if (platform && !looksLikeWebsiteSearch(question)) return platform;
+    if (platform && (platform.mode !== "platform" || !/(find|show|open|search|look(ing)? for|a tool|an? app|website|site for)/i.test(normalize(question)))) {
+      if (!looksLikeWebsiteSearch(question)) return platform;
+    }
     if (!looksLikeWebsiteSearch(question)) {
       /* Not clearly a website search either: honest Request fallback (contract kept from P-113). */
       return { text: `I didn't catch a clear website or Paragon question in that. I can find any of the ${sites.length} Paragon websites from an idea (“I need a tool for invoices”), or answer about coins, KYC, the leaderboard, your account, games, updates and the documentation. If you were describing a website that should exist, submit it through Request a Website — the most-requested ideas get built first.`, matches: [], requestSuggested: true, confidence: 0, mode: "archive-search" };
@@ -845,8 +977,10 @@
   /* P-114 — AI MODE (its own results page beside All): the FULL Archive brain.
      Conversational + platform + website knowledge in one answer. */
   async function askMode(question) {
-    const chat = answerConversation(question);
+    const chat = answerConversation(question) || pleasantriesReply(question);
     if (chat) return chat;
+    const faq = faqAnswer(question);
+    if (faq) return faq;
     const platform = answerPlatform(question);
     if (platform && !looksLikeWebsiteSearch(question)) return platform;
     const search = await ask(question, { mode: "archive-search" });

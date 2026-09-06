@@ -200,11 +200,14 @@ function bumpDayStreak() {
   if (last === yesterday) accountProfile.dayStreak = Number(accountProfile.dayStreak || 0) + 1;
   else accountProfile.dayStreak = 1;
   accountProfile.lastActiveDay = today;
-  /* P-113 — Daily Goals reset when the day rolls over. */
+  /* P-113/P-115 — Daily Goals reset when the day rolls over (counters + manual marks). */
   accountProfile.goalsDay = today;
   accountProfile.productOpenCountToday = 0;
   accountProfile.reviewsToday = 0;
   accountProfile.aiAsksToday = 0;
+  accountProfile.dailyCounters = {};
+  accountProfile.goalsManualDay = today;
+  accountProfile.dailyManual = {};
   persistPersonalState();
 }
 /* First activity of a session: make sure the per-day counters match today. */
@@ -215,6 +218,12 @@ function ensureDailyCounters() {
     accountProfile.productOpenCountToday = 0;
     accountProfile.reviewsToday = 0;
     accountProfile.aiAsksToday = 0;
+    accountProfile.dailyCounters = {};
+    persistPersonalState();
+  }
+  if (String(accountProfile.goalsManualDay || "") !== localDayKey()) {
+    accountProfile.goalsManualDay = localDayKey();
+    accountProfile.dailyManual = {};
     persistPersonalState();
   }
 }
@@ -563,6 +572,7 @@ function mergePersonalStates(accountValue = {}, guestValue = {}) {
       categoriesBrowsed: [...new Set([...(account.profile?.categoriesBrowsed || []), ...(guest.profile?.categoriesBrowsed || [])])].slice(0, 40),
       achievementStage: Math.max(1, Number(account.profile?.achievementStage || 1), Number(guest.profile?.achievementStage || 1)),
       publicNotificationReads: { ...(guest.profile?.publicNotificationReads || {}), ...(account.profile?.publicNotificationReads || {}) },
+      dailyPointDates: [...new Set([...(account.profile?.dailyPointDates || []), ...(guest.profile?.dailyPointDates || [])])].slice(-400), /* P-115 banked daily-goal points */
       finalAchievementUnlockedAt: account.profile?.finalAchievementUnlockedAt || guest.profile?.finalAchievementUnlockedAt || null
     },
     notifications: [...(account.notifications || [])]
@@ -1155,6 +1165,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!link || !hasPersonalSession()) return;
     accountProfile.hubVisitCount = Number(accountProfile.hubVisitCount || 0) + 1;
     persistPersonalState();
+    try { bumpDailyCounter("hub"); } catch (_) {} /* P-115 daily goal */
   });
   document.addEventListener("submit", event => {
     if (event.target?.id !== "paragon-ai-form" || !hasPersonalSession()) return;
@@ -1524,6 +1535,7 @@ function renderFullTrendingList() {
 }
 
 window.openTrendingOverlay = function(shouldFocus = true) {
+  try { bumpDailyCounter("trending"); } catch (_) {} /* P-115 daily goal */
   const overlay = document.getElementById("trending-overlay");
   if (!overlay) return;
   if (!overlay.classList.contains("active")) trendingReturnFocus = document.activeElement;
@@ -1881,7 +1893,8 @@ function renderCategoryOverlay(categoryName = activeCategoryView) {
 
 window.showCategoryInOverlay = function(categoryName) {
   try {
-    if (hasPersonalSession() && categoryName) {
+    if (hasPersonalSession() && categoryName) { /* P-115 daily goal */
+      try { bumpDailyCounter("category", `category:${String(categoryName).slice(0, 40)}`); } catch (_) {}
       const seen = new Set(Array.isArray(accountProfile.categoriesBrowsed) ? accountProfile.categoriesBrowsed : []);
       seen.add(String(categoryName));
       accountProfile.categoriesBrowsed = [...seen].slice(0, 40);
@@ -2801,7 +2814,7 @@ function accountBoxFaces() {
     { kind: "saved", icon: "🔖", value: v.saved, label: "Saved Websites", hint: "Bookmarks across Paragon" },
     { kind: "collections", icon: "📂", value: v.collections, label: "Collections", hint: "My collections and playlists" },
     { kind: "rewards", icon: "🎁", value: v.rewards, label: "Rewards Center", hint: "Badges, XP, free-play perks & cosmetics — no cash" },
-    { kind: "dailyGoals", icon: "🎯", value: v.dailyGoals, label: "Daily Goals", hint: "Quick daily missions that earn XP & streaks" },
+    { kind: "dailyGoals", icon: "🎯", value: v.dailyGoals, label: "Daily Goals", hint: "365 days of missions — 1 leaderboard point per completed day" },
     { kind: "orders", icon: "🧾", value: v.orders, label: "My Orders & Payments", hint: "Purchase claims, withdrawals & receipts" },
     { kind: "invite", icon: "📣", value: v.invite, label: "Invite Friends", hint: "Your Paragon invite link & who joined" }
   ];
@@ -2826,19 +2839,213 @@ function renderAccountBoxes() {
 
 /* P-113 — Daily Goals: honest, local, resets each day. Rewards are XP / streak / perks only
    (spec §19 — no redeemable welcome cash). Goals are checked against real activity. */
+/* ============================================================
+   P-115 — 365-DAY DAILY GOALS (owner rule)
+   • A full YEAR of missions: 3 tasks per day, deterministically rotated
+     from the catalogue + tracked actions, so every day unlock something
+     new and users can never view the whole year at once.
+   • Completing ALL of a day's tasks earns exactly 1 leaderboard point
+     (members post instantly; guests bank it and it posts automatically
+     the moment they sign in on the same device — before the 30-minute
+     guest session ends; after that, guest progress is honestly lost).
+   ============================================================ */
+const DAILY_GOAL_EPOCH = new Date(2026, 7, 1); /* August 1, 2026 — platform launch anchor */
+const DAILY_GOAL_CYCLE = 365;
+function dailyGoalDayIndex(date = new Date()) {
+  const start = new Date(DAILY_GOAL_EPOCH.getFullYear(), DAILY_GOAL_EPOCH.getMonth(), DAILY_GOAL_EPOCH.getDate());
+  const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return Math.max(0, Math.floor((today - start) / 86400000));
+}
+function dailyCountersMap() {
+  if (!accountProfile || typeof accountProfile !== "object") return {};
+  if (String(accountProfile.goalsDay || "") !== localDayKey()) return {};
+  return accountProfile.dailyCounters || {};
+}
+function dailyManualMap() {
+  if (!accountProfile || typeof accountProfile !== "object") return {};
+  if (String(accountProfile.goalsManualDay || "") !== localDayKey()) return {};
+  return accountProfile.dailyManual || {};
+}
+const DAILY_TRACKED_ACTIONS = [
+  { id: "open", icon: "🌐", label: "Open any Paragon website in the Archive", counter: "open" },
+  { id: "ai", icon: "💠", label: "Ask Paragon Mind one question", counter: "ai" },
+  { id: "review", icon: "📝", label: "Write an honest website review", counter: "review" },
+  { id: "search", icon: "🔎", label: "Search for a website in Search", counter: "search" },
+  { id: "bookmark", icon: "🔖", label: "Bookmark a website you like", counter: "bookmark" },
+  { id: "updates", icon: "↻", label: "Check today's Updates tab", counter: "updates" },
+  { id: "leaderboard", icon: "🏆", label: "Open the weekly leaderboard", counter: "leaderboard" },
+  { id: "category", icon: "🗂️", label: "Browse any website category", counter: "category" },
+  { id: "trending", icon: "🔥", label: "See what is Trending this week", counter: "trending" },
+  { id: "detail", icon: "📄", label: "Open any website detail page", counter: "detail" },
+  { id: "share", icon: "🔗", label: "Share or copy a website link", counter: "share" },
+  { id: "hub", icon: "📚", label: "Visit the Archive Hub documentation", counter: "hub" }
+];
+const DAILY_DOC_MISSIONS = [
+  { id: "doc-about", icon: "📖", label: "Read the About page in the Archive Hub" },
+  { id: "doc-privacy", icon: "🛡️", label: "Read the Privacy Policy in the Archive Hub" },
+  { id: "doc-terms", icon: "📜", label: "Read the Terms and Conditions in the Hub" },
+  { id: "doc-faq", icon: "❓", label: "Read an answer in the Hub FAQ" },
+  { id: "doc-roadmap", icon: "🗺️", label: "Open the Roadmap page in the Hub" },
+  { id: "doc-help", icon: "🆘", label: "Open Help & Support in the Hub" },
+  { id: "doc-guide", icon: "🧭", label: "Read a step of How to Use Paragon Archive" },
+  { id: "doc-community", icon: "👥", label: "Read the Community Guidelines" },
+  { id: "doc-cookies", icon: "🍪", label: "Read the Cookie Policy in the Hub" },
+  { id: "doc-request", icon: "💡", label: "Open the Request a Website page" },
+  { id: "doc-developers", icon: "💼", label: "Read the Developer Requirements page" },
+  { id: "doc-deployed", icon: "🚀", label: "Read about the Deployed category" }
+];
+function dailyGoalCategories() {
+  return [...new Set(sites.map(site => site.category))].filter(Boolean).sort();
+}
 function dailyGoalDefs() {
-  return [
-    { id: "visit", icon: "🕐", label: "Open a website", target: 1, get: () => Number(accountProfile.productOpenCountToday || 0) },
-    { id: "review", icon: "📝", label: "Write a review", target: 1, get: () => Number(accountProfile.reviewsToday || 0) },
-    { id: "ai", icon: "💠", label: "Ask Paragon Mind", target: 1, get: () => Number(accountProfile.aiAsksToday || 0) },
-    { id: "return", icon: "🔥", label: "Return on a new day", target: 1, get: () => (accountProfile.lastActiveDay === localDayKey() ? 1 : 0) }
-  ];
+  const day = dailyGoalDayIndex();
+  const cycleDay = day % DAILY_GOAL_CYCLE;
+  const defs = [];
+  /* Task 1 — explore a specific website (rotates through the whole catalogue). */
+  const exploreSite = sites.length ? sites[(day * 7 + 3) % sites.length] : null;
+  if (exploreSite) {
+    defs.push({
+      id: `explore-${exploreSite.name}`,
+      icon: "🚀",
+      label: `Open ${exploreSite.name} and look around`,
+      target: 1,
+      kind: "explore",
+      siteName: exploreSite.name,
+      get: () => {
+        const map = dailyCountersMap();
+        const key = `explore:${exploreSite.name}`;
+        return Number(map[key] || 0) >= 1 ? 1 : (localVisits.some(visit => visit?.name === exploreSite.name && localDayKey(new Date(visit.visitedAt || 0)) === localDayKey()) ? 1 : 0);
+      }
+    });
+  }
+  /* Task 2 — a tracked action (co-prime stride: a new action almost every day). */
+  const action = DAILY_TRACKED_ACTIONS[(cycleDay * 5 + 2) % DAILY_TRACKED_ACTIONS.length];
+  defs.push({
+    id: `act-${action.id}`,
+    icon: action.icon,
+    label: action.label,
+    target: 1,
+    kind: "action",
+    get: () => Math.min(1, Number(dailyCountersMap()[action.counter] || 0))
+  });
+  /* Task 3 — category browse (auto) or a documentation read (honest self-report). */
+  if (cycleDay % 4 === 3) {
+    const doc = DAILY_DOC_MISSIONS[(cycleDay * 5 + 1) % DAILY_DOC_MISSIONS.length];
+    defs.push({
+      id: doc.id, icon: doc.icon, label: doc.label, target: 1, kind: "manual", manual: true,
+      get: () => Number(dailyManualMap()[doc.id] || 0)
+    });
+  } else {
+    const categories = dailyGoalCategories();
+    const category = categories.length ? categories[(cycleDay * 3 + 1) % categories.length] : null;
+    if (category) {
+      defs.push({
+        id: `cat-${category}`,
+        icon: "🗂️",
+        label: `Browse the ${category} category`,
+        target: 1,
+        kind: "category",
+        get: () => Math.min(1, Number(dailyCountersMap()[`category:${category}`] || 0))
+      });
+    }
+  }
+  return defs;
 }
 function dailyGoalsState() {
   const defs = dailyGoalDefs();
   const done = defs.filter(d => (d.get() || 0) >= d.target).length;
-  return { done, total: defs.length, streak: Number(accountProfile.dayStreak || 0) };
+  const today = localDayKey();
+  const pointDates = Array.isArray(accountProfile?.dailyPointDates) ? accountProfile.dailyPointDates : [];
+  return {
+    done, total: defs.length,
+    streak: Number(accountProfile?.dayStreak || 0),
+    dayOfCycle: (dailyGoalDayIndex() % DAILY_GOAL_CYCLE) + 1,
+    pointEarnedToday: pointDates.includes(today),
+    pointsEarnedTotal: pointDates.length
+  };
 }
+/* Generic daily counter bump for every tracked goal action. */
+function bumpDailyCounter(key, extraKey = "") {
+  if (!hasPersonalSession()) return;
+  ensureDailyCounters();
+  accountProfile.dailyCounters = accountProfile.dailyCounters || {};
+  accountProfile.dailyCounters[key] = Number(accountProfile.dailyCounters[key] || 0) + 1;
+  if (extraKey) accountProfile.dailyCounters[extraKey] = Number(accountProfile.dailyCounters[extraKey] || 0) + 1;
+  accountProfile.xp = Number(accountProfile.xp || 0) + 2;
+  persistPersonalState();
+  checkDailyGoalCompletion();
+}
+window.bumpDailyCounter = bumpDailyCounter;
+/* Honest self-report for documentation-read missions. */
+window.markDailyManualTask = function(id) {
+  if (!hasPersonalSession()) return;
+  if (String(accountProfile.goalsManualDay || "") !== localDayKey()) {
+    accountProfile.goalsManualDay = localDayKey();
+    accountProfile.dailyManual = {};
+  }
+  accountProfile.dailyManual = accountProfile.dailyManual || {};
+  accountProfile.dailyManual[id] = true;
+  accountProfile.xp = Number(accountProfile.xp || 0) + 2;
+  persistPersonalState();
+  checkDailyGoalCompletion();
+  try { if (document.getElementById("ab-info-content") && accountBoxKind === "dailyGoals") accountInfoBoxRender("dailyGoals"); } catch (_) {}
+};
+/* P-115 — completing ALL of today's tasks = exactly 1 leaderboard point. */
+function checkDailyGoalCompletion() {
+  try {
+    if (!hasPersonalSession()) return;
+    const state = dailyGoalsState();
+    if (state.done < state.total || state.pointEarnedToday) return;
+    const today = localDayKey();
+    accountProfile.dailyPointDates = [...(accountProfile.dailyPointDates || []), today].slice(-400);
+    persistPersonalState();
+    if (isRegisteredMember()) {
+      const posted = postDailyPointToLeaderboard(today);
+      showToast(posted ? "🎯 All Daily Goals complete — +1 leaderboard point earned!" : "🎯 All Daily Goals complete — +1 point earned!", "success");
+    } else {
+      showToast("🎯 All Daily Goals complete — point banked! Sign in with a real account to post it to the leaderboard.", "success");
+    }
+    try { accountInfoBoxRender?.("dailyGoals"); } catch (_) {}
+  } catch (error) { /* goals never break the flow */ }
+}
+window.checkDailyGoalCompletion = checkDailyGoalCompletion;
+function postDailyPointToLeaderboard(dateKey) {
+  try {
+    const engine = lbEngine();
+    const player = lbCurrentUser();
+    if (!engine || !player || !isRegisteredMember()) return false;
+    const verdict = engine.recordDailyPoint({
+      player,
+      displayName: accountProfile.displayName || authUser?.user_metadata?.full_name || player,
+      dateKey
+    });
+    return Boolean(verdict?.ok);
+  } catch (error) { return false; }
+}
+/* P-115 — the moment a guest signs in, every banked daily point posts to the
+   leaderboard (the engine rejects duplicates, so replaying is always safe). */
+function syncDailyGoalPoints() {
+  try {
+    if (!isRegisteredMember()) return;
+    const dates = Array.isArray(accountProfile.dailyPointDates) ? accountProfile.dailyPointDates : [];
+    if (!dates.length) return;
+    const engine = lbEngine();
+    if (!engine?.recordDailyPoint) return;
+    let posted = 0;
+    dates.forEach(dateKey => {
+      if (engine.recordDailyPoint({
+        player: lbCurrentUser(),
+        displayName: accountProfile.displayName || authUser?.user_metadata?.full_name || lbCurrentUser(),
+        dateKey
+      })?.ok) posted += 1;
+    });
+    if (posted > 0) {
+      showToast(`🏆 ${posted} Daily Goal point${posted === 1 ? "" : "s"} posted to the leaderboard!`, "success");
+      renderLeaderboardsAccount?.();
+    }
+  } catch (error) { /* never block sign-in */ }
+}
+window.syncDailyGoalPoints = syncDailyGoalPoints;
 /* P-114 — ONE shared header for every Account/Settings popup: the same beautiful
    layout as the "See all" sheets — diamond brand mark, eyebrow + title + subtitle,
    round close button, sticky with a soft fade. */
@@ -2862,7 +3069,7 @@ window.openAccountInfoBox = function(kind) {
   document.getElementById("account-info-overlay")?.remove();
   const meta = {
     rewards: ["🎁 Rewards Center", "Everything you can earn on Paragon — badges, XP, free-play perks and cosmetics. By rule, rewards are never redeemable cash."],
-    dailyGoals: ["🎯 Daily Goals", "Quick missions that reset every day. Finishing them builds your streak and XP — honest, local, and never paid out as money."],
+    dailyGoals: ["🎯 Daily Goals", "A full year of missions — three new ones every day for 365 days. Complete all three to earn 1 leaderboard point for that day."],
     orders: ["🧾 My Orders & Payments", "Your coin purchase requests and withdrawals in one place. Money only moves after the team verifies a real transfer."],
     invite: ["📣 Invite Friends", "Share Paragon with your people. There is no cash bounty — invited friends simply join your community."]
   }[kind] || ["Paragon", ""];
@@ -2882,21 +3089,48 @@ window.openAccountInfoBox = function(kind) {
   host.innerHTML = accountInfoBoxBody(kind);
 };
 
+function accountInfoBoxRender(kind) {
+  const host = document.getElementById("ab-info-content");
+  if (host) host.innerHTML = accountInfoBoxBody(kind);
+}
+window.accountInfoBoxRender = accountInfoBoxRender;
+
 function accountInfoBoxBody(kind) {
   if (kind === "dailyGoals") {
+    /* P-115 — the 365-day Daily Goals mission board: today's 3 tasks only. */
     const st = dailyGoalsState();
-    const rows = dailyGoalDefs().map(d => {
+    const defs = dailyGoalDefs();
+    const rows = defs.map(d => {
       const n = Math.min(d.get() || 0, d.target);
       const pct = Math.round((n / d.target) * 100);
       const complete = n >= d.target;
+      const control = d.manual && !complete
+        ? `<button type="button" class="secondary-action goal-mark-btn" onclick="markDailyManualTask('${escapeHTML(d.id)}')">Mark done</button>`
+        : `<span class="goal-check">${complete ? "✅" : "○"}</span>`;
       return `<div class="goal-row ${complete ? "is-complete" : ""}">
         <span class="goal-icon">${d.icon}</span>
-        <div class="goal-copy"><strong>${d.label}</strong><small>${complete ? "Done today · +XP" : `${n}/${d.target} today`}</small>
+        <div class="goal-copy"><strong>${escapeHTML(d.label)}</strong><small>${complete ? "Done today · +XP" : `${n}/${d.target} today`}</small>
           <div class="goal-bar"><i style="width:${pct}%"></i></div></div>
-        <span class="goal-check">${complete ? "✅" : "○"}</span>
+        ${control}
       </div>`;
     }).join("");
-    return `<div class="goals-head">Today <b>${st.done}/${st.total}</b> goals done · 🔥 <b>${st.streak}</b>-day streak</div>${rows}`;
+    const pointChip = st.pointEarnedToday
+      ? `<span class="goal-point-chip earned">🏆 +1 point earned today</span>`
+      : st.done === st.total
+        ? `<span class="goal-point-chip">…claiming point</span>`
+        : `<span class="goal-point-chip">Complete all ${st.total} to earn 1 leaderboard point</span>`;
+    const guestNote = guestMode
+      ? `<p class="goals-year-note">👀 Guest mode: your point is banked for this session — <strong>sign in before it ends</strong> and it posts to the leaderboard automatically. If the session ends first, that progress is honestly lost.</p>`
+      : loggedIn
+        ? `<p class="goals-year-note">✅ Signed in: each completed day posts 1 point straight to the weekly leaderboard.</p>`
+        : "";
+    return `<div class="goals-head">
+        <div class="goals-head-top"><b>Day ${st.dayOfCycle} of 365</b><span>· 🔥 ${st.streak}-day streak · 🏆 ${st.pointsEarnedTotal} point${st.pointsEarnedTotal === 1 ? "" : "s"} earned</span></div>
+        <div class="goals-head-today">Today <b>${st.done}/${st.total}</b> missions done</div>
+        ${pointChip}
+      </div>${rows}
+      <p class="goals-year-note">🗓️ New missions unlock every day — a full year of Daily Goals, and you never see them all at once.</p>
+      ${guestNote}`;
   }
   if (kind === "rewards") {
     const allTasks = typeof achievementTasks === "function" ? achievementTasks() : [];
@@ -3674,6 +3908,7 @@ async function activateAuthenticatedSession(session) {
   if (guestStateToMerge && stateSaved) {
     clearGuestSessionStorage({ keepDraft: true });
     showToast("Your live Guest bookmarks, reviews, collections, history and progress were merged into this account.");
+    try { syncDailyGoalPoints(); } catch (_) {} /* P-115 — post banked daily-goal points to the leaderboard */
   } else if (!guestStateToMerge) {
     try {
       window.sessionStorage.removeItem(localKeys.guestSession);
@@ -3728,6 +3963,7 @@ async function initializeIdentity() {
   renderNotificationList();
   syncNotificationPreference();
   if (guestMode) { evaluateGuestActivity(); resumePendingPersonalIntent(); }
+  if (loggedIn) { try { syncDailyGoalPoints(); } catch (_) {} } /* P-115 — idempotent replay of banked daily points */
 
   if (!authListenerBound && authClient?.onAuthStateChange) {
     authListenerBound = true;
@@ -4043,8 +4279,11 @@ window.ParagonMindLive = function() {
         leaderboard = { weekKey, rank: myRow ? Number(myRow.rank) || 0 : 0, points: myRow ? Number(myRow.points) || 0 : 0, total: rows.length };
       }
     } catch (_) { /* leaderboard engine absent */ }
-    let daily = { done: 0, total: 0, streak: 0 };
-    try { const state = dailyGoalsState(); daily = { done: state.done, total: state.total, streak: Number(state.streak) || 0 }; } catch (_) { /* goals absent */ }
+    let daily = { done: 0, total: 0, streak: 0, dayOfCycle: 0, pointEarnedToday: false, pointsTotal: 0 };
+    try {
+      const state = dailyGoalsState();
+      daily = { done: state.done, total: state.total, streak: Number(state.streak) || 0, dayOfCycle: state.dayOfCycle, pointEarnedToday: Boolean(state.pointEarnedToday), pointsTotal: Number(state.pointsEarnedTotal) || 0 };
+    } catch (_) { /* goals absent */ }
     let updates = [];
     try {
       updates = (buildUpdateEvents() || [])
@@ -4408,7 +4647,7 @@ function lbRowsMarkup(rows, me, limit) {
 function lbRulesBlock() {
   return `<details class="lb-details"><summary>How the weekly leaderboard works — eligibility, anti-farming, rewards</summary>
     <ul class="lb-rules">
-      <li><b>Bet-only points:</b> only eligible staked competition results earn points (bet games and paid quiz entries). Free play, guest play, logging in, creating an account and buying coins never earn points.</li>
+      <li><b>Two honest ways to earn points:</b> (1) eligible staked competition results — bet games and paid quiz entries, performance-based; and (2) completing ALL of a day's Daily Goals, which earns exactly <b>1 point per day</b> (P-115). Free play, guest play, logging in, creating an account and buying coins never earn anything beyond that.</li>
       <li><b>Performance-based:</b> points come from how well you played (accuracy/performance per game), never from how much you staked — 1 coin is never 1 point.</li>
       <li><b>Creator rule:</b> a quiz creator can play their own quiz but can never win its prize or earn leaderboard points from it.</li>
       <li><b>Revenue-funded pool:</b> every week, 30% of eligible realized competition-fee revenue funds the reward pool. No realized fees means a real ₦0 pool — the platform never shows an invented prize.</li>
@@ -4494,6 +4733,7 @@ function renderCoinLeaderboard() {
     <section class="lb-block">${lbRulesBlock()}</section>`;
 }
 window.openCoinLeaderboard = function() {
+  try { bumpDailyCounter("leaderboard"); } catch (_) {} /* P-115 daily goal */
   const engine = lbEngine();
   if (!engine) { showToast("Leaderboards are unavailable on this page.", "warning"); return; }
   if (typeof document.createElement !== "function") return;
@@ -4510,7 +4750,7 @@ window.openCoinLeaderboard = function() {
         <button type="button" class="primary-action" onclick="document.getElementById('coin-leaderboard-overlay').remove(); document.body.classList.remove('popup-lock'); openCoinShop()">🪙 Buy coins</button>
         <button type="button" class="secondary-action" onclick="document.getElementById('coin-leaderboard-overlay').remove(); document.body.classList.remove('popup-lock')">Close</button>
       </div>
-      <small class="install-popup-note">Weekly periods run Monday to Sunday. Bet games and paid quiz entries are the only ways to earn points (docs/COIN-SYSTEM.md). The reward pool activates from real competition fees only — never from invented money.</small>
+      <small class="install-popup-note">Weekly periods run Monday to Sunday. Points come from eligible staked results (bet games and paid quiz entries) plus exactly 1 point per day for completing all Daily Goals (docs/COIN-SYSTEM.md). The reward pool activates from real competition fees only — never from invented money.</small>
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");
@@ -5719,6 +5959,7 @@ window.switchToTab = function(name, options = {}) {
   currentDetailName = null;
   setActiveTabState(name);
   if (name === "account") renderAccount();
+  if (name === "updates") { try { bumpDailyCounter("updates"); } catch (_) {} } /* P-115 daily goal */
   if (updateHash && window.history?.replaceState) window.history.replaceState(null, "", `#${name}`);
   if (scroll) window.scrollTo({ top: 0, behavior: "smooth" });
 };
@@ -6386,6 +6627,7 @@ function submitSearch() {
   const input = document.getElementById("search-input");
   const query = input?.value.trim() || "";
   if (!query) return false;
+  try { bumpDailyCounter("search"); } catch (_) {} /* P-115 daily goal */
   recordRecentSearch(query);
   setSearchResultsMode(true, query);
   document.getElementById("search-results-view")?.scrollTo?.({ top: 0, behavior: "auto" });
@@ -6965,7 +7207,7 @@ window.deleteLocalReview = function(siteName, reviewId = "") {
 window.toggleBookmark = function(siteName) {
   if (!requirePersonalSession("save websites", { type: "bookmark", siteName })) return;
   const saved = bookmarkedSites.has(siteName);
-  if (saved) bookmarkedSites.delete(siteName); else bookmarkedSites.add(siteName);
+  if (saved) bookmarkedSites.delete(siteName); else { bookmarkedSites.add(siteName); try { bumpDailyCounter("bookmark"); } catch (_) {} } /* P-115 daily goal */
   persistPersonalState();
   if (hasPersonalSession()) renderAccount(); else renderSavedAccount();
   renderUpdates();
@@ -6980,6 +7222,7 @@ function recordShareAchievement() {
   if (!hasPersonalSession()) return;
   if (!accountProfile.firstShareAt) accountProfile.firstShareAt = new Date().toISOString();
   accountProfile.shareCount = Number(accountProfile.shareCount || 0) + 1;
+  try { bumpDailyCounter("share"); } catch (_) {} /* P-115 daily goal */
   persistPersonalState();
   renderAchievementsAccount();
 }
@@ -7493,6 +7736,7 @@ window.launchSite = function(siteName, button) {
     if (hasPersonalSession() && String(launchUrl || site.siteUrl || "").includes("/sites/")) {
       accountProfile.productOpenCount = Number(accountProfile.productOpenCount || 0) + 1;
       try { bumpDaily("productOpenCountToday"); } catch (_) {}
+    try { bumpDailyCounter("open"); } catch (_) {} /* P-115 daily goal */
       persistPersonalState();
       renderAchievementsAccount();
     }
@@ -7632,6 +7876,7 @@ function bindReviewComposer() {
     }
     reviewEditingId = "";
     try { bumpDaily("reviewsToday"); } catch (_) {}
+    try { bumpDailyCounter("review"); } catch (_) {} /* P-115 daily goal */
     persistPersonalState();
     closeReviewComposer(false);
     if (hasPersonalSession()) renderAccount(); else renderAccountReviews();
@@ -7814,6 +8059,7 @@ window.openDetail = function(name) {
       persistPersonalState();
     }
   } catch (_) {}
+  try { bumpDailyCounter("detail", `explore:${String(name).slice(0, 80)}`); } catch (_) {} /* P-115 daily goal (detail + explore mission) */
   const site = sites.find(s => s.name === name) || (name === deployedTemplateExample.name ? deployedTemplateExample : null);
   if (!site) return;
   if (!isRestoringDetailState && !site.illustrative) {
@@ -8285,4 +8531,5 @@ function bindScrollColor() {
    "Ask Paragon Mind" daily goal and XP register honestly. */
 window.paragonTrackAiAsk = function() {
   try { bumpDaily("aiAsksToday"); } catch (_) {}
+  try { bumpDailyCounter("ai"); } catch (_) {} /* P-115 daily goal */
 };
