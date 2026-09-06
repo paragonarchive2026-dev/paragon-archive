@@ -75,12 +75,27 @@
     },
     {
       key: "chess",
-      name: "Paragon Chess", icon: "♟️", group: "Games",
-      path: "", playPath: "", status: "planned",
-      blurb: "Classic chess against an adaptive computer opponent.",
+      name: "Paragon Chess", icon: "♟", group: "Games",
+      path: "games/chess/index.html", playPath: "games/chess/play.html", status: "live",
+      blurb: "Tournament chess against a local computer in a refined, full-rule board room.",
       supportsFree: true, supportsStake: true,
-      minStake: 100, maxStake: 10000, stakeStep: 50, minDurationMs: 60000,
-      variants: [{ key: "ai", name: "vs computer", seats: "you vs the computer", summary: "Planned — free play against the computer; staked play only against another human, settled on the server.", rules: [] }]
+      minStake: 100, maxStake: 10000, stakeStep: 50, minDurationMs: 8000,
+      variants: [{
+        key: "computer",
+        name: "Club match",
+        seats: "you vs the computer",
+        scoreUnit: "performance points",
+        minDurationMs: 8000,
+        summary: "Play White against a local computer opponent. Full legal movement, check, checkmate, castling, en passant, promotion and draw rules run on this device.",
+        rules: [
+          "You play White and move first. Select a piece, then one of its highlighted legal squares.",
+          "The computer plays Black at Casual, Club or Master strength. Difficulty changes start a fresh game and never alter a match already in progress.",
+          "Castling, en passant, check, checkmate, stalemate, promotion, the fifty-move rule, repetition and insufficient-material draws are supported.",
+          "Promotion offers queen, rook, bishop or knight. A move that leaves your king in check is never legal.",
+          "Free performance appears only on this game's device-local board. It never earns coins or a revenue-funded prize.",
+          "Human-versus-human staked chess remains locked until real-money mode and the authoritative server settlement contract are switched on."
+        ]
+      }]
     },
     {
       key: "puzzle",
@@ -111,12 +126,27 @@
     },
     {
       key: "spin",
-      name: "Paragon Spin", icon: "🎡", group: "Games",
-      path: "", playPath: "", status: "planned",
-      blurb: "Spin wheel, coin flip, dice roll and random picker.",
+      name: "Paragon Spin", icon: "◉", group: "Games",
+      path: "games/spin/index.html", playPath: "games/spin/play.html", status: "live",
+      blurb: "A precision wheel duel with one visible result and equal odds for player and house.",
       supportsFree: true, supportsStake: false,
-      minStake: 0, maxStake: 0, stakeStep: 0, minDurationMs: 0,
-      variants: [{ key: "picker", name: "Random picker", seats: "solo / group", summary: "Planned — honest random picks. Free only: a picker takes no stakes.", rules: [] }]
+      minStake: 0, maxStake: 0, stakeStep: 0, minDurationMs: 5000,
+      variants: [{
+        key: "wheel-duel",
+        name: "Precision Wheel",
+        seats: "you vs the house",
+        scoreUnit: "points",
+        minDurationMs: 5000,
+        summary: "Pick a numbered sector before each turn. The house locks its own pick, then one seeded wheel result scores both predictions by the same published distance table.",
+        rules: [
+          "Six turns. Pick one of the twelve numbered sectors before the wheel starts.",
+          "The house locks a seeded pick before the result. Both predictions face the exact same wheel result and the exact same scoring rule.",
+          "Exact sector scores 120 points; one sector away scores 60; two sectors away scores 25; farther away scores zero.",
+          "Distance wraps around the wheel, so sector 12 is beside sector 1.",
+          "The highest total after six turns wins. Equal totals are a draw.",
+          "Paragon Spin is free-only. Points are game performance, not Paragon Coins, and cannot be bought, sold, staked or withdrawn."
+        ]
+      }]
     },
     {
       key: "survival",

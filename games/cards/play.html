@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="../_shared/game-kit.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="cards-play">
   <header class="header">
     <div class="header-left">
       <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Cards" title="View Paragon Cards in the Paragon Archive">
@@ -34,12 +34,13 @@
       <a href="index.html" class="nav-link">Home</a>
       <a href="play.html?v=higher-lower" class="nav-link" data-nav="higher-lower">Higher·Lower</a>
       <a href="play.html?v=blackjack" class="nav-link" data-nav="blackjack">Blackjack 21</a>
+      <a href="index.html#leaderboard" class="nav-link">Leaderboard</a>
     </nav>
   </header>
 
   <main class="game-main">
     <div id="game-hud"></div>
-    <section id="game-stage" class="game-stage" aria-live="polite"></section>
+    <section id="game-stage" class="game-stage cards-stage" aria-live="polite"></section>
   </main>
 
   <footer class="footer">

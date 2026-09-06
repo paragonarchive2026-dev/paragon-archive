@@ -37,6 +37,9 @@
 
     /* Nothing is invented: an unplayed device shows zero everywhere. */
     if (!summary || !summary.plays) setText("statPlays", "0");
+    if (kit && typeof kit.mountLeaderboard === "function") {
+      kit.mountLeaderboard({ host: "#game-leaderboard", gameKey: "cards" });
+    }
   }
 
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", boot);

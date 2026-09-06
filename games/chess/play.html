@@ -1,0 +1,59 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: play.html
+  EXPECTED PROJECT PATH: /games/chess/play.html
+  ROLE: Paragon Chess tournament room. The shared shell owns free/stake truth, resume, rules,
+        quit and result audit; js/chess.js owns the legal board and local computer opponent.
+  RESTORE-LOAD NOTE: Load site-kit CSS, game-kit CSS, Chess CSS, then site-kit JS, manifest,
+        engine, game-kit and js/chess.js in that order.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Chess — Club match</title>
+  <meta name="description" content="Play full-rule free chess as White against the Paragon local computer.">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="shortcut icon" href="../../assets/brand/favicon.ico">
+  <link rel="apple-touch-icon" href="../../assets/brand/apple-touch-180.png">
+  <link rel="stylesheet" href="../../sites/_shared/site-kit.css">
+  <link rel="stylesheet" href="../_shared/game-kit.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="chess-play">
+  <header class="header chess-header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Chess" title="View Paragon Chess in the Paragon Archive">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-chess.png" alt="">
+        <span class="brand-name">Paragon Chess</span>
+      </a>
+    </div>
+    <nav class="header-nav" aria-label="Paragon Chess">
+      <a href="index.html" class="nav-link">Club</a>
+      <a href="play.html?level=club" class="nav-link active">Play</a>
+      <a href="index.html#leaderboard" class="nav-link">Leaderboard</a>
+    </nav>
+  </header>
+
+  <main class="game-main chess-game-main">
+    <div class="chess-room-heading">
+      <div><p class="chess-overline">Board 01 · Untimed</p><h1>Computer match</h1></div>
+      <p>You have White · touch a piece to see legal moves</p>
+    </div>
+    <div id="game-hud"></div>
+    <section id="game-stage" class="game-stage chess-stage" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer chess-footer">
+    <p><strong>Paragon Chess</strong> · local computer opponent · no coins move in free play</p>
+    <p><a href="index.html">Return to the Club</a> · <a href="../../paragon-archive.html?site=Paragon%20Chess">Open in Paragon Archive</a></p>
+  </footer>
+
+  <script src="../../sites/_shared/site-kit.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../engine.js"></script>
+  <script src="../_shared/game-kit.js"></script>
+  <script src="js/chess.js"></script>
+</body>
+</html>

@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="../_shared/game-kit.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="cards-home">
   <header class="header">
     <div class="header-left">
       <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Cards" title="View Paragon Cards in the Paragon Archive">
@@ -34,13 +34,14 @@
       <a href="index.html" class="nav-link active">Home</a>
       <a href="play.html?v=higher-lower" class="nav-link">Higher·Lower</a>
       <a href="play.html?v=blackjack" class="nav-link">Blackjack 21</a>
+      <a href="#leaderboard" class="nav-link">Leaderboard</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-content">
-        <div class="hero-badge">🃏 Games · Free forever · No downloads</div>
+        <div class="hero-badge">Paragon Games · Private table 01 · Free play</div>
         <h1 class="hero-title">One deck.<br><span class="hero-highlight">Two fair games.</span></h1>
         <p class="hero-subtitle">
           Call the next card against the house, or take on the dealer at 21. Everything runs on
@@ -68,16 +69,14 @@
           </div>
         </div>
       </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="floating-card card-1">
-          <div class="card-title">Higher or lower?</div>
-          <div class="muted" style="white-space:pre-line;margin-top:6px">Up card: 7♦ — you and the house call it on the same card.</div>
-        </div>
-        <div class="floating-card card-2">
-          <span class="mini-opt correct">Blackjack pays 3:2</span>
-        </div>
-        <div class="floating-card card-3">
-          <div class="mini-badge">Example only · not clickable</div>
+      <div class="hero-visual cards-hero-visual" aria-hidden="true">
+        <div class="cards-hero-table">
+          <span class="cards-table-label">TABLE 01 · SHOE OPEN</span>
+          <div class="cards-hero-hand">
+            <div class="pcard"><span class="pcard-corner pcard-tl">A<br>♠</span><span class="pcard-pip">♠</span><span class="pcard-corner pcard-br">A<br>♠</span></div>
+            <div class="pcard pcard-red"><span class="pcard-corner pcard-tl">K<br>♥</span><span class="pcard-pip">♥</span><span class="pcard-corner pcard-br">K<br>♥</span></div>
+          </div>
+          <div class="cards-table-rule"><span>BLACKJACK</span><strong>3 : 2</strong></div>
         </div>
       </div>
     </section>
@@ -107,10 +106,14 @@
         </a>
       </div>
       <div class="notice-inline">
-        💠 <strong>Play chips are not Paragon Coins.</strong> Blackjack chips cannot be bought,
-        sold, withdrawn or staked. Free play never moves coins and never earns leaderboard
-        points — that is a platform rule, not a limitation of this game.
+        <strong>Play chips are not Paragon Coins.</strong> Blackjack chips cannot be bought,
+        sold, withdrawn or staked. Free scores can appear on this game’s device-local performance
+        board, but never enter the revenue-funded Coins Leaderboard.
       </div>
+    </section>
+
+    <section class="section" id="leaderboard">
+      <div id="game-leaderboard" class="gk-board"></div>
     </section>
 
     <section class="section how-it-works">
@@ -119,19 +122,19 @@
       <div class="steps-grid">
         <div class="step-card">
           <div class="step-number">1</div>
-          <div class="step-icon">🃏</div>
+          <div class="step-icon">I</div>
           <h3 class="step-title">Pick a game</h3>
           <p class="step-desc">Both rule sets are on the Rules card inside the game, so you never play a rule you haven't read.</p>
         </div>
         <div class="step-card">
           <div class="step-number">2</div>
-          <div class="step-icon">🎲</div>
+          <div class="step-icon">II</div>
           <h3 class="step-title">Play a seeded deck</h3>
           <p class="step-desc">Every game deals from a seeded shuffle. The seed is printed on your result so a game can be replayed exactly.</p>
         </div>
         <div class="step-card">
           <div class="step-number">3</div>
-          <div class="step-icon">💾</div>
+          <div class="step-icon">III</div>
           <h3 class="step-title">Pause any time</h3>
           <p class="step-desc">Close the tab mid-game and Paragon Cards offers to resume exactly where you stopped. Nothing is uploaded.</p>
         </div>

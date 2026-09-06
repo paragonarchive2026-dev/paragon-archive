@@ -372,7 +372,12 @@
     const needsMap = readStore("paragonArchive.siteNeeds.v1", {});
     const allNeeds = Object.keys(needsMap)
       .map(name => ({ name, count: Number(needsMap[name] && needsMap[name].count) || 0 }))
-      .filter(entry => entry.count > 0)
+      /* A product that is already live is not still competing for a construction slot.
+         Old need votes remain stored as history but are excluded from the live build queue. */
+      .filter(entry => {
+        const listed = findSite(entry.name);
+        return entry.count > 0 && (!listed || listed.previewOnly === true);
+      })
       .sort((first, second) => second.count - first.count);
     const needCount = needsMap[site.name] ? Number(needsMap[site.name].count) || 0 : 0;
     const needRank = needCount > 0 ? allNeeds.findIndex(entry => entry.name === site.name) + 1 : 0;

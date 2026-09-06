@@ -99,13 +99,13 @@ console.log("🧪 ai-detail.test.js — P-075 Detail signal engine");
 const buildAnswer = ai.answerDetail("Paragon Notes", "when will it be built? how close is it?");
 check(/\d+% built/.test(buildAnswer.text), "build-state answer states the real build percentage");
 check(buildAnswer.text.includes("3 need votes"), "build-state answer counts the real need votes");
-check(buildAnswer.text.includes("#2 of 2"), "build-state answer ranks demand correctly (#2 behind Chess)");
+check(buildAnswer.text.includes("#1 of 1"), "build-state answer excludes already-live Chess from the construction queue");
 check(/no individual release date is promised/i.test(buildAnswer.text), "build-state answer promises NO invented dates");
 check(buildAnswer.evidence.includes("siteNeeds") && buildAnswer.evidence.includes("buildProgress"), "build-state evidence cites real sources");
 
-/* 2. Rank #1 site sits closest to construction */
+/* 2. A newly live game no longer receives fake construction-queue language. */
 const chessAnswer = ai.answerDetail("Paragon Chess", "how soon will this be ready?");
-check(/CLOSEST to construction/i.test(chessAnswer.text) && chessAnswer.text.includes("#1"), "most-needed site is told it sits closest to construction");
+check(/already REAL/i.test(chessAnswer.text) && !/CLOSEST to construction/i.test(chessAnswer.text), "live Paragon Chess reports that it is open instead of staying in the build queue");
 
 /* 3. Live site: no fake waiting */
 const quizAnswer = ai.answerDetail("Paragon Quiz", "when will it be built?");

@@ -6,7 +6,7 @@
   RESTORE/LOAD NOTE: Keep at project root so its scope covers all path-based Paragon assets.
 */
 
-const CACHE_NAME = "paragon-archive-v90";
+const CACHE_NAME = "paragon-archive-v91";
 const APP_SHELL = [
   "./paragon-archive.html",
   "./paragon-archive-hub.html",
@@ -31,6 +31,19 @@ const APP_SHELL = [
   "./games/cards/css/style.css",
   "./games/cards/js/cards.js",
   "./games/cards/js/home.js",
+  // P-117 — Paragon Spin + Paragon Chess (premium free game rooms)
+  "./games/spin/index.html",
+  "./games/spin/play.html",
+  "./games/spin/css/style.css",
+  "./games/spin/js/spin.js",
+  "./games/spin/js/home.js",
+  "./games/spin/assets/spin-table-hero.jpg",
+  "./games/chess/index.html",
+  "./games/chess/play.html",
+  "./games/chess/css/style.css",
+  "./games/chess/js/chess.js",
+  "./games/chess/js/home.js",
+  "./games/chess/assets/chess-club-hero.jpg",
   "./sites/_shared/site-kit.css",
   "./sites/_shared/site-kit.js",
   "./manifest.webmanifest",

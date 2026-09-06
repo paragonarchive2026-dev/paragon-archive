@@ -1,0 +1,103 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: index.html
+  EXPECTED PROJECT PATH: /games/chess/index.html
+  ROLE: Paragon Chess club room — premium real-world visual direction, free computer match
+        entry points and the game-specific General/Free/Bet/Multiplayer performance board.
+  RESTORE-LOAD NOTE: Load site-kit, shared game-kit and Chess CSS; then manifest, engine,
+        game-kit and js/home.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Chess — The Club Room</title>
+  <meta name="description" content="Play full-rule chess against a local computer in a refined tournament room. Free for guests and members with zero coins.">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="shortcut icon" href="../../assets/brand/favicon.ico">
+  <link rel="apple-touch-icon" href="../../assets/brand/apple-touch-180.png">
+  <link rel="stylesheet" href="../../sites/_shared/site-kit.css">
+  <link rel="stylesheet" href="../_shared/game-kit.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="chess-home">
+  <header class="header chess-header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Chess" title="View Paragon Chess in the Paragon Archive">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-chess.png" alt="">
+        <span class="brand-name">Paragon Chess</span>
+      </a>
+    </div>
+    <nav class="header-nav" aria-label="Paragon Chess">
+      <a href="index.html" class="nav-link active">Club</a>
+      <a href="play.html?level=club" class="nav-link">Play</a>
+      <a href="#leaderboard" class="nav-link">Leaderboard</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="chess-hero">
+      <div class="chess-hero-overlay"></div>
+      <div class="chess-hero-inner">
+        <p class="chess-overline">Paragon Games · Club room 03</p>
+        <h1>Every position<br>has a truth.</h1>
+        <p>Settle into a full-rule match against a local computer: no download, no account requirement, no cartoon opponent. Just a tournament board, legal chess and your decisions.</p>
+        <div class="chess-hero-actions">
+          <a class="chess-primary" href="play.html?level=club">Play a club match</a>
+          <a class="chess-secondary" href="#levels">Choose strength</a>
+        </div>
+        <div class="chess-hero-facts">
+          <span>Full legal move engine</span>
+          <span>Private on-device opponent</span>
+          <span>Free for every player</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="chess-record" aria-label="Your local Paragon Chess record">
+      <div><small>Matches</small><strong id="chessPlays">0</strong></div>
+      <div><small>Wins</small><strong id="chessWins">0</strong></div>
+      <div><small>Personal best</small><strong><span id="chessBest">0</span> pts</strong></div>
+      <div><small>Best streak</small><strong id="chessStreak">0</strong></div>
+    </section>
+
+    <section class="chess-section" id="levels">
+      <div class="chess-section-title">
+        <div><p class="chess-overline">Select the room</p><h2>Three measured strengths</h2></div>
+        <p>All levels use the same complete rules. Strength changes how far the local opponent evaluates the position—not what moves are allowed.</p>
+      </div>
+      <div class="chess-level-grid">
+        <a href="play.html?level=casual" class="chess-level-card">
+          <span>I</span><small>Casual</small><h3>A composed first game</h3><p>One-ply position reading. Best for learning the board and testing plans without pressure.</p><strong>Enter Casual</strong>
+        </a>
+        <a href="play.html?level=club" class="chess-level-card featured">
+          <span>II</span><small>Club</small><h3>The balanced table</h3><p>Two-ply calculation with material and position awareness. The recommended everyday match.</p><strong>Enter Club</strong>
+        </a>
+        <a href="play.html?level=master" class="chess-level-card">
+          <span>III</span><small>Master</small><h3>Deeper consequences</h3><p>Three-ply local search. More deliberate on small devices and less forgiving of loose pieces.</p><strong>Enter Master</strong>
+        </a>
+      </div>
+      <aside class="chess-rules-note">
+        <div><strong>Complete board law</strong><span>Castling · en passant · all promotions · checkmate · stalemate · repetition · 50-move · insufficient material</span></div>
+        <p>You always play White in this first free release. Human-versus-human Bet play is not simulated: it remains locked until real-money mode and server settlement are deliberately activated.</p>
+      </aside>
+    </section>
+
+    <section class="chess-section" id="leaderboard">
+      <div id="game-leaderboard" class="gk-board"></div>
+    </section>
+  </main>
+
+  <footer class="footer chess-footer">
+    <p><strong>Paragon Chess</strong> · free computer chess · saved on this device</p>
+    <p><a href="../../paragon-archive.html?site=Paragon%20Chess">Open in Paragon Archive</a> · <a href="../../paragon-archive-hub.html">Archive Hub</a></p>
+  </footer>
+
+  <script src="../../sites/_shared/site-kit.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../engine.js"></script>
+  <script src="../_shared/game-kit.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

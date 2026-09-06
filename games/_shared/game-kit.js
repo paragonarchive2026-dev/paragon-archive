@@ -348,8 +348,132 @@
     };
   }
 
+  /* ------------------------------------------------------------------ game-specific performance board
+     This is deliberately NOT the revenue-funded Coins Leaderboard. The owner asked for an
+     in-game board whose General tab combines Free, Bet and (later) Multiplayer performance.
+     Free games therefore count here as device-local performance points, while still never
+     calling ParagonLeaderboards.recordResult and never earning coins. Online rows may only
+     arrive through a real host adapter; this shell never fabricates names or "searching"
+     opponents when no server has supplied them. */
+  function performanceRows(gameKey, scope) {
+    var games = global.ParagonGames;
+    var asked = String(scope || "general").toLowerCase();
+    var buckets = {};
+    var list = games && typeof games.sessions === "function" ? games.sessions() : [];
+
+    (Array.isArray(list) ? list : []).forEach(function (session) {
+      if (!session || String(session.gameKey) !== String(gameKey) || !session.endedAt || session.outcome === "abandoned") return;
+      var meta = session.meta && typeof session.meta === "object" ? session.meta : {};
+      var mode = meta.competitionMode === "multiplayer" ? "multiplayer" : (session.mode === "stake" ? "bet" : "free");
+      if (asked !== "general" && asked !== mode) return;
+      var player = String(session.displayName || "You · this device");
+      var key = player.toLowerCase() + "|" + mode;
+      if (!buckets[key]) buckets[key] = { player: player, mode: mode, points: 0, plays: 0, best: 0, source: "device" };
+      var rawPoints = meta.boardPoints != null ? Number(meta.boardPoints) : Number(session.score);
+      var points = Math.max(0, isFinite(rawPoints) ? Math.round(rawPoints) : 0);
+      buckets[key].points += points;
+      buckets[key].plays += 1;
+      buckets[key].best = Math.max(buckets[key].best, points);
+    });
+
+    var rows = Object.keys(buckets).map(function (key) { return buckets[key]; });
+
+    /* Optional production adapter. It must return real, server-verified rows synchronously;
+       if it is absent/fails, the honest result is an empty online board — never demo users. */
+    var directory = global.ParagonGameDirectory;
+    if (directory && typeof directory.standings === "function") {
+      try {
+        var online = directory.standings(String(gameKey), asked);
+        if (Array.isArray(online)) {
+          online.forEach(function (row) {
+            if (!row || !row.player || row.verified !== true) return;
+            rows.push({
+              player: String(row.player),
+              mode: String(row.mode || (asked === "general" ? "free" : asked)),
+              points: Math.max(0, Math.round(Number(row.points) || 0)),
+              plays: Math.max(0, Math.round(Number(row.plays) || 0)),
+              best: Math.max(0, Math.round(Number(row.best) || 0)),
+              source: "server"
+            });
+          });
+        }
+      } catch (error) { /* server adapter unavailable — local rows remain honest */ }
+    }
+
+    /* General combines every mode per real player; mode tabs keep their own row. */
+    if (asked === "general") {
+      var combined = {};
+      rows.forEach(function (row) {
+        var key = row.player.toLowerCase();
+        if (!combined[key]) combined[key] = { player: row.player, mode: "general", points: 0, plays: 0, best: 0, source: row.source };
+        combined[key].points += row.points;
+        combined[key].plays += row.plays;
+        combined[key].best = Math.max(combined[key].best, row.best);
+        if (row.source === "server") combined[key].source = "server";
+      });
+      rows = Object.keys(combined).map(function (key) { return combined[key]; });
+    }
+
+    rows.sort(function (a, b) { return b.points - a.points || b.best - a.best || a.player.localeCompare(b.player); });
+    return rows.slice(0, 50);
+  }
+
+  function mountLeaderboard(config) {
+    var cfg = config || {};
+    var host = el(cfg.host || "#game-leaderboard");
+    var games = global.ParagonGames;
+    if (!host || !games) return { ok: false, code: "no-host-or-engine" };
+    var gameKey = String(cfg.gameKey || "");
+    var scope = "general";
+    var labels = { general: "General", free: "Free", bet: "Bet", multiplayer: "Multiplayer" };
+
+    function render() {
+      var rows = performanceRows(gameKey, scope);
+      var body = rows.length ? rows.map(function (row, index) {
+        var mode = scope === "general" ? "All modes" : labels[row.mode] || row.mode;
+        return '<div class="gk-board-row">' +
+          '<span class="gk-board-rank">' + (index + 1) + '</span>' +
+          '<span class="gk-board-player"><strong>' + esc(row.player) + '</strong><small>' + esc(mode) + (row.source === "server" ? " · verified live" : " · this device") + '</small></span>' +
+          '<span class="gk-board-number"><strong>' + row.points.toLocaleString() + '</strong><small>points</small></span>' +
+          '<span class="gk-board-number"><strong>' + row.plays.toLocaleString() + '</strong><small>played</small></span>' +
+          '<span class="gk-board-number"><strong>' + row.best.toLocaleString() + '</strong><small>best</small></span>' +
+        '</div>';
+      }).join("") : '<div class="gk-board-empty"><strong>No real results in this view yet.</strong><span>' +
+        (scope === "free"
+          ? "Finish a free game and your actual performance will appear here."
+          : scope === "general"
+            ? "Finish a game to create the first device-local result. Online players appear only when the live server supplies verified rows."
+            : "This mode is not live. Real-money and online matchmaking remain off, so no sample players are shown.") +
+        '</span></div>';
+
+      host.innerHTML = '<div class="gk-board-head">' +
+        '<div><p class="gk-board-kicker">In-game performance</p><h3>' + esc((games.game(gameKey) || {}).name || gameKey) + ' leaderboard</h3></div>' +
+        '<span class="gk-board-live"><i></i> Real results only</span>' +
+        '</div>' +
+        '<div class="gk-board-tabs" role="tablist" aria-label="Leaderboard mode">' +
+          Object.keys(labels).map(function (key) {
+            return '<button type="button" role="tab" class="gk-board-tab' + (scope === key ? " active" : "") + '" data-board-scope="' + key + '" aria-selected="' + (scope === key ? "true" : "false") + '">' + labels[key] + '</button>';
+          }).join("") +
+        '</div>' +
+        '<div class="gk-board-table">' + body + '</div>' +
+        '<p class="gk-board-law"><strong>Separate from the Coins Leaderboard.</strong> Free performance counts in this game’s General view, but never earns coins or a revenue-funded prize. Bet and Multiplayer activate only with the real server contract.</p>';
+
+      host.querySelectorAll("[data-board-scope]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          scope = button.getAttribute("data-board-scope") || "general";
+          render();
+        });
+      });
+    }
+
+    render();
+    return { ok: true, rows: function (asked) { return performanceRows(gameKey, asked || scope); }, refresh: render };
+  }
+
   global.ParagonGameKit = {
     mount: mount,
+    mountLeaderboard: mountLeaderboard,
+    performanceRows: performanceRows,
     summary: summary,
     stakeChip: stakeChip,
     escape: esc

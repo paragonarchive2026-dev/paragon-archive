@@ -726,7 +726,7 @@
     uid: uid,
     nowISO: nowISO,
     /* The free/stake law in one sentence, used by the shared HUD chip. */
-    LAW: "Free play never touches coins. Stakes settle on the server — the browser is never the referee."
+    LAW: "Free play never touches coins or the revenue-funded Coins Leaderboard. Stakes settle on the server — the browser is never the referee."
   };
 
   if (typeof global !== "undefined") global.ParagonGames = engine;
