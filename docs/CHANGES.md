@@ -1,5 +1,26 @@
 # 📦 Changed files
 
+## 2026-09-06 — P-114/P-115 wave
+**P-114:** Google-style Search (shared bar above entry+results, results tabs **All / AI Mode /
+Images / Videos / News / Articles**, compact lined-up results, honest per-tab empty states); the AI
+renamed **Paragon Mind** 💠 with the brand diamond mark; AI Mode = the full Archive brain page; the
+floating Mind button lives **only** on the Websites/Updates/Account tabs; Welcome splash plays
+**once per browser** (never replays after login); popup-lock v2 (background scroll always recovers;
+only Settings-side popups freeze it); About-Achievements opens **in front**; shared diamond header
+on all Settings popups; **KYC gate** — team-approved KYC required for buy AND withdraw, Paragon
+payment account locked until approval, coin packs side-by-side on top (tap-a-pack = request), Team
+desk KYC review queue + payment-account publisher; Continue-as-Guest matches the auth buttons.
+**P-115:** **365-day Daily Goals** (3 deterministic missions/day, 365 unique day-sets, manual doc
+missions, "Mark done"); **1 leaderboard point per completed day** via
+`ParagonLeaderboards.recordDailyPoint` (members instant; guests bank → auto-post on sign-in before
+session end); live AI context extended (dayOfCycle, pointEarnedToday, pointsTotal); **Paragon Mind
+trained on the whole platform** — pleasantries engine, official FAQ knowledge base, smarter routing
+(website lists only for actual website searches); leaderboard copy updated everywhere; HTML
+structure bugs fixed (truncated button in quiz create, missing section close in team desk, broken
+setup links); README expanded; AI-BRAIN.md rewritten as the living Mind spec.
+
+---
+
 ## 2026-09-05 — P-113 update wave
 See **[P-113-WAVE.md](P-113-WAVE.md)** for the full plain-English list. Highlights: Google-style
 instant search; smarter Paragon AI (chat/greetings/typos + floating Ask AI button); Updates feed

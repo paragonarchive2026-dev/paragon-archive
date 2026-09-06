@@ -7,13 +7,13 @@
   RESTORE/LOAD NOTE: Keep at project root. Load last after all config/auth/data modules.
 */
 
-/* P-087/P-094 — entry splash v4: the welcome hero is PRELOADED before the splash appears, so it
+/* P-087/P-094/P-114 — entry splash v5: the welcome hero is PRELOADED before the splash appears, so it
    never pops in half-loaded ("appearing fast without loading" bug). Text sits on a dedicated
    readability veil so the background art can never distort it, and the loader is a bold ring
-   with the live percentage inside it. Still 5 s, once per browser session — and replayed in
-   full after every login (owner rule). */
+   with the live percentage inside it. OWNER RULE (P-114): the Welcome splash shows ONCE per
+   browser — after the first time it NEVER replays (not on icon clicks, not after login). */
 function showWelcomeSplash() {
-  try { if (window.sessionStorage.getItem("paragonArchive.welcomeSplash.v1") === "shown") return; } catch (error) { /* blocked */ }
+  try { if (window.localStorage.getItem("paragonArchive.welcomeSplash.everShown.v1") === "shown") return; } catch (error) { /* blocked */ }
   if (document.getElementById("welcome-splash")) return;
   if (typeof document.body?.appendChild !== "function" || typeof document.createElement !== "function") return; // VM/test environments
   const runSplash = () => {
@@ -34,7 +34,11 @@ function showWelcomeSplash() {
       </div>`;
     document.body.appendChild(splash);
     document.body.classList.add("popup-lock");
-    try { window.sessionStorage.setItem("paragonArchive.welcomeSplash.v1", "shown"); } catch (error) { /* blocked */ }
+    /* P-114 — once EVER per browser: also set the session flag for older code paths. */
+    try {
+      window.localStorage.setItem("paragonArchive.welcomeSplash.everShown.v1", "shown");
+      window.sessionStorage.setItem("paragonArchive.welcomeSplash.v1", "shown");
+    } catch (error) { /* blocked */ }
     requestAnimationFrame(() => splash.classList.add("show"));
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     /* P-096 — the 5 s hold is UNCONDITIONAL (owner bug report: it flashed for microseconds when
@@ -196,11 +200,14 @@ function bumpDayStreak() {
   if (last === yesterday) accountProfile.dayStreak = Number(accountProfile.dayStreak || 0) + 1;
   else accountProfile.dayStreak = 1;
   accountProfile.lastActiveDay = today;
-  /* P-113 — Daily Goals reset when the day rolls over. */
+  /* P-113/P-115 — Daily Goals reset when the day rolls over (counters + manual marks). */
   accountProfile.goalsDay = today;
   accountProfile.productOpenCountToday = 0;
   accountProfile.reviewsToday = 0;
   accountProfile.aiAsksToday = 0;
+  accountProfile.dailyCounters = {};
+  accountProfile.goalsManualDay = today;
+  accountProfile.dailyManual = {};
   persistPersonalState();
 }
 /* First activity of a session: make sure the per-day counters match today. */
@@ -211,6 +218,12 @@ function ensureDailyCounters() {
     accountProfile.productOpenCountToday = 0;
     accountProfile.reviewsToday = 0;
     accountProfile.aiAsksToday = 0;
+    accountProfile.dailyCounters = {};
+    persistPersonalState();
+  }
+  if (String(accountProfile.goalsManualDay || "") !== localDayKey()) {
+    accountProfile.goalsManualDay = localDayKey();
+    accountProfile.dailyManual = {};
     persistPersonalState();
   }
 }
@@ -559,6 +572,7 @@ function mergePersonalStates(accountValue = {}, guestValue = {}) {
       categoriesBrowsed: [...new Set([...(account.profile?.categoriesBrowsed || []), ...(guest.profile?.categoriesBrowsed || [])])].slice(0, 40),
       achievementStage: Math.max(1, Number(account.profile?.achievementStage || 1), Number(guest.profile?.achievementStage || 1)),
       publicNotificationReads: { ...(guest.profile?.publicNotificationReads || {}), ...(account.profile?.publicNotificationReads || {}) },
+      dailyPointDates: [...new Set([...(account.profile?.dailyPointDates || []), ...(guest.profile?.dailyPointDates || [])])].slice(-400), /* P-115 banked daily-goal points */
       finalAchievementUnlockedAt: account.profile?.finalAchievementUnlockedAt || guest.profile?.finalAchievementUnlockedAt || null
     },
     notifications: [...(account.notifications || [])]
@@ -1151,6 +1165,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!link || !hasPersonalSession()) return;
     accountProfile.hubVisitCount = Number(accountProfile.hubVisitCount || 0) + 1;
     persistPersonalState();
+    try { bumpDailyCounter("hub"); } catch (_) {} /* P-115 daily goal */
   });
   document.addEventListener("submit", event => {
     if (event.target?.id !== "paragon-ai-form" || !hasPersonalSession()) return;
@@ -1520,6 +1535,7 @@ function renderFullTrendingList() {
 }
 
 window.openTrendingOverlay = function(shouldFocus = true) {
+  try { bumpDailyCounter("trending"); } catch (_) {} /* P-115 daily goal */
   const overlay = document.getElementById("trending-overlay");
   if (!overlay) return;
   if (!overlay.classList.contains("active")) trendingReturnFocus = document.activeElement;
@@ -1877,7 +1893,8 @@ function renderCategoryOverlay(categoryName = activeCategoryView) {
 
 window.showCategoryInOverlay = function(categoryName) {
   try {
-    if (hasPersonalSession() && categoryName) {
+    if (hasPersonalSession() && categoryName) { /* P-115 daily goal */
+      try { bumpDailyCounter("category", `category:${String(categoryName).slice(0, 40)}`); } catch (_) {}
       const seen = new Set(Array.isArray(accountProfile.categoriesBrowsed) ? accountProfile.categoriesBrowsed : []);
       seen.add(String(categoryName));
       accountProfile.categoriesBrowsed = [...seen].slice(0, 40);
@@ -2557,8 +2574,8 @@ function achievementTasks() {
     { icon: "◈", title: "Hub Visitor", detail: "Open the Paragon Archive Hub.", complete: Number(accountProfile.hubVisitCount || 0) >= 1 },
     { icon: "📚", title: "Hub Regular", detail: "Open the Archive Hub three times.", complete: Number(accountProfile.hubVisitCount || 0) >= 3 },
     { icon: "🧾", title: "QR Creator", detail: "Create one website QR code.", complete: Number(accountProfile.qrCount || 0) >= 1 },
-    { icon: "✦", title: "AI Curious", detail: "Ask Paragon AI one question.", complete: Number(accountProfile.aiQuestionCount || 0) >= 1 },
-    { icon: "🤖", title: "AI Regular", detail: "Ask Paragon AI three questions.", complete: Number(accountProfile.aiQuestionCount || 0) >= 3 },
+    { icon: "✦", title: "AI Curious", detail: "Ask Paragon Mind one question.", complete: Number(accountProfile.aiQuestionCount || 0) >= 1 },
+    { icon: "🤖", title: "AI Regular", detail: "Ask Paragon Mind three questions.", complete: Number(accountProfile.aiQuestionCount || 0) >= 3 },
     { icon: "🔎", title: "Results Seeker", detail: "Run three full Search Results searches.", complete: Number(accountProfile.resultsSearchCount || 0) >= 3 },
     { icon: "📣", title: "Social Spreader", detail: "Share five detail links to apps or people.", complete: Number(accountProfile.shareCount || 0) >= 5 },
     { icon: "🔔", title: "Fully Notified", detail: "Read ten account notifications.", complete: readNotifications >= 10 },
@@ -2641,7 +2658,7 @@ window.openAchievementsAbout = function() {
       { title: "First Share", icon: "🔗", art: BADGE_ART["First Share"], text: "Share or copy a website link (the share control lives inside the Install popup)." },
       { title: "Google or Email", icon: "👤", art: BADGE_ART["Google or Email"], text: "Continue with Google or Email — guests can keep browsing, but a real account saves and syncs everything." },
       { title: "Product Pilot", icon: "🚀", art: BADGE_ART["Product Pilot"], text: "Open three real Paragon product tools in a full tab (free, guest or signed in)." },
-      { title: "AI Curious", icon: "🧠", art: BADGE_ART["AI Curious"], text: "Ask Paragon AI — it answers greetings, questions and website searches with typo-tolerant real answers." },
+      { title: "AI Curious", icon: "💠", art: BADGE_ART["AI Curious"], text: "Ask Paragon Mind — it answers greetings, platform questions and website searches with typo-tolerant real answers." },
       { title: "Daily Return", icon: "🔥", art: BADGE_ART["Daily Return"], text: "Come back on a new day. Daily Goals and streaks reward real, honest returns." },
       { title: "Leaderboard Scout", icon: "🏆", art: BADGE_ART["Leaderboard Scout"], text: "Open the real leaderboard. Only verified staked competition results ever rank — nothing invented." },
       { title: "Coin Curious", icon: "🪙", art: BADGE_ART["Coin Curious"], text: "Open your Paragon Coin wallet — buy coins to compete, withdraw eligible coins (Real Money is ON)." }
@@ -2653,7 +2670,7 @@ window.openAchievementsAbout = function() {
   }
   const intro = overlay.querySelector(".achievements-intro");
   if (intro && !intro.dataset.wired) {
-    intro.textContent = "Achievements unlock in stages of up to five tasks from REAL activity — visits, ratings, reviews, sharing, daily goals, product use, asking Paragon AI, and the leaderboard. We never invent progress. Finish a stage to reveal the next; badges are recognition (XP, badges, perks) — never cash.";
+    intro.textContent = "Achievements unlock in stages of up to five tasks from REAL activity — visits, ratings, reviews, sharing, daily goals, product use, asking Paragon Mind, and the leaderboard. We never invent progress. Finish a stage to reveal the next; badges are recognition (XP, badges, perks) — never cash.";
     intro.dataset.wired = "1";
   }
   overlay.classList.add("active");
@@ -2797,7 +2814,7 @@ function accountBoxFaces() {
     { kind: "saved", icon: "🔖", value: v.saved, label: "Saved Websites", hint: "Bookmarks across Paragon" },
     { kind: "collections", icon: "📂", value: v.collections, label: "Collections", hint: "My collections and playlists" },
     { kind: "rewards", icon: "🎁", value: v.rewards, label: "Rewards Center", hint: "Badges, XP, free-play perks & cosmetics — no cash" },
-    { kind: "dailyGoals", icon: "🎯", value: v.dailyGoals, label: "Daily Goals", hint: "Quick daily missions that earn XP & streaks" },
+    { kind: "dailyGoals", icon: "🎯", value: v.dailyGoals, label: "Daily Goals", hint: "365 days of missions — 1 leaderboard point per completed day" },
     { kind: "orders", icon: "🧾", value: v.orders, label: "My Orders & Payments", hint: "Purchase claims, withdrawals & receipts" },
     { kind: "invite", icon: "📣", value: v.invite, label: "Invite Friends", hint: "Your Paragon invite link & who joined" }
   ];
@@ -2822,25 +2839,237 @@ function renderAccountBoxes() {
 
 /* P-113 — Daily Goals: honest, local, resets each day. Rewards are XP / streak / perks only
    (spec §19 — no redeemable welcome cash). Goals are checked against real activity. */
+/* ============================================================
+   P-115 — 365-DAY DAILY GOALS (owner rule)
+   • A full YEAR of missions: 3 tasks per day, deterministically rotated
+     from the catalogue + tracked actions, so every day unlock something
+     new and users can never view the whole year at once.
+   • Completing ALL of a day's tasks earns exactly 1 leaderboard point
+     (members post instantly; guests bank it and it posts automatically
+     the moment they sign in on the same device — before the 30-minute
+     guest session ends; after that, guest progress is honestly lost).
+   ============================================================ */
+const DAILY_GOAL_EPOCH = new Date(2026, 7, 1); /* August 1, 2026 — platform launch anchor */
+const DAILY_GOAL_CYCLE = 365;
+function dailyGoalDayIndex(date = new Date()) {
+  const start = new Date(DAILY_GOAL_EPOCH.getFullYear(), DAILY_GOAL_EPOCH.getMonth(), DAILY_GOAL_EPOCH.getDate());
+  const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return Math.max(0, Math.floor((today - start) / 86400000));
+}
+function dailyCountersMap() {
+  if (!accountProfile || typeof accountProfile !== "object") return {};
+  if (String(accountProfile.goalsDay || "") !== localDayKey()) return {};
+  return accountProfile.dailyCounters || {};
+}
+function dailyManualMap() {
+  if (!accountProfile || typeof accountProfile !== "object") return {};
+  if (String(accountProfile.goalsManualDay || "") !== localDayKey()) return {};
+  return accountProfile.dailyManual || {};
+}
+const DAILY_TRACKED_ACTIONS = [
+  { id: "open", icon: "🌐", label: "Open any Paragon website in the Archive", counter: "open" },
+  { id: "ai", icon: "💠", label: "Ask Paragon Mind one question", counter: "ai" },
+  { id: "review", icon: "📝", label: "Write an honest website review", counter: "review" },
+  { id: "search", icon: "🔎", label: "Search for a website in Search", counter: "search" },
+  { id: "bookmark", icon: "🔖", label: "Bookmark a website you like", counter: "bookmark" },
+  { id: "updates", icon: "↻", label: "Check today's Updates tab", counter: "updates" },
+  { id: "leaderboard", icon: "🏆", label: "Open the weekly leaderboard", counter: "leaderboard" },
+  { id: "category", icon: "🗂️", label: "Browse any website category", counter: "category" },
+  { id: "trending", icon: "🔥", label: "See what is Trending this week", counter: "trending" },
+  { id: "detail", icon: "📄", label: "Open any website detail page", counter: "detail" },
+  { id: "share", icon: "🔗", label: "Share or copy a website link", counter: "share" },
+  { id: "hub", icon: "📚", label: "Visit the Archive Hub documentation", counter: "hub" }
+];
+const DAILY_DOC_MISSIONS = [
+  { id: "doc-about", icon: "📖", label: "Read the About page in the Archive Hub" },
+  { id: "doc-privacy", icon: "🛡️", label: "Read the Privacy Policy in the Archive Hub" },
+  { id: "doc-terms", icon: "📜", label: "Read the Terms and Conditions in the Hub" },
+  { id: "doc-faq", icon: "❓", label: "Read an answer in the Hub FAQ" },
+  { id: "doc-roadmap", icon: "🗺️", label: "Open the Roadmap page in the Hub" },
+  { id: "doc-help", icon: "🆘", label: "Open Help & Support in the Hub" },
+  { id: "doc-guide", icon: "🧭", label: "Read a step of How to Use Paragon Archive" },
+  { id: "doc-community", icon: "👥", label: "Read the Community Guidelines" },
+  { id: "doc-cookies", icon: "🍪", label: "Read the Cookie Policy in the Hub" },
+  { id: "doc-request", icon: "💡", label: "Open the Request a Website page" },
+  { id: "doc-developers", icon: "💼", label: "Read the Developer Requirements page" },
+  { id: "doc-deployed", icon: "🚀", label: "Read about the Deployed category" }
+];
+function dailyGoalCategories() {
+  return [...new Set(sites.map(site => site.category))].filter(Boolean).sort();
+}
 function dailyGoalDefs() {
-  return [
-    { id: "visit", icon: "🕐", label: "Open a website", target: 1, get: () => Number(accountProfile.productOpenCountToday || 0) },
-    { id: "review", icon: "📝", label: "Write a review", target: 1, get: () => Number(accountProfile.reviewsToday || 0) },
-    { id: "ai", icon: "🧠", label: "Ask Paragon AI", target: 1, get: () => Number(accountProfile.aiAsksToday || 0) },
-    { id: "return", icon: "🔥", label: "Return on a new day", target: 1, get: () => (accountProfile.lastActiveDay === localDayKey() ? 1 : 0) }
-  ];
+  const day = dailyGoalDayIndex();
+  const cycleDay = day % DAILY_GOAL_CYCLE;
+  const defs = [];
+  /* Task 1 — explore a specific website (rotates through the whole catalogue). */
+  const exploreSite = sites.length ? sites[(day * 7 + 3) % sites.length] : null;
+  if (exploreSite) {
+    defs.push({
+      id: `explore-${exploreSite.name}`,
+      icon: "🚀",
+      label: `Open ${exploreSite.name} and look around`,
+      target: 1,
+      kind: "explore",
+      siteName: exploreSite.name,
+      get: () => {
+        const map = dailyCountersMap();
+        const key = `explore:${exploreSite.name}`;
+        return Number(map[key] || 0) >= 1 ? 1 : (localVisits.some(visit => visit?.name === exploreSite.name && localDayKey(new Date(visit.visitedAt || 0)) === localDayKey()) ? 1 : 0);
+      }
+    });
+  }
+  /* Task 2 — a tracked action (co-prime stride: a new action almost every day). */
+  const action = DAILY_TRACKED_ACTIONS[(cycleDay * 5 + 2) % DAILY_TRACKED_ACTIONS.length];
+  defs.push({
+    id: `act-${action.id}`,
+    icon: action.icon,
+    label: action.label,
+    target: 1,
+    kind: "action",
+    get: () => Math.min(1, Number(dailyCountersMap()[action.counter] || 0))
+  });
+  /* Task 3 — category browse (auto) or a documentation read (honest self-report). */
+  if (cycleDay % 4 === 3) {
+    const doc = DAILY_DOC_MISSIONS[(cycleDay * 5 + 1) % DAILY_DOC_MISSIONS.length];
+    defs.push({
+      id: doc.id, icon: doc.icon, label: doc.label, target: 1, kind: "manual", manual: true,
+      get: () => Number(dailyManualMap()[doc.id] || 0)
+    });
+  } else {
+    const categories = dailyGoalCategories();
+    const category = categories.length ? categories[(cycleDay * 3 + 1) % categories.length] : null;
+    if (category) {
+      defs.push({
+        id: `cat-${category}`,
+        icon: "🗂️",
+        label: `Browse the ${category} category`,
+        target: 1,
+        kind: "category",
+        get: () => Math.min(1, Number(dailyCountersMap()[`category:${category}`] || 0))
+      });
+    }
+  }
+  return defs;
 }
 function dailyGoalsState() {
   const defs = dailyGoalDefs();
   const done = defs.filter(d => (d.get() || 0) >= d.target).length;
-  return { done, total: defs.length, streak: Number(accountProfile.dayStreak || 0) };
+  const today = localDayKey();
+  const pointDates = Array.isArray(accountProfile?.dailyPointDates) ? accountProfile.dailyPointDates : [];
+  return {
+    done, total: defs.length,
+    streak: Number(accountProfile?.dayStreak || 0),
+    dayOfCycle: (dailyGoalDayIndex() % DAILY_GOAL_CYCLE) + 1,
+    pointEarnedToday: pointDates.includes(today),
+    pointsEarnedTotal: pointDates.length
+  };
 }
+/* Generic daily counter bump for every tracked goal action. */
+function bumpDailyCounter(key, extraKey = "") {
+  if (!hasPersonalSession()) return;
+  ensureDailyCounters();
+  accountProfile.dailyCounters = accountProfile.dailyCounters || {};
+  accountProfile.dailyCounters[key] = Number(accountProfile.dailyCounters[key] || 0) + 1;
+  if (extraKey) accountProfile.dailyCounters[extraKey] = Number(accountProfile.dailyCounters[extraKey] || 0) + 1;
+  accountProfile.xp = Number(accountProfile.xp || 0) + 2;
+  persistPersonalState();
+  checkDailyGoalCompletion();
+}
+window.bumpDailyCounter = bumpDailyCounter;
+/* Honest self-report for documentation-read missions. */
+window.markDailyManualTask = function(id) {
+  if (!hasPersonalSession()) return;
+  if (String(accountProfile.goalsManualDay || "") !== localDayKey()) {
+    accountProfile.goalsManualDay = localDayKey();
+    accountProfile.dailyManual = {};
+  }
+  accountProfile.dailyManual = accountProfile.dailyManual || {};
+  accountProfile.dailyManual[id] = true;
+  accountProfile.xp = Number(accountProfile.xp || 0) + 2;
+  persistPersonalState();
+  checkDailyGoalCompletion();
+  try { if (document.getElementById("ab-info-content") && accountBoxKind === "dailyGoals") accountInfoBoxRender("dailyGoals"); } catch (_) {}
+};
+/* P-115 — completing ALL of today's tasks = exactly 1 leaderboard point. */
+function checkDailyGoalCompletion() {
+  try {
+    if (!hasPersonalSession()) return;
+    const state = dailyGoalsState();
+    if (state.done < state.total || state.pointEarnedToday) return;
+    const today = localDayKey();
+    accountProfile.dailyPointDates = [...(accountProfile.dailyPointDates || []), today].slice(-400);
+    persistPersonalState();
+    if (isRegisteredMember()) {
+      const posted = postDailyPointToLeaderboard(today);
+      showToast(posted ? "🎯 All Daily Goals complete — +1 leaderboard point earned!" : "🎯 All Daily Goals complete — +1 point earned!", "success");
+    } else {
+      showToast("🎯 All Daily Goals complete — point banked! Sign in with a real account to post it to the leaderboard.", "success");
+    }
+    try { accountInfoBoxRender?.("dailyGoals"); } catch (_) {}
+  } catch (error) { /* goals never break the flow */ }
+}
+window.checkDailyGoalCompletion = checkDailyGoalCompletion;
+function postDailyPointToLeaderboard(dateKey) {
+  try {
+    const engine = lbEngine();
+    const player = lbCurrentUser();
+    if (!engine || !player || !isRegisteredMember()) return false;
+    const verdict = engine.recordDailyPoint({
+      player,
+      displayName: accountProfile.displayName || authUser?.user_metadata?.full_name || player,
+      dateKey
+    });
+    return Boolean(verdict?.ok);
+  } catch (error) { return false; }
+}
+/* P-115 — the moment a guest signs in, every banked daily point posts to the
+   leaderboard (the engine rejects duplicates, so replaying is always safe). */
+function syncDailyGoalPoints() {
+  try {
+    if (!isRegisteredMember()) return;
+    const dates = Array.isArray(accountProfile.dailyPointDates) ? accountProfile.dailyPointDates : [];
+    if (!dates.length) return;
+    const engine = lbEngine();
+    if (!engine?.recordDailyPoint) return;
+    let posted = 0;
+    dates.forEach(dateKey => {
+      if (engine.recordDailyPoint({
+        player: lbCurrentUser(),
+        displayName: accountProfile.displayName || authUser?.user_metadata?.full_name || lbCurrentUser(),
+        dateKey
+      })?.ok) posted += 1;
+    });
+    if (posted > 0) {
+      showToast(`🏆 ${posted} Daily Goal point${posted === 1 ? "" : "s"} posted to the leaderboard!`, "success");
+      renderLeaderboardsAccount?.();
+    }
+  } catch (error) { /* never block sign-in */ }
+}
+window.syncDailyGoalPoints = syncDailyGoalPoints;
+/* P-114 — ONE shared header for every Account/Settings popup: the same beautiful
+   layout as the "See all" sheets — diamond brand mark, eyebrow + title + subtitle,
+   round close button, sticky with a soft fade. */
+function settingsPopupHead(options) {
+  const { eyebrow = "Paragon Archive", title, sub = "", close = "closeAccountBox()", action = "" } = options || {};
+  return `<div class="settings-popup-head">
+    <span class="sp-mark" aria-hidden="true"><img src="assets/brand/logo-mark.png" alt=""></span>
+    <div class="sp-copy">
+      <p class="sp-eyebrow">${escapeHTML(eyebrow)}</p>
+      <div class="sp-title">${escapeHTML(title || "Paragon")}</div>
+      ${sub ? `<p class="sp-sub">${escapeHTML(sub)}</p>` : ""}
+    </div>
+    ${action}
+    <button type="button" class="sp-close" onclick="${close}" aria-label="Close ${escapeHTML(title || "popup")}">×</button>
+  </div>`;
+}
+window.settingsPopupHead = settingsPopupHead;
+
 window.openAccountInfoBox = function(kind) {
   closeAccountBox();
   document.getElementById("account-info-overlay")?.remove();
   const meta = {
     rewards: ["🎁 Rewards Center", "Everything you can earn on Paragon — badges, XP, free-play perks and cosmetics. By rule, rewards are never redeemable cash."],
-    dailyGoals: ["🎯 Daily Goals", "Quick missions that reset every day. Finishing them builds your streak and XP — honest, local, and never paid out as money."],
+    dailyGoals: ["🎯 Daily Goals", "A full year of missions — three new ones every day for 365 days. Complete all three to earn 1 leaderboard point for that day."],
     orders: ["🧾 My Orders & Payments", "Your coin purchase requests and withdrawals in one place. Money only moves after the team verifies a real transfer."],
     invite: ["📣 Invite Friends", "Share Paragon with your people. There is no cash bounty — invited friends simply join your community."]
   }[kind] || ["Paragon", ""];
@@ -2849,9 +3078,7 @@ window.openAccountInfoBox = function(kind) {
   overlay.className = "utility-overlay active install-overlay";
   overlay.innerHTML = `
     <div class="install-popup-card account-box-panel" role="dialog" aria-modal="true" aria-label="${meta[0]}">
-      <header style="display:flex;align-items:flex-start;gap:10px"><h2 style="flex:1;margin:0">${meta[0]}</h2>
-        <button type="button" class="icon-btn-small" style="flex:0 0 auto;margin-left:auto" onclick="document.getElementById('account-info-overlay')?.remove();document.body.classList.remove('popup-lock')" aria-label="Close">×</button>
-      </header>
+      ${settingsPopupHead({ eyebrow: "Your account", title: meta[0].replace(/^[^\w]+\s*/, ""), sub: meta[1], close: "document.getElementById('account-info-overlay')?.remove();document.body.classList.remove('popup-lock')" })}
       <div class="ab-body" id="ab-info-content"></div>
       <small class="ab-panel-note">${meta[1]}</small>
     </div>`;
@@ -2862,21 +3089,48 @@ window.openAccountInfoBox = function(kind) {
   host.innerHTML = accountInfoBoxBody(kind);
 };
 
+function accountInfoBoxRender(kind) {
+  const host = document.getElementById("ab-info-content");
+  if (host) host.innerHTML = accountInfoBoxBody(kind);
+}
+window.accountInfoBoxRender = accountInfoBoxRender;
+
 function accountInfoBoxBody(kind) {
   if (kind === "dailyGoals") {
+    /* P-115 — the 365-day Daily Goals mission board: today's 3 tasks only. */
     const st = dailyGoalsState();
-    const rows = dailyGoalDefs().map(d => {
+    const defs = dailyGoalDefs();
+    const rows = defs.map(d => {
       const n = Math.min(d.get() || 0, d.target);
       const pct = Math.round((n / d.target) * 100);
       const complete = n >= d.target;
+      const control = d.manual && !complete
+        ? `<button type="button" class="secondary-action goal-mark-btn" onclick="markDailyManualTask('${escapeHTML(d.id)}')">Mark done</button>`
+        : `<span class="goal-check">${complete ? "✅" : "○"}</span>`;
       return `<div class="goal-row ${complete ? "is-complete" : ""}">
         <span class="goal-icon">${d.icon}</span>
-        <div class="goal-copy"><strong>${d.label}</strong><small>${complete ? "Done today · +XP" : `${n}/${d.target} today`}</small>
+        <div class="goal-copy"><strong>${escapeHTML(d.label)}</strong><small>${complete ? "Done today · +XP" : `${n}/${d.target} today`}</small>
           <div class="goal-bar"><i style="width:${pct}%"></i></div></div>
-        <span class="goal-check">${complete ? "✅" : "○"}</span>
+        ${control}
       </div>`;
     }).join("");
-    return `<div class="goals-head">Today <b>${st.done}/${st.total}</b> goals done · 🔥 <b>${st.streak}</b>-day streak</div>${rows}`;
+    const pointChip = st.pointEarnedToday
+      ? `<span class="goal-point-chip earned">🏆 +1 point earned today</span>`
+      : st.done === st.total
+        ? `<span class="goal-point-chip">…claiming point</span>`
+        : `<span class="goal-point-chip">Complete all ${st.total} to earn 1 leaderboard point</span>`;
+    const guestNote = guestMode
+      ? `<p class="goals-year-note">👀 Guest mode: your point is banked for this session — <strong>sign in before it ends</strong> and it posts to the leaderboard automatically. If the session ends first, that progress is honestly lost.</p>`
+      : loggedIn
+        ? `<p class="goals-year-note">✅ Signed in: each completed day posts 1 point straight to the weekly leaderboard.</p>`
+        : "";
+    return `<div class="goals-head">
+        <div class="goals-head-top"><b>Day ${st.dayOfCycle} of 365</b><span>· 🔥 ${st.streak}-day streak · 🏆 ${st.pointsEarnedTotal} point${st.pointsEarnedTotal === 1 ? "" : "s"} earned</span></div>
+        <div class="goals-head-today">Today <b>${st.done}/${st.total}</b> missions done</div>
+        ${pointChip}
+      </div>${rows}
+      <p class="goals-year-note">🗓️ New missions unlock every day — a full year of Daily Goals, and you never see them all at once.</p>
+      ${guestNote}`;
   }
   if (kind === "rewards") {
     const allTasks = typeof achievementTasks === "function" ? achievementTasks() : [];
@@ -2955,10 +3209,13 @@ window.openAccountBox = function(kind) {
   overlay.className = "utility-overlay active install-overlay";
   overlay.innerHTML = `
     <div class="install-popup-card account-box-panel" role="dialog" aria-modal="true" aria-label="${titles[0]}">
-      <header><h2>${titles[0]}</h2>
-        ${kind === "achievements" ? '<button type="button" class="icon-btn-small" onclick="openAchievementsAbout()" aria-label="About achievements" title="About achievements">ℹ️</button>' : ""}
-        <button type="button" class="icon-btn-small" onclick="closeAccountBox()" aria-label="Close">×</button>
-      </header>
+      ${settingsPopupHead({
+        eyebrow: "Your account",
+        title: titles[0].replace(/^[^\w]+\s*/, ""),
+        sub: titles[1],
+        close: "closeAccountBox()",
+        action: kind === "achievements" ? '<button type="button" class="secondary-action sp-action" onclick="openAchievementsAbout()" aria-label="About achievements" title="About achievements">ℹ️ About</button>' : ""
+      })}
       <div class="ab-body" id="ab-content"></div>
       <small class="ab-panel-note">${escapeHTML(titles[1])}${kind === "collections" ? " Guest collections merge into your account when you sign in while the session is still alive." : ""}</small>
     </div>`;
@@ -3015,19 +3272,23 @@ function coinShopPaneHTML() {
     </li>`;
   }).join("") || "<li><small>No purchase requests yet. Pick a pack below — request never auto-credits.</small></li>";
   const packs = cfg.packs.map(p => [Number(p.naira) || 0, Number(p.coins) || Math.round((Number(p.naira) || 0) * cfg.nairaPerCoinBuy), p.label || ""]);
+  /* P-114 owner layout: KYC state FIRST, then all coin packs SIDE BY SIDE at the top —
+     tapping a pack IS the request (no separate Request button anywhere). */
   return `
     <p style="margin:0 0 10px;font-size:12px;color:var(--text-faint);line-height:1.5">
       Free-to-play always works. <b>Real-money mode is ${cfg.realMoney ? "ON" : "OFF"}</b>${cfg.pause ? " · FINANCIAL PAUSE" : ""}.
       Available <b>${buckets.available.toLocaleString()}</b> · locked <b>${buckets.locked.toLocaleString()}</b> · pending <b>${buckets.pending.toLocaleString()}</b> · restricted <b>${buckets.restricted.toLocaleString()}</b>.
       Server ledger is authority when SQL is live; this device is display cache only.
     </p>
-    <div class="install-perm-list">
+    ${kycCardMarkup()}
+    <div class="coin-packs-grid" role="list" aria-label="Coin packs">
       ${packs.map(([naira, coins, label]) => `
-        <label class="install-perm-row" style="cursor:pointer" onclick="requestCoinPurchase(${naira});">
-          <div><b>₦${naira.toLocaleString()}${label ? " · " + String(label).replace(/[<>]/g, "") : ""}</b>
-            <small>to ${coins.toLocaleString()} coins after team confirms your transfer. Nothing is credited from this click alone.</small></div>
-          <span class="primary-action" style="pointer-events:none;">Request</span>
-        </label>`).join("")}
+        <button type="button" class="coin-pack" role="listitem" onclick="requestCoinPurchase(${naira});" aria-label="Request ${coins.toLocaleString()} coins for ${naira.toLocaleString()} naira">
+          <span class="coin-pack-label">${escapeHTML(label || "Pack")}</span>
+          <span class="coin-pack-coins">${coins.toLocaleString()} <small>coins</small></span>
+          <span class="coin-pack-naira">₦${naira.toLocaleString()} · locked rate ₦1 = ${cfg.nairaPerCoinBuy}c</span>
+          <span class="coin-pack-tap">${kycApproved() ? "Tap to request — team confirms first" : "Requires approved KYC"}</span>
+        </button>`).join("")}
     </div>
     ${opayMoniepointPayMarkup()}
     <div class="coin-stage2-block">
@@ -3038,7 +3299,7 @@ function coinShopPaneHTML() {
       <p class="install-popup-note" style="margin-top:8px">Credits post only after team/provider confirmation (idempotent). Duplicate provider references are rejected. A request click never mints coins.</p>
     </div>
     <div class="install-popup-actions" style="margin-top:12px">
-      <button type="button" class="secondary-action" onclick="openKycPayoutDraft()">OPay / Moniepoint payout details</button>
+      <button type="button" class="secondary-action" onclick="openKycPayoutDraft()">🪪 KYC & payout details</button>
       <button type="button" class="secondary-action" onclick="openFinancialCase('payment','Problem with a coin purchase or withdrawal')">Report a money problem</button>
     </div>`;
 }
@@ -3085,10 +3346,8 @@ window.openCoinWallet = function(tab) {
     overlay.id = "coin-shop-overlay";
     overlay.className = "utility-overlay active install-overlay";
     overlay.innerHTML = `
-      <div class="install-popup-card" style="width:min(560px,96vw);max-height:90vh;overflow:auto;" role="dialog" aria-modal="true" aria-label="Coin wallet">
-        <header><h2>🪙 Paragon Coins — Wallet</h2>
-          <p>Balance <b>${coinBalance().toLocaleString()} coins</b> · real-money ${cfg.realMoney ? "ON" : "OFF"}${cfg.pause ? " · FINANCIAL PAUSE" : ""}. Server ledger is the authority when SQL is live.</p>
-        </header>
+      <div class="install-popup-card coin-wallet-card" style="width:min(560px,96vw);max-height:90vh;overflow:auto;" role="dialog" aria-modal="true" aria-label="Coin wallet">
+        ${settingsPopupHead({ eyebrow: "Paragon Coins", title: "Coin Wallet", sub: `Balance ${coinBalance().toLocaleString()} coins · real-money ${cfg.realMoney ? "ON" : "OFF"}${cfg.pause ? " · FINANCIAL PAUSE" : ""} · KYC ${kycState().status}. Server ledger is the authority when SQL is live.`, close: "closeWalletOverlay()" })}
         ${coinWalletTabs()}
         <div id="wallet-body"></div>
         <div class="install-popup-actions">
@@ -3649,6 +3908,7 @@ async function activateAuthenticatedSession(session) {
   if (guestStateToMerge && stateSaved) {
     clearGuestSessionStorage({ keepDraft: true });
     showToast("Your live Guest bookmarks, reviews, collections, history and progress were merged into this account.");
+    try { syncDailyGoalPoints(); } catch (_) {} /* P-115 — post banked daily-goal points to the leaderboard */
   } else if (!guestStateToMerge) {
     try {
       window.sessionStorage.removeItem(localKeys.guestSession);
@@ -3703,6 +3963,7 @@ async function initializeIdentity() {
   renderNotificationList();
   syncNotificationPreference();
   if (guestMode) { evaluateGuestActivity(); resumePendingPersonalIntent(); }
+  if (loggedIn) { try { syncDailyGoalPoints(); } catch (_) {} } /* P-115 — idempotent replay of banked daily points */
 
   if (!authListenerBound && authClient?.onAuthStateChange) {
     authListenerBound = true;
@@ -3711,10 +3972,8 @@ async function initializeIdentity() {
         loggedIn = false; authUser = null; clearPersonalState(); renderAccount(); renderUpdates(); renderNotificationList(); syncNotificationPreference();
       } else if (event === "SIGNED_IN" && session?.user && !loggedIn) {
         activateAuthenticatedSession(session);
-        /* P-094 — every login replays the full welcome loading experience (owner rule),
-           with the hero art preloaded first so it never flashes in half-loaded. */
-        try { window.sessionStorage.removeItem("paragonArchive.welcomeSplash.v1"); } catch (error) { /* blocked */ }
-        showWelcomeSplash();
+        /* P-114 owner rule: the Welcome splash plays ONCE per browser — never replayed
+           after login. The logo/home icon always goes straight home. */
       }
     });
   }
@@ -3793,11 +4052,74 @@ window.openEmailAuth = function(mode = "signin") {
 function readKycPayout() {
   try { return JSON.parse(window.localStorage.getItem("paragon.kycPayout.v1") || "null"); } catch (_) { return null; }
 }
-function opayMoniepointPayMarkup() {
-  const p = (window.ParagonCoinPublicConfig || {}).provider || {};
-  const esc = (v) => String(v || "").replace(/[<>]/g, "");
+
+/* P-114 — KYC STATE MACHINE (owner rule): KYC is required for BOTH buying and withdrawing.
+   Status lives in paragon.kycPayout.v1.status -> "pending" (draft saved, team reviewing)
+   or "approved" (team approved from their desk). Until APPROVED: no rail assumption, the
+   Paragon payment account number stays LOCKED, buy requests and withdrawals are closed. */
+function kycState() {
   const kyc = readKycPayout();
-  const rail = kyc && /monie/i.test(kyc.rail || "") ? "moniepoint" : "opay";
+  if (!kyc) return { status: "none", rail: "", name: "", number: "" };
+  const status = kyc.status === "approved" ? "approved" : "pending";
+  return { status, rail: kyc.rail || "", name: kyc.name || "", number: String(kyc.number || "").replace(/\D/g, "") };
+}
+function kycApproved() { return kycState().status === "approved"; }
+function kycRailName() { return /monie/i.test(kycState().rail) ? "Moniepoint" : "OPay"; }
+function kycStateChip() {
+  const state = kycState();
+  if (state.status === "approved") return `<span class="coin-kyc-state approved">✅ KYC Approved</span>`;
+  if (state.status === "pending") return `<span class="coin-kyc-state pending">⏳ KYC Pending team review</span>`;
+  return `<span class="coin-kyc-state none">⚠️ KYC Required</span>`;
+}
+function kycCardMarkup(compact = false) {
+  const state = kycState();
+  if (state.status === "approved") {
+    return `<div class="coin-kyc-card kyc-approved">
+      <span class="coin-kyc-icon" aria-hidden="true">✅</span>
+      <div class="coin-kyc-copy"><b>KYC approved — payments unlocked</b>
+        <small>Payouts go to your ${kycRailName()} account${state.number ? ` •••• ${state.number.slice(-4)}` : ""}. The Paragon ${kycRailName()} payment account is visible below.</small>
+        ${kycStateChip()}</div>
+    </div>`;
+  }
+  if (state.status === "pending") {
+    return `<div class="coin-kyc-card kyc-pending">
+      <span class="coin-kyc-icon" aria-hidden="true">⏳</span>
+      <div class="coin-kyc-copy"><b>KYC pending team review</b>
+        <small>${compact ? "The Paragon payment account stays locked until the team approves your KYC." : "You saved your payout details — the Paragon Team now reviews and approves them. Until then the Paragon payment account number is LOCKED, buy requests can't proceed, and withdrawals stay closed."}</small>
+        ${kycStateChip()}</div>
+    </div>`;
+  }
+  return `<div class="coin-kyc-card">
+    <span class="coin-kyc-icon" aria-hidden="true">🪪</span>
+    <div class="coin-kyc-copy"><b>Complete your KYC first</b>
+      <small>KYC (name, phone, OPay/Moniepoint account) is required for BOTH buying and withdrawing — approved by the Paragon team before anything unlocks.</small>
+      ${kycStateChip()}</div>
+    <button type="button" class="primary-action" onclick="openKycPayoutDraft()">Start KYC</button>
+  </div>`;
+}
+function paragonCoinPublicConfig() {
+  /* Public coin config: window.ParagonCoinPublicConfig wins (server), then the
+     team-desk local mirror paragonCoinPublicConfig.v1 (P-114 payment accounts). */
+  try {
+    const mirrored = JSON.parse(window.localStorage.getItem("paragonCoinPublicConfig.v1") || "null");
+    if (mirrored) return mirrored;
+  } catch (_) {}
+  return window.ParagonCoinPublicConfig || {};
+}
+function opayMoniepointPayMarkup() {
+  const esc = (v) => String(v || "").replace(/[<>]/g, "");
+  /* P-114 owner rule: NOTHING here assumes OPay or Moniepoint until the user's KYC is
+     APPROVED by the team. Before that the whole payment section is LOCKED. */
+  if (!kycApproved()) {
+    return `<div class="coin-rails-block">
+      <b class="coin-rails-title">How to pay</b>
+      <div class="coin-rail-locked">🔒 <div><b>The Paragon payment account is locked until your KYC is approved.</b><br>
+      Complete your KYC (name, phone and your OPay/Moniepoint account). The Paragon Team reviews it from their side — once approved, the right Paragon account for your rail appears here and buying unlocks.
+      <div style="margin-top:8px"><button type="button" class="primary-action" onclick="openKycPayoutDraft()">${kycState().status === "pending" ? "Review KYC details" : "Start KYC"}</button></div></div></div>
+    </div>`;
+  }
+  const p = paragonCoinPublicConfig().provider || {};
+  const rail = kycState().rail === "moniepoint" ? "moniepoint" : "opay";
   const railName = rail === "moniepoint" ? "Moniepoint" : "OPay";
   /* Real account numbers come from public config once the team sets them; until then a clear
      placeholder is shown (never a fabricated number). */
@@ -3807,9 +4129,7 @@ function opayMoniepointPayMarkup() {
   const numberBlock = accountNumber
     ? `<div class="coin-rail-number" id="pay-rail-number">${accountNumber}</div><button type="button" class="coin-copy-num" onclick="copyPayRailNumber()">Copy number</button>`
     : `<div class="coin-rail-number coin-rail-placeholder" id="pay-rail-number">— Paragon ${railName} number appears here once the team connects ${railName} —</div>`;
-  const kycPrompt = kyc
-    ? `<p class="coin-rail-matched">✓ Paying to Paragon's <b>${railName}</b> account (from your payout details). <button type="button" class="coin-inline-link" onclick="openKycPayoutDraft()">Change rail</button></p>`
-    : `<p class="coin-rail-matched coin-rail-warn">Set your payout details first so we show the right account: <button type="button" class="coin-inline-link" onclick="openKycPayoutDraft()">Add OPay / Moniepoint details</button></p>`;
+  const kycPrompt = `<p class="coin-rail-matched">✓ Paying to Paragon's <b>${railName}</b> account (KYC approved — matched to your payout rail). <button type="button" class="coin-inline-link" onclick="openKycPayoutDraft()">Change rail</button></p>`;
   return `<div class="coin-rails-block">
     <b class="coin-rails-title">How to pay — transfer to Paragon's ${railName} account</b>
     ${kycPrompt}
@@ -3832,7 +4152,7 @@ function opayMoniepointPayMarkup() {
         <label class="wallet-field"><span>Transfer date &amp; time</span><input id="pay-date" type="datetime-local"></label>
         <label class="wallet-field"><span>Amount sent (₦)</span><input id="pay-amount-confirm" type="number" min="500" placeholder="Same as transfer"></label>
       </div>
-      <label class="wallet-field"><span>Sender name on the transfer (from your KYC)</span><input id="pay-sender" maxlength="80" value="${esc(kyc?.name || "")}" placeholder="Name your ${railName} account is in"></label>
+      <label class="wallet-field"><span>Sender name on the transfer (from your KYC)</span><input id="pay-sender" maxlength="80" value="${esc(kycState().name || "")}" placeholder="Name your ${railName} account is in"></label>
       <button type="button" class="primary-action" id="pay-submit-claim" onclick="submitPaymentClaim()">📨 I have transferred — submit for matching</button>
       <small class="coin-evidence-note">This is evidence for matching, not proof of payment. The verified ${railName} record is final; one reference can never be credited twice (duplicates are rejected). Max 5 claims per 24 hours.</small>
     </div>
@@ -3860,8 +4180,8 @@ window.submitPaymentClaim = function() {
   const ref = String(document.getElementById("pay-ref")?.value || "").trim();
   const when = String(document.getElementById("pay-date")?.value || "").trim();
   const sender = String(document.getElementById("pay-sender")?.value || "").trim();
-  const kyc = readKycPayout();
-  const rail = kyc && /monie/i.test(kyc.rail || "") ? "moniepoint" : "opay";
+  if (!kycApproved()) { showToast("Your KYC must be approved by the team before payments can be matched.", "warning"); return; }
+  const rail = kycState().rail === "moniepoint" ? "moniepoint" : "opay";
   if (!isRegisteredMember()) { showToast("Sign in to submit a payment.", "warning"); return; }
   if (naira < 500) { showToast("Enter the naira amount you transferred (min ₦500).", "warning"); return; }
   if (ref.length < 3) { showToast("Enter the transaction/transfer reference from your receipt.", "warning"); return; }
@@ -3937,6 +4257,64 @@ function coinBalanceBuckets() {
     restricted: Math.max(0, Math.round(Number(a.restricted_coins) || 0))
   };
 }
+
+/* P-114 — PARAGON MIND LIVE CONTEXT: the one hook Paragon Mind (the AI) reads for real
+   at-answer-time facts — session, coins, KYC, leaderboard position, daily goals and the
+   Updates feed. Nothing here is cached or invented; every call re-reads live state. */
+window.ParagonMindLive = function() {
+  try {
+    const cfg = coinConfigFlags();
+    const buckets = coinBalanceBuckets();
+    let kyc = null;
+    try { kyc = JSON.parse(window.localStorage.getItem("paragon.kycPayout.v1") || "null"); } catch (_) { kyc = null; }
+    const kycStatus = kyc ? (kyc.status === "approved" ? "approved" : "pending") : "none";
+    let leaderboard = { weekKey: "", rank: 0, points: 0, total: 0 };
+    try {
+      const engine = window.ParagonLeaderboards;
+      if (engine) {
+        const weekKey = engine.currentWeekKey();
+        const rows = engine.standingsForView(weekKey).rows || [];
+        const me = lbCurrentUser();
+        const myRow = me ? rows.find(row => String(row.player).toLowerCase() === me) : null;
+        leaderboard = { weekKey, rank: myRow ? Number(myRow.rank) || 0 : 0, points: myRow ? Number(myRow.points) || 0 : 0, total: rows.length };
+      }
+    } catch (_) { /* leaderboard engine absent */ }
+    let daily = { done: 0, total: 0, streak: 0, dayOfCycle: 0, pointEarnedToday: false, pointsTotal: 0 };
+    try {
+      const state = dailyGoalsState();
+      daily = { done: state.done, total: state.total, streak: Number(state.streak) || 0, dayOfCycle: state.dayOfCycle, pointEarnedToday: Boolean(state.pointEarnedToday), pointsTotal: Number(state.pointsEarnedTotal) || 0 };
+    } catch (_) { /* goals absent */ }
+    let updates = [];
+    try {
+      updates = (buildUpdateEvents() || [])
+        .sort((first, second) => new Date(second.date) - new Date(first.date))
+        .slice(0, 5)
+        .map(event => ({
+          title: event.title,
+          desc: event.desc,
+          siteName: event.siteName || "",
+          date: new Date(event.date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+        }));
+    } catch (_) { /* updates absent */ }
+    return {
+      session: {
+        mode: loggedIn ? "account" : guestMode ? "guest" : "none",
+        name: loggedIn ? (accountProfile.displayName || authUser?.email || "") : guestMode ? "Guest" : ""
+      },
+      coins: {
+        available: buckets.available, locked: buckets.locked, pending: buckets.pending, restricted: buckets.restricted,
+        rateBuy: cfg.nairaPerCoinBuy || 2, rateOut: cfg.nairaPerCoinOut || 2,
+        packs: cfg.packs, realMoney: cfg.realMoney, minWithdrawCoins: cfg.minWithdraw, feeCoins: cfg.feeCoins
+      },
+      kyc: { status: kycStatus, rail: kyc?.rail || "" },
+      leaderboard,
+      daily,
+      updates
+    };
+  } catch (error) {
+    return { session: { mode: "none" }, coins: {}, kyc: { status: "none" }, leaderboard: {}, daily: {}, updates: [] };
+  }
+};
 
 /* Same-device team desk mirrors (offline prototype). Never treat as bank proof. */
 function syncApprovedCoinCredits() {
@@ -4037,12 +4415,9 @@ function renderWithdrawalHost() {
   const rate = coinRateNow();
   const limits = engine.remainingLimits(user);
   const account = (engine.payoutAccounts() || []).filter(a => a.user === user)[0] || null;
-  /* P-113 — withdrawals only to a saved OPay/Moniepoint account from the KYC draft. */
-  let kycOk = false;
-  try {
-    const kyc = JSON.parse(localStorage.getItem("paragon.kycPayout.v1") || "null");
-    kycOk = Boolean(kyc && kyc.rail && kyc.number && String(kyc.number).replace(/\D/g, "").length === 10);
-  } catch (_) { kycOk = false; }
+  /* P-114 owner rule — withdrawals need APPROVED KYC (team-verified), not just a saved draft. */
+  const kycNow = kycState();
+  const kycOk = kycNow.status === "approved" && kycNow.number.length === 10;
   host.innerHTML = `
     <div class="lb-pool-grid">
       <div class="lb-pool-stat"><b>${balance.toLocaleString()} coins</b><small>available ≈ ₦${engine.coinsToNaira(balance).toLocaleString()} at ₦1 = ${rate} coins</small></div>
@@ -4061,8 +4436,8 @@ function renderWithdrawalHost() {
       </label>
       <label class="wallet-field"><span>Account number (10 digits)</span><input id="wd-account" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]*" placeholder="10 digits, numbers only" value="${account ? escapeHTML(account.accountNumber) : ""}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></label>
       <label class="wallet-field"><span>Account name</span><input id="wd-name" maxlength="80" placeholder="Name on the account" value="${account ? escapeHTML(account.accountName) : ""}"></label>
-      <p class="team-site-sub" style="margin:4px 0 10px">Withdrawals are paid only to your saved <strong>OPay or Moniepoint</strong> account from your KYC payout details. ${kycOk ? "" : `<button type="button" class="team-mini-link" onclick="openKycPayoutDraft()">Save your OPay / Moniepoint payout details first (KYC draft)</button>`}</p>
-      <button type="button" class="primary-action wd-request-btn ${kycOk ? "" : "is-locked"}" onclick="submitWithdrawalRequest()">${kycOk ? "📨 Request withdrawal" : "🔒 Complete your payout details (KYC) to withdraw"}</button>
+      <p class="team-site-sub" style="margin:4px 0 10px">Withdrawals are paid only to your <strong>OPay or Moniepoint</strong> account from your KYC, and only after the Paragon Team <strong>approves your KYC</strong>. ${kycOk ? "" : kycNow.status === "pending" ? `Your KYC is <strong>pending team review</strong> — withdrawals unlock the moment it's approved.` : `<button type="button" class="team-mini-link" onclick="openKycPayoutDraft()">Complete your KYC first</button>`}</p>
+      <button type="button" class="primary-action wd-request-btn ${kycOk ? "" : "is-locked"}" onclick="submitWithdrawalRequest()">${kycOk ? "📨 Request withdrawal" : kycNow.status === "pending" ? "🔒 KYC pending team approval" : "🔒 Complete your KYC to withdraw"}</button>
       <p class="team-site-sub">Withdrawals are paid manually by the Paragon Team through the payout desk. Your coins are locked the moment the request is accepted and return automatically if it fails — limits never trap legitimate funds.</p>
     </section>` : ""}
     <section class="lb-block"><h3>📜 Your withdrawal history</h3><div id="wd-history" class="team-site-list"></div></section>`;
@@ -4115,21 +4490,22 @@ function renderWithdrawalHistory() {
 window.submitWithdrawalRequest = function() {
   const engine = walletEngine();
   if (!engine) { showToast("Withdrawals are unavailable on this page.", "warning"); return; }
-  /* P-113 — faded button stays clickable but tells guests/unsigned-in users to finish KYC. */
-  let kyc = null;
-  try { kyc = JSON.parse(localStorage.getItem("paragon.kycPayout.v1") || "null"); } catch (_) { kyc = null; }
-  const kycRail = kyc && kyc.rail;
-  const kycNumber = kyc ? String(kyc.number || "").replace(/\D/g, "") : "";
-  if (!kycRail || kycNumber.length !== 10) {
-    showToast("Save your OPay / Moniepoint payout details (KYC draft) before you can withdraw.", "warning");
-    try { openKycPayoutDraft(); } catch (_) {}
+  /* P-114 — faded button stays clickable but tells the user the KYC truth (approved only). */
+  const kycNowSubmit = kycState();
+  const kycRail = kycNowSubmit.rail;
+  const kycNumber = kycNowSubmit.number;
+  if (kycNowSubmit.status !== "approved" || !kycRail || kycNumber.length !== 10) {
+    showToast(kycNowSubmit.status === "pending"
+      ? "Your KYC is pending team approval — withdrawals unlock once the team approves it."
+      : "Complete your KYC first — the team must approve it before you can withdraw.", "warning");
+    if (kycNowSubmit.status === "none") { try { openKycPayoutDraft(); } catch (_) {} }
     return;
   }
   const naira = Math.round(Number(document.getElementById("wd-naira")?.value || withdrawalNaira) || 0);
   /* Withdrawals go ONLY to the saved OPay/Moniepoint account — the rail/number come from KYC. */
   const bank = /monie/i.test(kycRail) ? "Moniepoint MFB" : "OPay";
   const account = kycNumber.slice(0, 10);
-  const name = String(kyc.name || accountProfile.displayName || "").trim();
+  const name = String(kycNowSubmit.name || accountProfile.displayName || "").trim();
   if (!account || account.length !== 10) { showToast("Enter a valid account number — exactly 10 digits.", "warning"); return; }
   if (!name) { showToast("Enter the account name on your payout details.", "warning"); return; }
   const user = walletUserEmail();
@@ -4271,7 +4647,7 @@ function lbRowsMarkup(rows, me, limit) {
 function lbRulesBlock() {
   return `<details class="lb-details"><summary>How the weekly leaderboard works — eligibility, anti-farming, rewards</summary>
     <ul class="lb-rules">
-      <li><b>Bet-only points:</b> only eligible staked competition results earn points (bet games and paid quiz entries). Free play, guest play, logging in, creating an account and buying coins never earn points.</li>
+      <li><b>Two honest ways to earn points:</b> (1) eligible staked competition results — bet games and paid quiz entries, performance-based; and (2) completing ALL of a day's Daily Goals, which earns exactly <b>1 point per day</b> (P-115). Free play, guest play, logging in, creating an account and buying coins never earn anything beyond that.</li>
       <li><b>Performance-based:</b> points come from how well you played (accuracy/performance per game), never from how much you staked — 1 coin is never 1 point.</li>
       <li><b>Creator rule:</b> a quiz creator can play their own quiz but can never win its prize or earn leaderboard points from it.</li>
       <li><b>Revenue-funded pool:</b> every week, 30% of eligible realized competition-fee revenue funds the reward pool. No realized fees means a real ₦0 pool — the platform never shows an invented prize.</li>
@@ -4357,6 +4733,7 @@ function renderCoinLeaderboard() {
     <section class="lb-block">${lbRulesBlock()}</section>`;
 }
 window.openCoinLeaderboard = function() {
+  try { bumpDailyCounter("leaderboard"); } catch (_) {} /* P-115 daily goal */
   const engine = lbEngine();
   if (!engine) { showToast("Leaderboards are unavailable on this page.", "warning"); return; }
   if (typeof document.createElement !== "function") return;
@@ -4367,13 +4744,13 @@ window.openCoinLeaderboard = function() {
   overlay.className = "utility-overlay active install-overlay";
   overlay.innerHTML = `
     <div class="install-popup-card lb-card" role="dialog" aria-modal="true" aria-label="Weekly leaderboard">
-      <header><h2>🏆 Paragon Coins — Weekly Leaderboard</h2><p>Weekly ranking with rewards for the top 3 and ranks 4–10, funded by 30% of eligible realized competition-fee revenue. Free play never earns points.</p></header>
+      ${settingsPopupHead({ eyebrow: "Paragon Coins", title: "Weekly Leaderboard", sub: "Rewards for the top 3 and ranks 4–10, funded by 30% of eligible realized competition-fee revenue. Free play never earns points.", close: "document.getElementById('coin-leaderboard-overlay').remove(); document.body.classList.remove('popup-lock')" })}
       <div id="coin-leaderboard-host"></div>
       <div class="install-popup-actions">
         <button type="button" class="primary-action" onclick="document.getElementById('coin-leaderboard-overlay').remove(); document.body.classList.remove('popup-lock'); openCoinShop()">🪙 Buy coins</button>
         <button type="button" class="secondary-action" onclick="document.getElementById('coin-leaderboard-overlay').remove(); document.body.classList.remove('popup-lock')">Close</button>
       </div>
-      <small class="install-popup-note">Weekly periods run Monday to Sunday. Bet games and paid quiz entries are the only ways to earn points (docs/COIN-SYSTEM.md). The reward pool activates from real competition fees only — never from invented money.</small>
+      <small class="install-popup-note">Weekly periods run Monday to Sunday. Points come from eligible staked results (bet games and paid quiz entries) plus exactly 1 point per day for completing all Daily Goals (docs/COIN-SYSTEM.md). The reward pool activates from real competition fees only — never from invented money.</small>
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("popup-lock");
@@ -4503,7 +4880,7 @@ window.askAppFields = function(options) {
       var prefix = f.prefix ? '<span class="wallet-input-prefix">' + String(f.prefix).replace(/[<>]/g, "") + '</span>' : "";
       return '<label class="wallet-field' + (f.prefix ? " wallet-input-prefixed" : "") + '">' + label + '<div class="wallet-input-wrap">' + prefix + '<input id="appf-' + f.name + '" type="' + intype + '" maxlength="' + maxlen + '"' + mode + ' data-digits="' + (f.digitsOnly ? "1" : "0") + '" placeholder="' + String(f.placeholder || "").replace(/[<>]/g, "") + '" value="' + String(f.value || "").replace(/"/g, "&quot;").replace(/[<>]/g, "") + '"></div></label>';
     }).join("");
-    overlay.innerHTML = '<div class="install-popup-card" role="dialog" aria-modal="true"><header style="display:flex;align-items:flex-start;gap:10px"><h2 style="flex:1;margin:0">' + (options.icon || "✏️") + " " + String(options.title || "Enter details").replace(/[<>]/g, "") + '</h2><button type="button" class="icon-btn-small" id="appf-x" aria-label="Close" style="flex:0 0 auto;margin-left:auto">×</button></header><div style="padding:2px">' + fields + '<p id="app-field-error" style="display:none;color:#ef4444;font-size:12px;margin:10px 0 0">Please fill the required fields.</p></div><div class="install-popup-actions"><button type="button" class="secondary-action" id="appf-cancel">Cancel</button><button type="button" class="primary-action" id="appf-ok">' + (options.confirmLabel || "Save") + '</button></div></div>';
+    overlay.innerHTML = '<div class="install-popup-card" role="dialog" aria-modal="true"><header style="display:flex;align-items:flex-start;gap:10px"><h2 style="flex:1;margin:0">' + (options.icon || "✏️") + " " + String(options.title || "Enter details").replace(/[<>]/g, "") + '</h2><button type="button" class="icon-btn-small" id="appf-x" aria-label="Close" style="flex:0 0 auto;margin-left:auto">×</button></header>' + (options.note ? '<p style="margin:0 0 10px;font-size:12px;color:var(--text-faint);line-height:1.5">' + String(options.note).replace(/[<>]/g, "") + '</p>' : '') + '<div style="padding:2px">' + fields + '<p id="app-field-error" style="display:none;color:#ef4444;font-size:12px;margin:10px 0 0">Please fill the required fields.</p></div><div class="install-popup-actions"><button type="button" class="secondary-action" id="appf-cancel">Cancel</button><button type="button" class="primary-action" id="appf-ok">' + (options.confirmLabel || "Save") + '</button></div></div>';
     document.body.appendChild(overlay);
     document.body.classList.add("popup-lock");
     overlay.querySelectorAll("input[data-digits='1']").forEach(function (inp) {
@@ -4571,6 +4948,13 @@ window.requestCoinPurchase = function(nairaAmount) {
   if (!hasPersonalSession()) { requirePersonalSession("buy Paragon coins"); return; }
   if (!isRegisteredMember()) {
     showToast("Guests are free-play only. Sign in to request coin purchases.", "warning");
+    return;
+  }
+  /* P-114 owner rule: no buy request moves until KYC is APPROVED by the team —
+     and Paragon never assumes OPay/Moniepoint before that approval. */
+  if (!kycApproved()) {
+    showToast(kycState().status === "pending" ? "Your KYC is still pending team review — buying unlocks once it's approved." : "Complete your KYC first — buying unlocks after the team approves it.", "warning");
+    openKycPayoutDraft();
     return;
   }
   const naira = Math.round(Number(nairaAmount) || 0);
@@ -4734,10 +5118,11 @@ window.openFinancialCase = function(caseType, summary) {
 
 
 window.openKycPayoutDraft = function() {
-  if (!requirePersonalSession("save payout details")) return;
+  if (!requirePersonalSession("complete KYC")) return;
+  const current = kycState();
   window.askAppFields({
-    icon: "🏦",
-    title: "Your payout details (KYC draft for team review)",
+    icon: "🪪",
+    title: "KYC — required for buying & withdrawing",
     fields: [
       { name: "rail", label: "Payout rail", type: "select", value: "opay", required: true, options: [
         { value: "opay", label: "OPay" },
@@ -4747,7 +5132,8 @@ window.openKycPayoutDraft = function() {
       { name: "number", label: "Wallet / account number", required: true, digitsOnly: true, maxlength: 10, placeholder: "10 digits, numbers only" },
       { name: "phone", label: "Phone number", digitsOnly: true, maxlength: 10, prefix: "+234", placeholder: "10 digits, numbers only" }
     ],
-    confirmLabel: "Save payout details"
+    confirmLabel: current.status === "none" ? "Submit KYC for team review" : "Update KYC details",
+    note: "The Paragon Team reviews and approves every KYC. Until approval: the Paragon payment account stays locked, buy requests are closed and withdrawals are closed."
   }).then(result => {
     if (!result.ok) return;
     const rail = String(result.values.rail || "opay").trim() || "opay";
@@ -4757,7 +5143,18 @@ window.openKycPayoutDraft = function() {
     const phone = phoneDigits ? "+234" + phoneDigits.replace(/^0+/, "") : "";
     if (!number || number.length !== 10) { showToast("Enter your 10-digit account number.", "warning"); return; }
     if (phoneDigits && phoneDigits.length !== 10) { showToast("Enter 10 phone digits after +234.", "warning"); return; }
-    try { localStorage.setItem("paragon.kycPayout.v1", JSON.stringify({ rail, name, number, phone, savedAt: new Date().toISOString() })); } catch (_) {}
+    /* P-114 — status starts PENDING; only the team desk (or the server RPC) can set approved. */
+    try {
+      const previous = readKycPayout() || {};
+      localStorage.setItem("paragon.kycPayout.v1", JSON.stringify({ rail, name, number, phone, status: previous.status === "approved" ? "approved" : "pending", savedAt: new Date().toISOString() }));
+      const queue = JSON.parse(localStorage.getItem("paragon.kycQueue.v1") || "[]");
+      const who = authUser?.email || "guest@local";
+      const mine = queue.find(entry => entry.user === who);
+      const record = { user: who, rail, name, number, phone, status: previous.status === "approved" ? "approved" : "pending", updatedAt: new Date().toISOString() };
+      if (mine) Object.assign(mine, record);
+      else queue.push(record);
+      localStorage.setItem("paragon.kycQueue.v1", JSON.stringify(queue.slice(-60)));
+    } catch (_) {}
     supabaseRest("/rest/v1/rpc/paragon_kyc_upsert_draft", {
       method: "POST",
       body: JSON.stringify({
@@ -4768,8 +5165,9 @@ window.openKycPayoutDraft = function() {
         p_payout_bank_name: /monie/i.test(rail) ? "Moniepoint MFB" : "OPay",
         p_payout_rail: /monie/i.test(rail) ? "moniepoint" : "opay"
       })
-    }).then(() => showToast("Payout details saved for team review (KYC draft)."))
-      .catch(() => showToast("Saved locally note — run phase5 SQL for server KYC.", "warning"));
+    }).then(() => showToast("KYC submitted — pending team review. Buying and withdrawals unlock once the team approves it."))
+      .catch(() => showToast("KYC saved on this device — pending team review (server KYC needs the phase5 SQL).", "warning"));
+    try { if (document.getElementById("wallet-body")) renderWalletTab(); } catch (_) {}
   });
 };
 
@@ -4806,9 +5204,8 @@ window.openGamesCompeteDesk = function() {
     overlay.className = "install-popup-overlay active";
     overlay.innerHTML = `
       <div class="install-popup-card" role="dialog" aria-modal="true" aria-label="Competitive 1v1">
-        <header><h2>1v1 Competitive stake</h2>
-          <button type="button" class="icon-btn-small" onclick="document.getElementById('games-compete-overlay')?.remove();document.body.classList.remove('popup-lock')" aria-label="Close">×</button>
-        </header>
+        ${settingsPopupHead({ eyebrow: "Settings · Games", title: "1v1 Competitive Stake", sub: "Server-settled stakes — free play stays separate and always open.", close: "document.getElementById('games-compete-overlay')?.remove();document.body.classList.remove('popup-lock')" })}
+        
         <p class="install-popup-note">Free play is always available without coins. This desk locks stakes on the <strong>server</strong> (100–10,000 coins). House fee = <strong>5% of the two-player pool</strong>. Winners are settled by the Paragon Team / Edge only — your browser cannot credit a win.</p>
         <div class="leaderboard-you">Available <b>${buckets.available.toLocaleString()}</b> · locked <b>${buckets.locked.toLocaleString()}</b>
           · compete_flag=${cfg.compete ? "on" : "off"} · real_money=${cfg.realMoney ? "on" : "OFF"}</div>
@@ -4971,7 +5368,7 @@ ${opayMoniepointPayMarkup()}
       </div>
       <div style="margin-top:8px"><b>Recent (this device)</b><ul style="margin:8px 0 0 18px;padding:0;font-size:13px">${history}</ul></div>
       <div class="install-popup-actions">
-        <button type="button" class="secondary-action" onclick="openKycPayoutDraft()">OPay / Moniepoint payout details</button>
+        <button type="button" class="secondary-action" onclick="openKycPayoutDraft()">🪪 KYC & payout details</button>
         <button type="button" class="secondary-action" onclick="openFinancialCase('payment','Problem with a coin purchase or withdrawal')">Report a money problem</button>
         <button type="button" class="secondary-action" onclick="document.getElementById('coin-shop-overlay')?.remove();document.body.classList.remove('popup-lock')">Close</button>
       </div>
@@ -5562,6 +5959,7 @@ window.switchToTab = function(name, options = {}) {
   currentDetailName = null;
   setActiveTabState(name);
   if (name === "account") renderAccount();
+  if (name === "updates") { try { bumpDailyCounter("updates"); } catch (_) {} } /* P-115 daily goal */
   if (updateHash && window.history?.replaceState) window.history.replaceState(null, "", `#${name}`);
   if (scroll) window.scrollTo({ top: 0, behavior: "smooth" });
 };
@@ -5694,6 +6092,10 @@ let activeSearchCategory = "All";
 let searchReturnFocus = null;
 let searchResultsMode = false;
 let inlineHintValue = "";
+/* P-114 — Google-style results navigation: every tab is its own results page. */
+let searchActiveTab = "all";
+const SEARCH_RESULT_TABS = ["all", "ai", "images", "videos", "news", "articles"];
+let aiModeStarted = false;
 
 const searchStopWords = new Set([
   "a", "an", "and", "are", "can", "for", "from", "i", "in", "is", "it", "me", "my",
@@ -5923,7 +6325,7 @@ function renderSearchSuggestions(query = document.getElementById("search-input")
     </button>`;
   }).join("");
   suggestions.innerHTML = dymLine + `<div class="search-sugg-list" role="listbox">${cards}</div>
-    <button type="button" class="search-sugg-ask" data-search-ask="1">✦ Ask Paragon AI about “${escapeHTML(String(query).trim())}”</button>`;
+    <button type="button" class="search-sugg-ask" data-search-ask="1"><span class="ai-nav-diamond" aria-hidden="true"></span> Ask Paragon Mind — AI Mode about “${escapeHTML(String(query).trim())}”</button>`;
   suggestions.hidden = false;
   input?.setAttribute("aria-expanded", "true");
   return ranked.map(r => r.site);
@@ -5950,78 +6352,247 @@ function chooseActiveSuggestion() {
   return false;
 }
 
+/* P-114 — one Google-style results layout: a compact lined-up list right under the
+   search bar. No second AI block on this page — AI lives in its own AI Mode tab. */
+function googleResultRow(site, query) {
+  const art = SITE_ICON_ART[site.name];
+  return `
+      <a href="#" class="g-result" onclick="openSearchResult('${site.name}'); return false;">
+        <span class="g-result-icon" aria-hidden="true">${art ? `<img src="${art}" alt="">` : (site.icon || "🧩")}</span>
+        <span class="g-result-body">
+          <span class="g-result-crumbs"><span class="g-result-dot" style="background:${getCategoryColor(site.category)}"></span> Paragon Archive › ${escapeHTML(site.category)}</span>
+          <span class="g-result-title">${highlightMatch(site.name, query)}</span>
+          <span class="g-result-desc">${highlightMatch(String(site.desc || ""), query)}</span>
+        </span>
+      </a>`;
+}
+
+function searchTabEmptyState(tabLabel) {
+  const isAll = String(tabLabel).toLowerCase() === "all";
+  return `
+    <div class="search-empty-state">
+      <img class="empty-illus" src="assets/illustrations/empty-search.png" alt="" loading="lazy">
+      <strong>${isAll ? "No matching website. Try another phrase." : `No ${tabLabel.toLowerCase()} results.`}</strong>
+      <span>${isAll ? "Paragon is building more, so exact names may not exist yet." : "Nothing in the Archive matched that. Try different words, or check another tab."}</span>
+    </div>`;
+}
+
 function renderSearchResults(query = document.getElementById("search-input")?.value || "") {
   const results = document.getElementById("search-results");
-  const heading = document.getElementById("search-results-heading");
   const queryLabel = document.getElementById("search-results-query");
+  const stats = document.getElementById("search-results-stats");
   if (!results) return [];
   const clean = String(query || "").trim();
   const matches = getSearchMatches(clean);
-  const exactNameMatch = matches.some(site => site.name.toLowerCase() === clean.toLowerCase());
-  const dym = searchDidYouMean(clean);
-  const dymBlock = dym ? `<div class="search-dym-line">Did you mean <button type="button" class="search-dym" onclick="(function(){var i=document.getElementById('search-input');if(i){i.value='${escapeHTML(dym).replace(/'/g, "\\'")}';setSearchResultsMode(false);setTimeout(function(){submitSearch();},0);}})()"><mark>${escapeHTML(dym)}</mark></button>?</div>` : "";
-  /* P-094 — ONE search AI, ONE presentation (owner rule after the "two AI" complaint):
-     exact name gives plain results; ANY non-exact search (including zero matches) gives the single
-     ✦ Paragon AI block with real icon art, confidence, match reasons — no padded lists, no
-     second differently-styled AI block, no emoji fallback in AI rows. */
-  if (matches.length && exactNameMatch) {
-    if (heading) heading.textContent = "Search Results";
-    if (queryLabel) queryLabel.textContent = clean || "Your search";
-    results.innerHTML = matches.map(site => `
-      <a href="#" class="recent-item" onclick="openSearchResult('${site.name}'); return false;">
-        <span class="icon" aria-hidden="true">${SITE_ICON_ART[site.name] ? `<img class="site-icon-art-list" src="${SITE_ICON_ART[site.name]}" alt="">` : site.icon}</span>
-        <div class="meta"><div class="name">${site.name}</div><div class="cat"><span style="color:${getCategoryColor(site.category)}">●</span> ${site.category} · ${site.desc}</div></div>
-      </a>`).join("");
-    return matches;
-  }
-  const aiRanked = (window.ParagonAI?.rankWebsites?.(clean, { limit: 6, minimumScore: 40 }) || []).filter(entry => entry.confidence >= 0.25 || entry.similarity >= 0.45);
-  if (heading) heading.textContent = matches.length || aiRanked.length ? "Search Results" : "No Results";
   if (queryLabel) queryLabel.textContent = clean || "Your search";
-  if (aiRanked.length) {
-    results.innerHTML = `
-      <div class="ai-suggest-block" role="region" aria-label="Paragon AI suggestions">
-        <div class="ai-suggest-head">
-          <span class="ai-suggest-badge">✦ Paragon AI</span>
-          <strong>Closest matches to what you typed</strong>
-          <span>No exact website name matched “${escapeHTML(clean)}” — ranked from full catalogue knowledge (names, purpose, features, concept documentation).</span>
-        </div>
-        ${aiRanked.map(entry => `
-          <a href="#" class="recent-item ai-suggest-item" onclick="openSearchResult('${entry.site.name}'); return false;">
-            <span class="icon" aria-hidden="true">${SITE_ICON_ART[entry.site.name] ? `<img class="site-icon-art-list" src="${SITE_ICON_ART[entry.site.name]}" alt="">` : entry.site.icon}</span>
-            <div class="meta">
-              <div class="name">${entry.site.name}</div>
-              <div class="cat"><span style="color:${getCategoryColor(entry.site.category)}">●</span> ${entry.site.category} · ${entry.site.desc}</div>
-              ${entry.reasons?.length ? `<div class="ai-suggest-reason">Matched: ${entry.reasons.map(reason => escapeHTML(reason)).join(" · ")}</div>` : ""}
-            </div>
-            <span class="ai-suggest-confidence" aria-label="Match confidence">${Math.round(entry.confidence * 100)}%</span>
-          </a>`).join("")}
-      </div>`;
+  const dym = searchDidYouMean(clean);
+  const dymBlock = dym && !matches.some(site => site.name.toLowerCase() === String(dym).toLowerCase())
+    ? `<div class="search-dym-line">Did you mean <button type="button" class="search-dym" data-dym-name="${escapeHTML(dym)}"><mark>${escapeHTML(dym)}</mark></button>?</div>` : "";
+  const shown = matches.slice(0, 10);
+  if (stats) stats.textContent = matches.length ? `· ${matches.length.toLocaleString()} result${matches.length === 1 ? "" : "s"}` : "";
+  if (shown.length) {
+    results.innerHTML = dymBlock + shown.map(site => googleResultRow(site, clean)).join("");
+    results.querySelectorAll(".search-dym[data-dym-name]").forEach(button => {
+      button.addEventListener("click", () => {
+        const input = document.getElementById("search-input");
+        if (input) { input.value = button.getAttribute("data-dym-name") || ""; submitSearch(); }
+      });
+    });
     return matches;
   }
-  if (matches.length) {
-    results.innerHTML = matches.map(site => `
-      <a href="#" class="recent-item" onclick="openSearchResult('${site.name}'); return false;">
-        <span class="icon" aria-hidden="true">${SITE_ICON_ART[site.name] ? `<img class="site-icon-art-list" src="${SITE_ICON_ART[site.name]}" alt="">` : site.icon}</span>
-        <div class="meta"><div class="name">${site.name}</div><div class="cat"><span style="color:${getCategoryColor(site.category)}">●</span> ${site.category} · ${site.desc}</div></div>
-      </a>`).join("");
-    return matches;
-  }
-  /* Nothing anywhere: honest empty state + the request path. Still exactly ONE AI voice — none. */
+  /* Honest empty state + the request path. */
   const requestBlock = `
     <div class="search-request-block">
-      <strong>No AI suggestions this time. I think it's time to request that website.</strong>
+      <strong>No search results. I think it's time to request that website.</strong>
       <span>Tell Paragon exactly what it should do and it goes on the build list.</span>
       <a class="primary-action search-request-action" href="paragon-archive-hub.html#request-site">Request this website</a>
     </div>`;
-  results.innerHTML = `
-    <div class="search-empty-state">
-      <img class="empty-illus" src="assets/illustrations/empty-search.png" alt="" loading="lazy">
-      <strong>No matching website. Try another phrase.</strong>
-      <span>Paragon is building more, so exact names may not exist yet.</span>
-    </div>
-    ${requestBlock}`;
+  results.innerHTML = dymBlock + searchTabEmptyState("All") + requestBlock;
   return matches;
 }
+
+/* ---------- Images tab: every real image art the matched websites have ---------- */
+function renderSearchImagesTab(query) {
+  const panel = document.getElementById("search-tab-images");
+  if (!panel) return;
+  const clean = String(query || "").trim();
+  const matches = getSearchMatches(clean).slice(0, 12);
+  if (!matches.length) { panel.innerHTML = searchTabEmptyState("Image"); return; }
+  panel.innerHTML = `<div class="g-image-grid">${matches.map(site => {
+    const art = SITE_ICON_ART[site.name];
+    return `<a href="#" class="g-image-card" onclick="openSearchResult('${site.name}'); return false;" title="${escapeHTML(site.name)}">
+      <span class="g-image-thumb" style="background-image:url('${paragonTile(site.name, 420, 300)}')">
+        ${art ? `<img src="${art}" alt="">` : `<span class="g-image-emoji">${site.icon || "🧩"}</span>`}
+      </span>
+      <span class="g-image-caption"><b>${highlightMatch(site.name, clean)}</b><small>${escapeHTML(site.category)}</small></span>
+    </a>`; }).join("")}</div>`;
+}
+
+/* ---------- Videos tab: honest — only video/streaming destinations match ---------- */
+function renderSearchVideosTab(query) {
+  const panel = document.getElementById("search-tab-videos");
+  if (!panel) return;
+  const clean = String(query || "").trim();
+  const videoMatches = getSearchMatches(clean).filter(site => /video|movie|stream|watch|tv|anime|cinema|film|series/i.test(`${site.name} ${site.category} ${site.group || ""} ${site.tag || ""} ${site.desc || ""}`)).slice(0, 8);
+  if (!videoMatches.length) { panel.innerHTML = searchTabEmptyState("Video"); return; }
+  panel.innerHTML = `<div class="g-video-list">${videoMatches.map(site => `
+    <a href="#" class="g-video-row" onclick="openSearchResult('${site.name}'); return false;">
+      <span class="g-video-thumb" style="background-image:url('${paragonTile(site.name, 420, 240)}')"><span class="g-video-play" aria-hidden="true">▶</span></span>
+      <span class="g-video-copy"><b>${highlightMatch(site.name, clean)}</b><small>${escapeHTML(site.category)} · ${escapeHTML(site.desc || "")}</small></span>
+    </a>`).join("")}</div>`;
+}
+
+/* ---------- News tab: real Updates-feed events that match the query ---------- */
+function renderSearchNewsTab(query) {
+  const panel = document.getElementById("search-tab-news");
+  if (!panel) return;
+  const clean = String(query || "").trim();
+  const terms = getSearchTerms(clean).filter(term => term.length >= 2);
+  const events = (typeof buildUpdateEvents === "function" ? buildUpdateEvents() : [])
+    .map(event => {
+      const haystack = normalizeSearchText(`${event.title} ${event.desc} ${event.siteName || ""} ${event.category || ""}`);
+      const score = terms.reduce((total, term) => total + (haystack.includes(term) ? 1 : 0), 0);
+      return { event, score };
+    })
+    .filter(entry => (terms.length ? entry.score > 0 : true))
+    .sort((first, second) => second.score - first.score || new Date(second.event.date) - new Date(first.event.date))
+    .slice(0, 12);
+  if (!events.length) { panel.innerHTML = searchTabEmptyState("News"); return; }
+  panel.innerHTML = `<div class="g-news-list">${events.map(({ event }) => `
+    <a href="#" class="g-news-row" onclick="${event.siteName ? `openSearchResult('${event.siteName}')` : `closeSearchOverlay(false); switchToTab('updates')`}; return false;">
+      <span class="g-news-icon" aria-hidden="true">${event.siteName && SITE_ICON_ART[event.siteName] ? `<img src="${SITE_ICON_ART[event.siteName]}" alt="">` : (event.icon || "↻")}</span>
+      <span class="g-news-copy">
+        <span class="g-news-crumbs">${event.siteName ? `Paragon Archive › ${escapeHTML(event.siteName)}` : "Paragon Archive › Updates"} · ${event.type === "new" ? "New website" : "Update"}</span>
+        <b>${highlightMatch(event.title, clean)}</b>
+        <small>${highlightMatch(String(event.desc || ""), clean)}</small>
+        <span class="g-news-date">${new Date(event.date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</span>
+      </span>
+    </a>`).join("")}</div>`;
+}
+
+/* ---------- Articles tab: the Archive Hub documentation index ---------- */
+const SEARCH_ARTICLES_INDEX = [
+  { title: "About Paragon", keywords: "about story founder mission vision values team contact who we are history started name meaning", url: "paragon-archive-hub.html#about", blurb: "Where Paragon started, why it exists, what the name means and the people behind the Archive." },
+  { title: "Privacy Policy", keywords: "privacy policy data cookies security delete download my data rights retention", url: "paragon-archive-hub.html#privacy-policy", blurb: "Exactly what data Paragon collects, what it is used for and every control you own." },
+  { title: "Terms and Conditions", keywords: "terms conditions rules usage legal agreement", url: "paragon-archive-hub.html#terms", blurb: "The honest rules for using Paragon Archive and every Paragon website." },
+  { title: "Community Guidelines", keywords: "community guidelines rules conduct behavior respect board members", url: "paragon-archive-hub.html#community-guidelines", blurb: "How Paragon community members treat each other — the standards that keep the board safe." },
+  { title: "Cookie Policy", keywords: "cookies essential tracking consent browser storage", url: "paragon-archive-hub.html#cookie-policy", blurb: "Essential versus optional cookies, and how consent works on Paragon." },
+  { title: "Help & Support", keywords: "help support contact message email bug problem stuck 72 hours reply", url: "paragon-archive-hub.html#help", blurb: "Real people answer support messages within 72 hours — how to reach them." },
+  { title: "Report a Bug", keywords: "report bug broken error screenshot fix issue", url: "paragon-archive-hub.html#support-bugs", blurb: "What counts as a bug, what does not, and what to include so it gets fixed fast." },
+  { title: "Frequently Asked Questions", keywords: "faq questions account websites notifications settings pricing free", url: "paragon-archive-hub.html#support-faq", blurb: "Straight answers about accounts, websites, notifications, settings and pricing." },
+  { title: "How to Use Paragon Archive", keywords: "how to use guide get started tutorial search open save review collection", url: "paragon-archive-hub.html#support-docs", blurb: "Step-by-step documentation: searching, opening websites, saving, reviewing, collections." },
+  { title: "Request a Website", keywords: "request website idea suggest need want build new site form", url: "paragon-archive-hub.html#request-site", blurb: "Submit the website you wish existed — the most-requested ideas get built first." },
+  { title: "Roadmap", keywords: "roadmap timeline coming soon planned progress milestones launch 2027", url: "paragon-archive-hub.html#roadmap-full", blurb: "What Paragon is building, what is done, and honest dates for what comes next." },
+  { title: "Developer Requirements", keywords: "developer requirements acceptance programme apply publish deployed review gate", url: "paragon-archive-hub.html#developers", blurb: "The 8-point review gate and requirements for developers who want to publish inside the Archive." },
+  { title: "Deployed Websites", keywords: "deployed category third party approved websites premium", url: "paragon-archive-hub.html#deployed", blurb: "How approved third-party websites appear inside the Deployed category." },
+  { title: "Advertise / Ad space", keywords: "advertise ads advertising ad space sponsor promote brand partnership banner", url: "paragon-archive-hub.html#help", blurb: "Ad slots are reserved and honest until approval — to advertise with Paragon, contact support with the subject line Advertising." },
+  { title: "Community Board", keywords: "community board members join posts chat", url: "community-board.html", blurb: "The Paragon Community board — open to real members who completed the join steps." },
+  { title: "Developer Portal", keywords: "developer portal apply application submit status", url: "developer-portal.html", blurb: "Where developer applications are submitted and tracked." },
+  { title: "Paragon Archive Hub", keywords: "hub documentation documents official gateway everything about", url: "paragon-archive-hub.html", blurb: "The official documentation gateway — every document, policy and help page in one place." }
+];
+
+function renderSearchArticlesTab(query) {
+  const panel = document.getElementById("search-tab-articles");
+  if (!panel) return;
+  const clean = String(query || "").trim();
+  const terms = getSearchTerms(clean).filter(term => term.length >= 2);
+  const scored = SEARCH_ARTICLES_INDEX.map(article => {
+    const haystack = normalizeSearchText(`${article.title} ${article.keywords} ${article.blurb}`);
+    const score = terms.reduce((total, term) => total + (haystack.includes(term) ? 1 : 0) + (normalizeSearchText(article.title).includes(term) ? 2 : 0), 0);
+    return { article, score };
+  }).filter(entry => (terms.length ? entry.score > 0 : true))
+    .sort((first, second) => second.score - first.score)
+    .slice(0, 10);
+  if (!scored.length) { panel.innerHTML = searchTabEmptyState("Article"); return; }
+  panel.innerHTML = `<div class="g-article-list">${scored.map(({ article }) => `
+    <a class="g-article-row" href="${article.url}">
+      <span class="g-article-copy">
+        <span class="g-news-crumbs">Archive Hub › Documentation</span>
+        <b>${highlightMatch(article.title, clean)}</b>
+        <small>${highlightMatch(article.blurb, clean)}</small>
+      </span>
+    </a>`).join("")}</div>`;
+}
+
+/* ---------- AI Mode tab: the FULL Archive brain on its own results page ---------- */
+function aiModeAppend(text, role = "assistant", matches = []) {
+  const host = document.getElementById("ai-mode-messages");
+  if (!host) return;
+  const article = document.createElement("article");
+  article.className = `ai-mode-message ${role}`;
+  article.innerHTML = `<div class="ai-mode-bubble">${escapeHTML(text).replace(/\n/g, "<br>")}</div>`;
+  host.appendChild(article);
+  if (Array.isArray(matches) && matches.length) {
+    const list = document.createElement("div");
+    list.className = "ai-mode-matches";
+    list.innerHTML = matches.slice(0, 4).map(match => `<button type="button" data-ai-site="${escapeHTML(match.name)}"><span aria-hidden="true">◈</span> ${escapeHTML(match.name)}<small>${escapeHTML(match.reason || "")}</small></button>`).join("");
+    host.appendChild(list);
+    list.querySelectorAll("[data-ai-site]").forEach(button => button.addEventListener("click", () => {
+      closeSearchOverlay(false);
+      window.openDetail?.(button.getAttribute("data-ai-site"));
+    }));
+  }
+  host.scrollTop = host.scrollHeight;
+}
+
+function activateAiMode(prefillQuestion = "") {
+  if (!aiModeStarted) {
+    aiModeStarted = true;
+    const host = document.getElementById("ai-mode-messages");
+    if (host) host.innerHTML = "";
+    aiModeAppend(`Hello! 👋 I'm Paragon Mind in AI Mode — the full brain of Paragon Archive. I know every website in the catalogue, the live Updates feed, how accounts and guests work, Paragon Coins (rates, packs, KYC, withdrawals), the leaderboard, daily goals, games and every documentation page. Ask me anything — or tap a suggestion below.`, "assistant");
+    const chips = document.createElement("div");
+    chips.className = "ai-mode-chips";
+    chips.innerHTML = ["What can you do?", "How do coins and KYC work?", "How do I create an account?", "What's on the leaderboard?"].map(question => `<button type="button" data-ai-chip="${escapeHTML(question)}">${escapeHTML(question)}</button>`).join("");
+    chips.querySelectorAll("[data-ai-chip]").forEach(button => button.addEventListener("click", () => {
+      const input = document.getElementById("ai-mode-input");
+      if (input) { input.value = button.getAttribute("data-ai-chip") || ""; document.getElementById("ai-mode-form")?.requestSubmit(); }
+    }));
+    document.getElementById("ai-mode-messages")?.appendChild(chips);
+  }
+  if (prefillQuestion) {
+    const input = document.getElementById("ai-mode-input");
+    if (input) input.value = prefillQuestion;
+    document.getElementById("ai-mode-form")?.requestSubmit();
+  }
+  requestAnimationFrame(() => document.getElementById("ai-mode-input")?.focus({ preventScroll: true }));
+}
+
+async function submitAiModeQuestion() {
+  const input = document.getElementById("ai-mode-input");
+  const question = input?.value.trim() || "";
+  if (!question) return;
+  aiModeAppend(question, "user");
+  input.value = "";
+  try { window.paragonTrackAiAsk?.(); } catch (_) { /* daily goal + XP */ }
+  aiModeAppend("…", "assistant thinking");
+  const response = await (window.ParagonAI?.askMode?.(question) || window.ParagonAI?.ask?.(question, { mode: "archive-search" }) || { text: "Paragon Mind is not loaded right now.", matches: [] });
+  const host = document.getElementById("ai-mode-messages");
+  host?.querySelector(".ai-mode-message.thinking")?.remove();
+  aiModeAppend(response.text || "", "assistant", Array.isArray(response.matches) ? response.matches : []);
+}
+
+function switchSearchTab(tab) {
+  if (!SEARCH_RESULT_TABS.includes(tab)) tab = "all";
+  searchActiveTab = tab;
+  document.querySelectorAll("#search-results-nav .results-nav-tab").forEach(button => {
+    const on = button.dataset.resultsTab === tab;
+    button.classList.toggle("active", on);
+    button.setAttribute("aria-selected", String(on));
+  });
+  SEARCH_RESULT_TABS.forEach(name => {
+    const panelName = document.getElementById(`search-tab-${name}`);
+    if (panelName) panelName.hidden = name !== tab;
+  });
+  const query = document.getElementById("search-input")?.value.trim() || "";
+  if (tab === "images") renderSearchImagesTab(query);
+  else if (tab === "videos") renderSearchVideosTab(query);
+  else if (tab === "news") renderSearchNewsTab(query);
+  else if (tab === "articles") renderSearchArticlesTab(query);
+  else if (tab === "ai") activateAiMode();
+  document.getElementById("search-results-view")?.scrollTo?.({ top: 0, behavior: "auto" });
+}
+window.switchSearchTab = switchSearchTab;
 
 function setSearchResultsMode(active, query = document.getElementById("search-input")?.value || "") {
   searchResultsMode = Boolean(active);
@@ -6032,25 +6603,20 @@ function setSearchResultsMode(active, query = document.getElementById("search-in
   const entry = document.getElementById("search-entry-view");
   const results = document.getElementById("search-results-view");
   const title = document.getElementById("search-view-title");
+  const heading = document.getElementById("search-results-heading");
+  const submitBtn = document.getElementById("search-submit-btn");
   if (entry) entry.hidden = searchResultsMode;
   if (results) results.hidden = !searchResultsMode;
   if (title) title.textContent = searchResultsMode ? "Search Results" : "Search";
+  if (heading) heading.textContent = searchResultsMode ? "Search Results" : "Search";
+  if (submitBtn) submitBtn.hidden = !searchResultsMode;
+  document.getElementById("search-shared-field")?.classList.toggle("results-mode", searchResultsMode);
   if (searchResultsMode) {
-    renderSearchResults(query);
-    const dym2 = searchDidYouMean(query);
-    const resultsEl = document.getElementById("search-results");
-    if (dym2 && resultsEl && !resultsEl.querySelector(".search-dym-line") && !getSearchMatches(query).some(s => s.name === dym2)) {
-      const line = document.createElement("div");
-      line.className = "search-dym-line";
-      line.innerHTML = `Did you mean <button type="button" class="search-dym" data-dym="${escapeHTML(dym2)}"><mark>${escapeHTML(dym2)}</mark></button>?`;
-      line.querySelector(".search-dym")?.addEventListener("click", () => {
-        const i = document.getElementById("search-input");
-        if (i) { i.value = dym2; submitSearch(); }
-      });
-      resultsEl.insertBefore(line, resultsEl.firstChild);
-    }
+    switchSearchTab(searchActiveTab === "ai" ? "ai" : "all");
+    if (searchActiveTab !== "ai") renderSearchResults(query);
   }
   else {
+    searchActiveTab = "all";
     renderSearchSuggestions(query);
     renderInlineSearchHint(query);
     renderRecentSearches();
@@ -6061,10 +6627,10 @@ function submitSearch() {
   const input = document.getElementById("search-input");
   const query = input?.value.trim() || "";
   if (!query) return false;
+  try { bumpDailyCounter("search"); } catch (_) {} /* P-115 daily goal */
   recordRecentSearch(query);
   setSearchResultsMode(true, query);
   document.getElementById("search-results-view")?.scrollTo?.({ top: 0, behavior: "auto" });
-  document.getElementById("search-back")?.focus?.({ preventScroll: true });
   return true;
 }
 window.submitSearch = submitSearch;
@@ -6123,6 +6689,15 @@ function bindSearch() {
   const input = document.getElementById("search-input");
   setSearchResultsMode(false);
   document.getElementById("search-btn")?.addEventListener("click", () => openSearchOverlay(true));
+  /* P-114 — result-page tabs: each navigation opens its own kind of results page. */
+  document.getElementById("search-results-nav")?.addEventListener("click", event => {
+    const tab = event.target.closest("[data-results-tab]");
+    if (tab) switchSearchTab(tab.dataset.resultsTab);
+  });
+  document.getElementById("ai-mode-form")?.addEventListener("submit", event => {
+    event.preventDefault();
+    submitAiModeQuestion();
+  });
   input?.addEventListener("input", event => {
     const value = event.target.value;
     /* Debounce so instant search feels fast but doesn't re-rank on every keystroke. */
@@ -6155,10 +6730,13 @@ function bindSearch() {
   overlay?.addEventListener("click", event => {
     const ask = event.target.closest("[data-search-ask]");
     if (ask) {
+      /* P-114 — the search-side AI opens AI MODE (the full Archive brain page), not the floating tab AI. */
       recordRecentSearch(input?.value || "");
-      window.ParagonAI?.openAssistant?.();
-      const q = input?.value?.trim();
-      if (q) setTimeout(() => { const form = document.getElementById("paragon-ai-form"); const aiInput = document.getElementById("paragon-ai-question"); if (aiInput) { aiInput.value = q; form?.requestSubmit(); } }, 250);
+      const q = input?.value?.trim() || "";
+      setSearchResultsMode(true, q || input?.value || "");
+      switchSearchTab("ai");
+      if (q) setTimeout(() => activateAiMode(q), 60);
+      else activateAiMode();
       return;
     }
     const dym = event.target.closest(".search-dym");
@@ -6629,7 +7207,7 @@ window.deleteLocalReview = function(siteName, reviewId = "") {
 window.toggleBookmark = function(siteName) {
   if (!requirePersonalSession("save websites", { type: "bookmark", siteName })) return;
   const saved = bookmarkedSites.has(siteName);
-  if (saved) bookmarkedSites.delete(siteName); else bookmarkedSites.add(siteName);
+  if (saved) bookmarkedSites.delete(siteName); else { bookmarkedSites.add(siteName); try { bumpDailyCounter("bookmark"); } catch (_) {} } /* P-115 daily goal */
   persistPersonalState();
   if (hasPersonalSession()) renderAccount(); else renderSavedAccount();
   renderUpdates();
@@ -6644,6 +7222,7 @@ function recordShareAchievement() {
   if (!hasPersonalSession()) return;
   if (!accountProfile.firstShareAt) accountProfile.firstShareAt = new Date().toISOString();
   accountProfile.shareCount = Number(accountProfile.shareCount || 0) + 1;
+  try { bumpDailyCounter("share"); } catch (_) {} /* P-115 daily goal */
   persistPersonalState();
   renderAchievementsAccount();
 }
@@ -7157,6 +7736,7 @@ window.launchSite = function(siteName, button) {
     if (hasPersonalSession() && String(launchUrl || site.siteUrl || "").includes("/sites/")) {
       accountProfile.productOpenCount = Number(accountProfile.productOpenCount || 0) + 1;
       try { bumpDaily("productOpenCountToday"); } catch (_) {}
+    try { bumpDailyCounter("open"); } catch (_) {} /* P-115 daily goal */
       persistPersonalState();
       renderAchievementsAccount();
     }
@@ -7296,6 +7876,7 @@ function bindReviewComposer() {
     }
     reviewEditingId = "";
     try { bumpDaily("reviewsToday"); } catch (_) {}
+    try { bumpDailyCounter("review"); } catch (_) {} /* P-115 daily goal */
     persistPersonalState();
     closeReviewComposer(false);
     if (hasPersonalSession()) renderAccount(); else renderAccountReviews();
@@ -7478,6 +8059,7 @@ window.openDetail = function(name) {
       persistPersonalState();
     }
   } catch (_) {}
+  try { bumpDailyCounter("detail", `explore:${String(name).slice(0, 80)}`); } catch (_) {} /* P-115 daily goal (detail + explore mission) */
   const site = sites.find(s => s.name === name) || (name === deployedTemplateExample.name ? deployedTemplateExample : null);
   if (!site) return;
   if (!isRestoringDetailState && !site.illustrative) {
@@ -7583,7 +8165,7 @@ window.openDetail = function(name) {
       ${screenshots.map((screenshot, index) => `<button type="button" class="shot" role="listitem" onclick="openScreenshotLightbox('${site.name}', ${index})" aria-label="Open ${screenshot.label} fullscreen"><img src="${screenshot.thumb}" alt="${screenshot.label}" loading="lazy"><span class="shot-state-label">${screenshot.label.replace(`${site.name} — `, "")}</span></button>`).join("")}
     </div>
     <div class="detail-section about-section">
-      <h3>📄 About this Website <button type="button" class="ask-paragon-ai-btn" onclick="window.ParagonAI?.openDetailAssistant('${site.name}')">🧠 Ask Paragon AI</button></h3>
+      <h3>📄 About this Website <button type="button" class="ask-paragon-ai-btn" onclick="window.ParagonAI?.openDetailAssistant('${site.name}')"><span class="ai-nav-diamond" aria-hidden="true"></span> Ask Paragon Mind</button></h3>
       <p class="detail-about collapsed">${site.about}</p>
       <button type="button" class="read-more about-read-more" onclick="toggleAbout(this)" aria-expanded="false">Read more</button>
       <div class="detail-about-tags"><div class="detail-tags-label">🏷️ Tags:</div><div class="detail-tag-chips">${detailTags.map(tag => `<span class="detail-tag">${escapeHTML(tag)}</span>`).join("")}</div></div>
@@ -7861,45 +8443,93 @@ function bindScrollColor() {
 }
 
 
-/* P-113 — POPUP MODAL LOCK (owner rule): while ANY modal popup is open, the page behind it
-   must not scroll or click. Only content inside the popup receives actions; the popup panel
-   itself keeps scrolling normally. The × button or Esc closes; clicking the backdrop never does. */
+/* P-114 — POPUP MODAL LOCK v2 (owner rule, fixes the broken background scroll):
+   • The page scrolls NORMALLY whenever no popup is open — the lock can never get stuck
+     because a single enforcer keeps body.popup-lock in sync with the real DOM state.
+   • Only SETTINGS-scope popups (the Account/Settings popups, coin wallet, achievements,
+     privacy, image viewer, lightbox, the welcome splash while it plays) stop the
+     background scroll until they close. The big full-screen views (Search, Trending,
+     Staff picks, previews) scroll their own content and never freeze the page behind.
+   • Inside an open popup, only the popup card itself receives wheel/touch actions. */
 (function bindPopupModalLock() {
   if (typeof document === "undefined" || !document.addEventListener) return;
+  /* Popups that DO lock the background (settings-side popups + money/media dialogs). */
+  var LOCKED_POPUP_SELECTOR =
+    ".utility-overlay.active, .install-popup-overlay.active, .share-sheet-overlay.active, " +
+    "#coin-shop-overlay.active, #account-box-overlay.active, #account-info-overlay.active, " +
+    "#achievements-overlay.active, #privacy-controls-overlay.active, #screenshot-lightbox.active, " +
+    "#update-image-viewer, #welcome-splash, #session-timeout-overlay.active";
+  /* Full-screen views that scroll their own content without freezing the background. */
+  var SELF_SCROLLED_SELECTOR = "#search-overlay.active, #trending-overlay.active, #staff-overlay.active, " +
+    "#recent-overlay.active, #category-overlay.active, #review-overlay.active, #auth-overlay.active, " +
+    "#collection-overlay.active, #collection-view-overlay.active, #request-overlay.active, #qr-overlay.active, " +
+    "#site-preview-overlay.active, #paragon-ai-overlay.active";
+  var POPUP_CARD_SELECTOR =
+    ".install-popup-card, .utility-sheet, .share-sheet, .lightbox-figure, #welcome-splash .welcome-splash-card, " +
+    ".paragon-ai-dialog, .search-inner, .trending-shell, .update-image-viewer-card, .notification-panel, " +
+    ".preview-wm-window, .auth-dialog, .achievements-dialog, .review-dialog, .lb-card, .coin-wallet-card";
+
+  window.isSettingsPopupOpen = function () {
+    try { return Boolean(document.querySelector(LOCKED_POPUP_SELECTOR)); } catch (error) { return false; }
+  };
   window.isAnyPopupOpen = function () {
-    return document.body.classList.contains("popup-lock") ||
-      Boolean(document.querySelector(
-        ".utility-overlay.active, .install-popup-overlay.active, .share-sheet-overlay.active, #search-overlay.active, #trending-overlay.active, #staff-overlay.active, #recent-overlay.active, #category-overlay.active, #review-overlay.active, #auth-overlay.active, #collection-overlay.active, #collection-view-overlay.active, #request-overlay.active, #qr-overlay.active, #achievements-overlay.active, #site-preview-overlay.active, #privacy-controls-overlay.active, #paragon-ai-overlay.active, #screenshot-lightbox.active, #update-image-viewer, #welcome-splash"
-      ));
+    try { return window.isSettingsPopupOpen() || Boolean(document.querySelector(SELF_SCROLLED_SELECTOR)); }
+    catch (error) { return false; }
   };
-  const isInsideOpenPopup = function (node) {
-    return Boolean(node && node.closest && node.closest(
-      ".install-popup-card, .utility-sheet, .share-sheet, .lightbox-figure, #welcome-splash .welcome-splash-card, .paragon-ai-dialog, .search-inner, .trending-shell, .update-image-viewer-card, .notification-panel, .preview-wm-window"
-    ));
+  var isInsideOpenPopup = function (node) {
+    return Boolean(node && node.closest && node.closest(POPUP_CARD_SELECTOR));
   };
-  const blockBackgroundScroll = function (event) {
-    if (!window.isAnyPopupOpen()) return;
-    if (isInsideOpenPopup(event.target)) return;
+
+  /* One enforcer: the ONLY place body.popup-lock is decided, so it can never stick. */
+  var syncPopupLock = function () {
+    try { document.body.classList.toggle("popup-lock", window.isSettingsPopupOpen()); } catch (error) { /* blocked */ }
+  };
+  var blockBackgroundScroll = function (event) {
+    if (!window.isSettingsPopupOpen()) return;      /* P-114: no settings popup means the background scrolls free */
+    if (isInsideOpenPopup(event.target)) return;    /* the popup's own content scrolls normally */
     event.preventDefault();
   };
   document.addEventListener("wheel", blockBackgroundScroll, { passive: false });
   document.addEventListener("touchmove", blockBackgroundScroll, { passive: false });
   document.addEventListener("click", function (event) {
-    if (!window.isAnyPopupOpen()) return;
+    if (!window.isSettingsPopupOpen()) return;
     if (isInsideOpenPopup(event.target)) return;
     const interactive = event.target.closest && event.target.closest("button, a, input, select, textarea, label, [onclick], [role='button']");
     if (!interactive) { event.preventDefault(); event.stopPropagation(); }
   }, true);
-  /* Hide the floating Ask-AI button while a popup (including AI itself) is open */
-  const syncFab = function () {
-    const fab = document.getElementById("paragon-ai-fab");
-    if (fab) fab.style.display = window.isAnyPopupOpen() ? "none" : "";
+  if (typeof MutationObserver !== "undefined") {
+    new MutationObserver(() => { syncPopupLock(); syncAiFab(); })
+      .observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ["class", "hidden"] });
+  }
+  document.addEventListener("DOMContentLoaded", () => { setInterval(() => { syncPopupLock(); syncAiFab(); }, 300); });
+
+  /* P-114 — the floating Paragon Mind button lives ONLY on the three main tabs
+     (Websites · Updates · Account). Inside website details, Search, previews and every
+     other popup it disappears — the owner asked for exactly that. */
+  var mainTabActive = function () {
+    try {
+      if (document.getElementById("detail-view")?.classList.contains("active")) return false;
+      var hash = (window.location.hash || "#websites").replace("#", "");
+      return ["websites", "updates", "account"].includes(hash) || !hash;
+    } catch (error) { return true; }
   };
-  document.addEventListener("DOMContentLoaded", () => setInterval(syncFab, 350));
+  function syncAiFab() {
+    const fab = document.getElementById("paragon-ai-fab");
+    if (!fab) return;
+    const visible = mainTabActive() && !window.isAnyPopupOpen();
+    fab.classList.toggle("is-hidden", !visible);
+  }
+  window.syncParagonAiFab = syncAiFab;
+  window.addEventListener("hashchange", syncAiFab);
+  document.addEventListener("click", () => { syncPopupLock(); syncAiFab(); }, true);
+  /* Immediate first sync — runs AFTER every helper above is defined. */
+  syncPopupLock();
+  syncAiFab();
 })();
 
 /* P-113 — the AI brain calls this (if present) when the user sends a question, so the
-   "Ask Paragon AI" daily goal and XP register honestly. */
+   "Ask Paragon Mind" daily goal and XP register honestly. */
 window.paragonTrackAiAsk = function() {
   try { bumpDaily("aiAsksToday"); } catch (_) {}
+  try { bumpDailyCounter("ai"); } catch (_) {} /* P-115 daily goal */
 };

@@ -11,7 +11,9 @@
         REWARDS) + §12.1 (REWARD SETTLEMENT) — implemented for real on-device, with the
         server tables + economic settings prepared in supabase/leaderboards-schema.sql.
   RULES ENFORCED HERE (no fake money, no fake standings):
-    • ONLY eligible staked ("bet") competition results earn points. Free play, guest play,
+    • P-115 owner rule: eligible staked ("bet") competition results earn points, PLUS exactly
+      1 point per day for completing ALL of that day's Daily Goals (recordDailyPoint — members
+      only, one per player per local day, never touches stakes or the fee-funded pool). Free play, guest play,
       login, account creation, coin purchases and promotional activity NEVER award points.
     • Points come from game PERFORMANCE only — never 1 coin = 1 point, never stake-sized.
       Stake size only proves eligibility (min stake). Per-game scoring rules are config
@@ -315,6 +317,49 @@
     return verdict;
   }
 
+  /* ------------------------------------------------------------------ P-115 daily-goal points
+     Owner rule: completing ALL of a day's Daily Goals earns exactly ONE leaderboard point.
+     Constraints honored: members only (guests cannot rank), one per player per local day
+     (resultRef "daily-goal:YYYY-MM-DD"), only inside a running week, zero stake, and the
+     entry never funds or draws from the fee-funded reward pool. */
+  function recordDailyPoint(raw) {
+    var r = raw || {};
+    var player = escapePlayer(r.player);
+    var dateKey = String(r.dateKey || "").slice(0, 10);
+    if (!player) return { ok: false, code: "no-player" };
+    if (isGuest(player)) return { ok: false, code: "guest" };
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return { ok: false, code: "bad-date" };
+    var now = r.at ? new Date(r.at) : new Date();
+    var week = weekKeyFor(now);
+    if (periodState(week).state !== "running") return { ok: false, code: "period-closed" };
+    var resultRef = "daily-goal:" + dateKey;
+    var list = allEntries();
+    for (var i = 0; i < list.length; i += 1) {
+      if (list[i].player === player && list[i].resultRef === resultRef) return { ok: false, code: "duplicate" };
+    }
+    var entry = {
+      id: "dp-" + Date.now().toString(36) + "-" + Math.floor(Math.random() * 1e6).toString(36),
+      weekKey: week,
+      gameType: "daily-goal",
+      gameName: "Daily Goals",
+      player: player,
+      displayName: String(r.displayName || player),
+      points: 1,
+      stakeCoins: 0,
+      mode: "daily",
+      perf: { total: 1, score: 1 },
+      opponent: "",
+      resultRef: resultRef,
+      recordedAt: nowISO(now),
+      status: "active",
+      flags: []
+    };
+    list.push(entry);
+    writeEntries(list);
+    appendAudit({ actor: player, action: "result-recorded", detail: "daily-goal +1 pt (" + dateKey + ") week " + week, periodKey: week });
+    return { ok: true, entry: entry };
+  }
+
   /* ------------------------------------------------------------------ standings / weekly ranking */
   function buildStandings(sourceEntries) {
     var map = {};
@@ -597,6 +642,7 @@
     recentPeriodKeys: recentPeriodKeys,
     evaluateResult: evaluateResult,
     recordResult: recordResult,
+    recordDailyPoint: recordDailyPoint,
     liveStandings: liveStandings,
     standingsForView: standingsForView,
     entriesFor: entriesFor,

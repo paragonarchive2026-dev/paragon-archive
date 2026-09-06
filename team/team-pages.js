@@ -6973,6 +6973,89 @@ if (["finance.html", "finance-payments.html", "finance-withdrawals.html", "finan
   }
   function fmtNaira(value) { return Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
+  /* ---------------- P-114 — KYC review desk (buy & withdraw gate) ---------------- */
+  function renderKycQueue() {
+    var host = element("fin-kyc-queue");
+    if (!host) return;
+    var queue = readJSON("paragon.kycQueue.v1", []);
+    if (!queue.length) {
+      host.innerHTML = '<p class="team-site-sub">No KYC submissions yet. When a user saves KYC payout details in the app, their submission appears here for review.</p>';
+      return;
+    }
+    host.innerHTML = queue.slice().reverse().map(function (entry, index) {
+      var realIndex = queue.length - 1 - index;
+      var approved = entry.status === "approved";
+      return '<div class="team-activity-item">' +
+        '<span class="team-activity-dot">' + (approved ? "✅" : "⏳") + '</span>' +
+        '<div style="min-width:0;flex:1"><b>' + escapeHTML(entry.name || entry.user) + '</b> · <small>' + escapeHTML(entry.user) + '</small>' +
+        '<div class="team-site-sub">' + (/monie/i.test(entry.rail || "") ? "Moniepoint" : "OPay") + ' · ' + escapeHTML(String(entry.number || "").replace(/\D/g, "")) + (entry.phone ? " · " + escapeHTML(entry.phone) : "") + ' · submitted ' + when(entry.updatedAt) + '</div></div>' +
+        '<div style="display:flex;gap:6px;flex:0 0 auto">' +
+        (approved
+          ? '<button type="button" class="secondary-action" data-kyc-revert="' + realIndex + '">Revert to pending</button>'
+          : '<button type="button" class="primary-action" data-kyc-approve="' + realIndex + '">Approve KYC</button>') +
+        '</div></div>';
+    }).join("");
+    host.querySelectorAll("[data-kyc-approve]").forEach(function (button) {
+      button.addEventListener("click", function () { setKycStatus(Number(button.getAttribute("data-kyc-approve")), "approved"); });
+    });
+    host.querySelectorAll("[data-kyc-revert]").forEach(function (button) {
+      button.addEventListener("click", function () { setKycStatus(Number(button.getAttribute("data-kyc-revert")), "pending"); });
+    });
+  }
+  function setKycStatus(index, status) {
+    var queue = readJSON("paragon.kycQueue.v1", []);
+    var entry = queue[index];
+    if (!entry) return;
+    entry.status = status;
+    entry.decidedAt = new Date().toISOString();
+    writeJSON("paragon.kycQueue.v1", queue);
+    /* Mirror the decision onto the user's own KYC record on this shared device. */
+    var own = readJSON("paragon.kycPayout.v1", null);
+    if (own && String(own.name || "").toLowerCase() === String(entry.name || "").toLowerCase()) {
+      own.status = status;
+      writeJSON("paragon.kycPayout.v1", own);
+    }
+    showToast(status === "approved" ? "KYC approved — buying and withdrawing now unlock for " + entry.user : "KYC reverted to pending for " + entry.user);
+    renderKycQueue();
+  }
+
+  /* ---------------- P-114 — Paragon payment accounts (buy rail publishing) ---------------- */
+  function renderPayAccounts() {
+    var host = element("fin-pay-accounts");
+    if (!host) return;
+    var cfg = readJSON("paragonCoinPublicConfig.v1", {}) || {};
+    var provider = cfg.provider || {};
+    [["opay", "OPay"], ["moniepoint", "Moniepoint"]].forEach(function (pair) {
+      var key = pair[0], label = pair[1];
+      var acct = provider[key] || {};
+      var row = document.createElement("div");
+      row.className = "team-activity-item";
+      row.innerHTML =
+        '<span class="team-activity-dot">🏦</span>' +
+        '<div style="min-width:0;flex:1"><b>' + label + ' account</b>' +
+        '<div class="team-site-sub">Account name + number users transfer to (approved-KYC users only).</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">' +
+        '<input id="fin-acct-' + key + '-name" placeholder="Account name (e.g. Paragon Archive)" value="' + escapeHTML(acct.account_name || "") + '" style="flex:1 1 160px;min-width:0;padding:8px 10px;border-radius:8px;border:1px solid rgba(127,127,127,.35);background:transparent;color:inherit">' +
+        '<input id="fin-acct-' + key + '-number" placeholder="10-digit account number" maxlength="12" value="' + escapeHTML(acct.account_number || "") + '" style="flex:1 1 140px;min-width:0;padding:8px 10px;border-radius:8px;border:1px solid rgba(127,127,127,.35);background:transparent;color:inherit">' +
+        '<button type="button" class="primary-action" data-publish-acct="' + key + '">Publish</button>' +
+        '</div></div>';
+      host.appendChild(row);
+    });
+    host.querySelectorAll("[data-publish-acct]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var key = button.getAttribute("data-publish-acct");
+        var nameVal = element("fin-acct-" + key + "-name").value.trim();
+        var numVal = element("fin-acct-" + key + "-number").value.replace(/\D/g, "");
+        if (!nameVal || numVal.length < 10) { showToast("Enter the account name and the full 10-digit number."); return; }
+        var cfgNow = readJSON("paragonCoinPublicConfig.v1", {}) || {};
+        cfgNow.provider = cfgNow.provider || {};
+        cfgNow.provider[key] = { account_name: nameVal, account_number: numVal, publishedAt: new Date().toISOString() };
+        writeJSON("paragonCoinPublicConfig.v1", cfgNow);
+        showToast("Paragon " + (key === "opay" ? "OPay" : "Moniepoint") + " account published — visible to approved-KYC users.");
+      });
+    });
+  }
+
   /* ---------------- Dashboard (finance.html) ---------------- */
   function statCard(icon, value, label, note) {
     return '<article class="team-stat-card"><span class="team-stat-icon">' + icon + '</span><strong>' + value + '</strong><span>' + label + '</span><small>' + (note || "") + '</small></article>';
@@ -7400,7 +7483,7 @@ if (["finance.html", "finance-payments.html", "finance-withdrawals.html", "finan
   /* ---------------- Page bootstrap ---------------- */
   document.addEventListener("DOMContentLoaded", function () {
     var page = paragonTeamPage();
-    if (page === "finance.html") renderFinanceDashboard();
+    if (page === "finance.html") { renderFinanceDashboard(); renderKycQueue(); renderPayAccounts(); }
     if (page === "finance-payments.html") { buildPayFilter(); renderPayments(); bindPayments(); }
     if (page === "finance-withdrawals.html") { renderWithdrawalDesk(); bindWithdrawalDesk(); }
     if (page === "finance-risk.html") { renderRisk(); bindRisk(); }

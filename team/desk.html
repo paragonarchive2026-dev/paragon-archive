@@ -1107,6 +1107,7 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <div class="team-site-row" id="lb-actions" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;"></div>
     <div class="team-dash-sectitle" style="margin-top:18px;">🛡️ Settlement audit trail</div>
     <div id="lb-audit" class="team-site-list lb-audit-list"></div>
+  </section>
   <section class="team-dash-section" id="coin-withdrawals-section">
     <h2 class="team-dash-heading">🏦 COIN WITHDRAWAL REQUESTS (super-admin)</h2>
     <p class="team-site-sub">Pay naira offline, then mark Paid — coins are deducted via the credit mirror path on the user device / SQL RPC when backend is live.</p>
@@ -1539,6 +1540,14 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
         <a class="secondary-action" href="desk.html?page=finance-emergency">🛑 Emergency Controls</a>
         <a class="secondary-action" href="desk.html?page=settings">🪙 Coin Requests (approvals)</a>
       </div></section>
+    <!-- P-114 — KYC review desk: buying + withdrawing unlock ONLY after the team approves here. -->
+    <section class="team-dash-section"><h2 class="team-dash-heading">🪪 KYC REVIEW (buy &amp; withdraw gate)</h2>
+      <p class="team-site-sub">Users complete KYC (name, phone, OPay/Moniepoint account). Until you APPROVE it here, their Paragon payment account stays locked, buy requests are closed and withdrawals are closed.</p>
+      <div id="fin-kyc-queue" class="team-site-list"></div></section>
+    <!-- P-114 — Paragon payment accounts: what approved-KYC users see in the Buy flow. -->
+    <section class="team-dash-section"><h2 class="team-dash-heading">🏦 PARAGON PAYMENT ACCOUNTS (shown to approved KYC users)</h2>
+      <p class="team-site-sub">These are the real OPay / Moniepoint accounts users transfer to. They appear in the app ONLY for users whose KYC you approved above.</p>
+      <div id="fin-pay-accounts" class="team-site-list"></div></section>
     <section class="team-dash-section"><h2 class="team-dash-heading">📒 FINANCE LEDGER (device, typed events)</h2>
       <div id="fin-ledger" class="team-site-list lb-audit-list"></div></section>
   </section>

@@ -1,1 +1,65 @@
-# paragon-archive
+# Paragon Archive
+
+**Every website you need, one archive.** Paragon Archive is the gateway to the Paragon web
+ecosystem — a curated, honestly-labelled catalogue of Paragon-built websites with search,
+reviews, collections, coins, weekly leaderboards and a built-in AI.
+
+- Entry point: `paragon-archive.html`
+- Documentation hub: `paragon-archive-hub.html`
+- Quiz product: `paragon-quiz/`
+- Team dashboard: `team/desk.html` (routed `?page=…`)
+- Community board: `community-board.html` · Developer portal: `developer-portal.html`
+
+## Highlights
+
+- 🔎 **Google-style Search** — one shared search bar with results lined up beneath it and
+  result tabs: **All · AI Mode · Images · Videos · News · Articles** (honest empty states).
+- 💠 **Paragon Mind** — the built-in brand AI. One local core (no external AI service) that
+  powers search ranking, the floating assistant (Websites/Updates/Account tabs), website-detail
+  Q&A, and the full AI Mode page. It knows the catalogue, coins & KYC, the leaderboard,
+  365-day Daily Goals, accounts/guests, the Updates feed, the official FAQ and every
+  documentation page — and it handles pleasantries and general chat naturally.
+- 🎯 **365-day Daily Goals** — three new deterministic missions every day for a full year
+  (365 unique day-sets). Complete all three to earn exactly **1 leaderboard point** that day;
+  guests bank the point and it posts automatically when they sign in before the session ends.
+- 🪙 **Paragon Coins with KYC** — buying and withdrawing both require team-approved KYC;
+  the Paragon payment account stays locked until approval. Packs render side-by-side and
+  tapping a pack is the request. Withdrawals follow the full payout state machine with
+  fee rules, limits and idempotent claims.
+- 🏆 **Weekly leaderboard** — points from eligible staked results plus the daily-goal point;
+  revenue-funded reward pool (30% of realized fees), team-reviewed settlement.
+- 📄 **Honest documentation** — About, Privacy, Terms, Community Guidelines, Cookie Policy,
+  Help & Support, FAQ, Roadmap and Developer Requirements in the Archive Hub.
+
+## Run locally
+
+Static site — any static server works:
+
+```bash
+python3 -m http.server 8080
+# open http://localhost:8080/paragon-archive.html
+```
+
+Optional backend: add your Supabase URL + anon key in `config/supabase.js` (auth, sync,
+finance RPCs). Everything degrades honestly to local/device state without it.
+
+## Test
+
+```bash
+node tests/suite-core.test.js
+node tests/suite-ux.test.js
+node tests/suite-ai-team.test.js
+node tests/suite-finance.test.js
+```
+
+## Key files
+
+| Path | Role |
+|---|---|
+| `app.js` | Main app: navigation, search, details, Account/Updates, coins, KYC, goals |
+| `ai/paragon-archive-ai.js` | Paragon Mind — the one local AI core (see `docs/AI-BRAIN.md`) |
+| `paragon-leaderboards.js` | Weekly leaderboard engine + daily-goal points |
+| `paragon-wallets.js` | Withdrawals, payout state machine, claims, risk, audit |
+| `data/*.js` | Catalogue + updates data |
+| `style.css` | The whole design system |
+| `docs/` | Specifications, changelogs, runbooks (start with `SOP.md`, `CHANGES.md`) |

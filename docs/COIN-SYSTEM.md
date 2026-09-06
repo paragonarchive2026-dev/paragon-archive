@@ -157,3 +157,20 @@
 - The real ₦→coin rate, entry fees, prize amounts, withdrawal fee, payment channels
   (**OPay / Moniepoint preferred**; Paystack optional; Flutterwave not required), and reward schedule — then the placeholder numbers
   are replaced everywhere in one pass.
+
+---
+
+## ADDENDUM — P-114/P-115 (September 6, 2026)
+
+1. **KYC is now a hard gate for BOTH buy and withdraw.** `paragon.kycPayout.v1.status` is
+   `pending` (draft saved, team reviewing) or `approved` (team approved from the finance desk).
+   Until **approved**: the Paragon payment account number stays LOCKED, no rail is assumed,
+   buy requests are closed, and withdrawals are closed. The Team desk (desk.html?page=finance)
+   owns the KYC review queue and publishes the real OPay/Moniepoint payment accounts.
+2. **Coin pack layout (owner rule):** packs render side-by-side at the TOP of the Buy tab and
+   tapping a pack IS the request — there is no separate Request button.
+3. **Daily Goals points (leaderboard):** completing ALL of a day's Daily Goals earns exactly
+   **1 leaderboard point per day** — members post instantly, guests bank the point and it posts
+   automatically when they sign in before the session ends. These are activity points: zero
+   stake, one per player per local day, and they never fund or draw from the fee-funded reward
+   pool. Competition points remain performance-based from eligible staked results.
