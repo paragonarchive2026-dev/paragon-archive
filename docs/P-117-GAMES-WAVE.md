@@ -55,4 +55,4 @@ When online play is approved, store only compact authoritative match/presence re
 
 ## Vercel note
 
-PR #5 is already merged. GitHub deployment state shows immediate configuration failures and links to Vercel project configuration. The previous `vercel.json` introduced `$comment` and `errorDocument`, which are not accepted project-config fields; P-117 removes them and adds the official schema declaration. A private Vercel dashboard session is still required to retrieve the exact build log or confirm the redeploy.
+PR #5 is already merged. GitHub deployment state shows immediate configuration failures and links to Vercel project configuration. The previous `vercel.json` introduced `$comment` and `errorDocument`, which are not accepted project-config fields; P-117 removes them and adds the official schema declaration. A private Vercel dashboard session is still required to retrieve the exact old failed-build log. PR #6's Vercel Preview now succeeds with the corrected file, confirming the repository fix; production follows the merge.

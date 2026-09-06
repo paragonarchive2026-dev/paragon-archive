@@ -5712,7 +5712,8 @@ The games programme has its shared framework and its first honest, playable, off
 - [x] No stake amount input, live search or browser settlement was introduced.
 - [x] No `window.alert/prompt/confirm`; all random gameplay choices are seeded.
 - [ ] Owner visual/gameplay demo; only then Cards/Spin/Chess may move 90 → 100.
-- [ ] Exact Vercel build log and successful production redeploy require the owner's Vercel dashboard session.
+- [x] Corrected config passes the PR #6 Vercel Preview; production deployment follows merge.
+- [ ] Exact text of the old failed-build log remains available only in the owner's Vercel dashboard.
 
 ### Result
 

@@ -302,8 +302,8 @@ ordered **Paragon Spin then Paragon Chess** for review. Both are built and live;
 - `games/cards/` — realism pass (felt/walnut table, paper cards, brass details) + same performance
   board. Cards/Spin/Chess all stay `buildProgress: 90` until the owner demos them.
 - `vercel.json` — removed the newly introduced unsupported `$comment` and `errorDocument` keys and
-  added the official schema. GitHub points the failed main deployment at project configuration;
-  exact private build logs still require a Vercel dashboard session.
+  added the official schema. GitHub points the old failed main deployment at project configuration;
+  PR #6's Vercel Preview passes, confirming the repo fix. The old private log remains dashboard-only.
 - Catalogue/manifest/Paragon Mind live truth updated; cache **v91**; suite-games **233 checks**;
   all five repository suites green. Dedicated jsdom playthrough: Spin selection → animated result;
   Chess e2-e4 → legal computer reply; all game pages boot without runtime errors.

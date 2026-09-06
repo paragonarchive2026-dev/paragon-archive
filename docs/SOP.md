@@ -2738,6 +2738,6 @@ Use the applicable subset for each change:
 
 **Executed:** D-236 — live `games/spin/` Precision Wheel and `games/chess/` full-rule computer match; shared honest in-game performance board; premium Cards visual pass; catalogue/manifest/cache/tests/docs wiring; Paragon Mind no longer keeps newly live Chess in the construction queue; Vercel project config corrected. Firebase not added because local free play/static assets do not consume Supabase game rows, and a second auth/data backend would duplicate authority.
 
-**Acceptance state:** repository implementation and automated/jsdom playthrough complete. Cards, Spin and Chess each remain `buildProgress: 90` until the owner performs the requested demo pass. Exact Vercel dashboard log/redeploy confirmation remains owner-side because the private Vercel session is not available to this workspace.
+**Acceptance state:** repository implementation and automated/jsdom playthrough complete. Cards, Spin and Chess each remain `buildProgress: 90` until the owner performs the requested demo pass. The exact old Vercel dashboard log remains private, but PR #6's Vercel Preview passes after the config correction, confirming the repository fix.
 
 **Execution:** Recorded in EOP `v1.08.0`; detailed handoff in `docs/P-117-GAMES-WAVE.md`.

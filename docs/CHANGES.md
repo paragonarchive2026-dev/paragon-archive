@@ -24,8 +24,8 @@ logic remains unchanged except finished sessions now carry explicit game-board p
 **Vercel recovery:** PR #5 was already merged into `main`. GitHub shows its preview and production
 deployments failed immediately and routes the current failure to Vercel project configuration.
 `vercel.json` contained non-schema keys (`$comment`, `errorDocument`); they were removed and the
-official `$schema` key was added. The exact private dashboard build log still requires the owner's
-Vercel session, but the repository-side configuration blocker is corrected in this wave.
+official `$schema` key was added. The exact private failed-build log still requires the owner's Vercel session; however, PR #6's
+Vercel Preview now passes with this corrected config, confirming the repository-side blocker is fixed.
 
 **Storage architecture:** free games keep board/session data on-device and game assets on the
 static host/CDN, so they do not consume Supabase rows. Firebase is not added: it would duplicate the
