@@ -3861,6 +3861,15 @@ function kycCardMarkup(compact = false) {
     <button type="button" class="primary-action" onclick="openKycPayoutDraft()">Start KYC</button>
   </div>`;
 }
+function paragonCoinPublicConfig() {
+  /* Public coin config: window.ParagonCoinPublicConfig wins (server), then the
+     team-desk local mirror paragonCoinPublicConfig.v1 (P-114 payment accounts). */
+  try {
+    const mirrored = JSON.parse(window.localStorage.getItem("paragonCoinPublicConfig.v1") || "null");
+    if (mirrored) return mirrored;
+  } catch (_) {}
+  return window.ParagonCoinPublicConfig || {};
+}
 function opayMoniepointPayMarkup() {
   const esc = (v) => String(v || "").replace(/[<>]/g, "");
   /* P-114 owner rule: NOTHING here assumes OPay or Moniepoint until the user's KYC is
@@ -3873,7 +3882,7 @@ function opayMoniepointPayMarkup() {
       <div style="margin-top:8px"><button type="button" class="primary-action" onclick="openKycPayoutDraft()">${kycState().status === "pending" ? "Review KYC details" : "Start KYC"}</button></div></div></div>
     </div>`;
   }
-  const p = (window.ParagonCoinPublicConfig || {}).provider || {};
+  const p = paragonCoinPublicConfig().provider || {};
   const rail = kycState().rail === "moniepoint" ? "moniepoint" : "opay";
   const railName = rail === "moniepoint" ? "Moniepoint" : "OPay";
   /* Real account numbers come from public config once the team sets them; until then a clear
@@ -8246,10 +8255,6 @@ function bindScrollColor() {
       .observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ["class", "hidden"] });
   }
   document.addEventListener("DOMContentLoaded", () => { setInterval(() => { syncPopupLock(); syncAiFab(); }, 300); });
-  /* Immediate first sync (app.js is deferred, so the FAB already exists in the DOM). */
-  syncPopupLock();
-  syncAiFab();
-  document.addEventListener("click", () => { syncPopupLock(); syncAiFab(); }, true);
 
   /* P-114 — the floating Paragon Mind button lives ONLY on the three main tabs
      (Websites · Updates · Account). Inside website details, Search, previews and every
@@ -8269,6 +8274,10 @@ function bindScrollColor() {
   }
   window.syncParagonAiFab = syncAiFab;
   window.addEventListener("hashchange", syncAiFab);
+  document.addEventListener("click", () => { syncPopupLock(); syncAiFab(); }, true);
+  /* Immediate first sync — runs AFTER every helper above is defined. */
+  syncPopupLock();
+  syncAiFab();
 })();
 
 /* P-113 — the AI brain calls this (if present) when the user sends a question, so the
