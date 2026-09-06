@@ -5,10 +5,10 @@ ecosystem — a curated, honestly-labelled catalogue of Paragon-built websites w
 reviews, collections, coins, weekly leaderboards and a built-in AI.
 
 - Entry point: `paragon-archive.html`
-- Games hub plan: [`GAMES-BUILD-PLAN.md`](GAMES-BUILD-PLAN.md) · first game: `games/cards/`
+- Games build plan: [`GAMES-BUILD-PLAN.md`](GAMES-BUILD-PLAN.md)
 - Documentation hub: `paragon-archive-hub.html`
 - Quiz product: `paragon-quiz/`
-- Games: `games/` (framework in `games/engine.js` + `games/manifest.js`; Paragon Cards in `games/cards/`)
+- Games: `games/` (shared framework plus live Cards, Spin and Chess rooms)
 - Team dashboard: `team/desk.html` (routed `?page=…`)
 - Community board: `community-board.html` · Developer portal: `developer-portal.html`
 
@@ -21,9 +21,11 @@ reviews, collections, coins, weekly leaderboards and a built-in AI.
   Q&A, and the full AI Mode page. It knows the catalogue, coins & KYC, the leaderboard,
   365-day Daily Goals, accounts/guests, the Updates feed, the official FAQ and every
   documentation page — and it handles pleasantries and general chat naturally.
-- 🃏 **Paragon Cards** — the first game on the shared game framework: **Higher · Lower**
-  against the house and **Blackjack 21** against the dealer. Seeded, replayable decks,
-  save/resume, local bests — free forever, with the stake path built but switched off.
+- **Paragon Cards, Spin and Chess** — three live rooms on one shared game framework. Cards
+  includes Higher · Lower and Blackjack 21; Spin is a six-turn seeded Precision Wheel duel;
+  Chess is a full-rule local computer match at three strengths. All save/resume, work for guests
+  with zero coins, and use game-specific General / Free / Bet / Multiplayer performance views
+  without inventing online players. Cards also received a tactile felt-and-walnut visual pass.
 - 🎯 **365-day Daily Goals** — three new deterministic missions every day for a full year
   (365 unique day-sets). Complete all three to earn exactly **1 leaderboard point** that day;
   guests bank the point and it posts automatically when they sign in before the session ends.
@@ -46,7 +48,9 @@ python3 -m http.server 8080
 ```
 
 Optional backend: add your Supabase URL + anon key in `config/supabase.js` (auth, sync,
-finance RPCs). Everything degrades honestly to local/device state without it.
+finance RPCs). Free games run locally/offline and static assets come from the host/CDN, so they do
+not consume Supabase database space. Firebase is not required and would duplicate the current auth
+and data stack. Everything degrades honestly to local/device state without Supabase.
 
 ## Test
 
@@ -65,8 +69,11 @@ node tests/suite-games.test.js
 | `app.js` | Main app: navigation, search, details, Account/Updates, coins, KYC, goals |
 | `ai/paragon-archive-ai.js` | Paragon Mind — the one local AI core (see `docs/AI-BRAIN.md`) |
 | `paragon-leaderboards.js` | Weekly leaderboard engine + daily-goal points |
-| `games/engine.js` | Shared game framework — sessions, seeded RNG, stake gate, bests, audit (P-114/116) |
+| `games/engine.js` | Shared game framework — sessions, seeded RNG, stake gate, bests, audit (P-114/116/117) |
 | `games/manifest.js` | Game registry: what is live, what is planned, stake limits |
+| `games/cards/` | Higher · Lower and Blackjack 21 |
+| `games/spin/` | Precision Wheel free duel |
+| `games/chess/` | Full-rule chess with three local computer strengths |
 | `paragon-wallets.js` | Withdrawals, payout state machine, claims, risk, audit |
 | `data/*.js` | Catalogue + updates data |
 | `style.css` | The whole design system |

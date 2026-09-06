@@ -5687,3 +5687,33 @@ Main contains both full lineages from base `e8167bc`; the stale-download problem
 
 ### Result
 The games programme has its shared framework and its first honest, playable, offline-capable game, with the money path built and gated exactly as the platform law demands. Next in the build order (GAMES-BUILD-PLAN §3): **Arcade → Chess → (Quiz onto the engine) → Cards second rule wave → Bet LAST**; stake UI + `paragon_game_settle` server contract when the owner turns real money on.
+
+## v1.08.0 — 2026-09-06 — Premium games P-117: Paragon Spin + Paragon Chess (D-236)
+
+**Request reference:** SOP §11, Prompt P-117 (owner: keep improving previous games into realistic, high-resolution environments; build Paragon Spin then Paragon Chess; free player-vs-computer for guests/zero balance, future Bet human 1v1; game-specific General/Free/Bet/Multiplayer leaderboard; stake UI/settle only when real money is ON; advise on Firebase/Supabase capacity).
+**Status:** `[x]` repository implementation complete; owner demo and Vercel redeploy confirmation pending.
+
+### Executed actions
+
+1. **Paragon Spin (`games/spin/`).** Built a six-turn Precision Wheel duel on twelve sectors. Player and house predictions lock before one shared seeded result; a symmetric distance function scores exact 120, adjacent 60, two away 25 and farther 0. Rotation lands deterministically on the selected result; all house/result/turn draws use `ParagonGames`; game state resumes mid-turn; result carries board points and the standard seed/action hash. The home and table use a high-resolution 1376×768 photographic club hero plus a machined-brass/enamel CSS wheel—no slot-machine money cues, avatars or fake players. Spin is free-only in manifest and runtime.
+2. **Paragon Chess (`games/chess/`).** Built an independent full-rule chess core and board room: 64-square position model; legal move filtering by king safety; attacks/check/checkmate/stalemate; both castlings; en passant; queen/rook/bishop/knight promotion; fifty-move, threefold and insufficient-material draws. Added Casual/Club/Master alpha-beta computer search, seeded tie choice, position hints, captured-piece rows, unambiguous move ledger, responsive walnut/maple tournament board and exact resume. Player has White; future staked play is explicitly human-only and remains gated.
+3. **Shared in-game board.** Added `ParagonGameKit.performanceRows()` and `mountLeaderboard()`. Every room can show General / Free / Bet / Multiplayer. General combines actual available mode points per player; free results are local game performance and never call the money-paying `ParagonLeaderboards`. An optional production adapter must mark rows `verified: true`; absent server data produces an honest empty state, never invented “searching” people.
+4. **Cards realism pass.** Reworked Paragon Cards into a tactile felt/walnut private table with paper-textured faces, brass actions and a real table hero. Added the shared in-game board and explicit `boardPoints` metadata at finish; card rules and previous settlement fixes are preserved.
+5. **Catalogue/intelligence truth.** Spin and Chess manifest/catalogue rows point to real pages with `live: true`, both at buildProgress 90 pending owner demo. Cards stays 90. Paragon Mind now excludes already-live sites from construction-demand rankings, so Chess answers “already real” rather than “closest to construction.”
+6. **Vercel deployment diagnosis/fix.** PR #5 is already merged as main commit `52205c8`. GitHub deployment status shows immediate Preview and Production failures and sends the current failure to Vercel project configuration. The P-113 `vercel.json` introduced `$comment` and `errorDocument`; P-117 removes both unsupported keys and adds Vercel’s official `$schema`. `npx vercel inspect … --logs` could not authenticate because this workspace has no private Vercel credentials, so exact dashboard log and redeploy success remain owner-side.
+7. **Storage/provider decision.** Firebase was not added. Free sessions live on-device and game assets live on the static host/CDN, so free play consumes no Supabase match rows. Duplicating Supabase Auth/RLS/sync in Firebase would increase complexity rather than relieve capacity. Reserve compact Supabase records for authenticated presence, verified multiplayer and server-authoritative settlement if/when those modes activate.
+8. **Offline/tests/docs.** Cache v90 → **v91**, precaching both new rooms and hero assets. `tests/suite-games.test.js` 143 → **233 checks** covering Spin scoring/landing, full Chess lines (initial legality, Fool’s Mate, castling, en passant, four promotions, pins, stalemate, material draw and legal AI), game boards, catalogue/cache and Vercel config. Core, UX, AI-Team, Finance (107) and Games (233) suites pass. Dedicated jsdom pages boot; Spin selection → animated reveal and Chess e2-e4 → local computer reply complete without runtime errors.
+
+### Acceptance boundaries
+
+- [x] Guest, member and zero-coin free access; no coin calls in Spin/Chess clients.
+- [x] Each game has its own home/environment, rules, local record and game-specific board.
+- [x] Bet/Multiplayer views contain no sample names and state honestly that server modes are off.
+- [x] No stake amount input, live search or browser settlement was introduced.
+- [x] No `window.alert/prompt/confirm`; all random gameplay choices are seeded.
+- [ ] Owner visual/gameplay demo; only then Cards/Spin/Chess may move 90 → 100.
+- [ ] Exact Vercel build log and successful production redeploy require the owner's Vercel dashboard session.
+
+### Result
+
+The owner can now review three distinct real-feeling rooms: Cards, Spin and Chess. Spin and Chess are complete free releases on the shared engine, while every money/online promise remains honestly absent. Arcade is now the next unbuilt game, followed by Quiz-on-engine, Cards wave 2 and Bet last.

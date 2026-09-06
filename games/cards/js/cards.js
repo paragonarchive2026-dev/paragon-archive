@@ -134,7 +134,7 @@
   }
 
   /* The house's rule for Higher·Lower — a fixed, published policy, not a hidden advantage:
-     low card → call higher, high card → call lower, the two middle ranks are a coin flip
+     low card → call higher, high card → call lower, the middle rank (7) is a coin flip
      taken from the seeded RNG so the whole game stays replayable. */
   function houseCallFor(rank, rng) {
     if (rank <= 6) return "higher";
@@ -235,6 +235,8 @@
       /* Personal-best verdict comes from the engine inside ui.finish — never computed here. */
       ui.finish({
         outcome: outcome,
+        score: state.myScore,
+        meta: { boardPoints: state.myScore, competitionMode: "free", houseScore: state.houseScore },
         lines: [
           "You " + state.myScore + " · House " + state.houseScore,
           "Best streak this game: " + state.myBestStreak + " (" + Math.min(5, state.myBestStreak) + "x multiplier)",
@@ -428,6 +430,8 @@
         /* Personal-best verdict comes from the engine inside ui.finish — never computed here. */
         ui.finish({
           outcome: outcome,
+          score: state.chips,
+          meta: { boardPoints: state.chips, competitionMode: "free", hands: state.hands },
           lines: [
             (outcome === "win" ? "Shoe won — " : "Shoe over — ") + state.chips + " play chips after " + state.hands + " hands",
             "Target was " + GOAL_CHIPS + " play chips from a 100-chip start",

@@ -181,10 +181,132 @@
   color: var(--text);
 }
 
+/* ------------------------------------------------------------------ P-117 realism pass */
+.cards-home,
+.cards-play { background: #080d0b; }
+.cards-home .header,
+.cards-play .header { background: rgba(7,13,11,.88); border-image: linear-gradient(90deg,transparent,rgba(198,164,91,.55),transparent) 1; }
+.cards-home .nav-link.active,
+.cards-play .nav-link.active { color:#17120a; background:linear-gradient(135deg,#ecd79c,#a97d34); }
+.cards-home .hero {
+  width:min(1180px,100%);
+  max-width:none;
+  min-height:590px;
+  padding-inline:max(22px,calc((100vw - 1120px)/2));
+  background:
+    radial-gradient(circle at 82% 38%,rgba(20,113,80,.3),transparent 29%),
+    linear-gradient(110deg,#080d0b 0%,#0a1511 62%,#06100c 100%);
+}
+.cards-home .hero-badge { color:#d9bf80; border-color:rgba(205,173,104,.34); background:rgba(205,173,104,.08); font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
+.cards-home .hero-title { color:#f1eadc; font-family:Georgia,"Times New Roman",serif; font-size:clamp(42px,6vw,70px); font-weight:500; line-height:1; letter-spacing:-.045em; }
+.cards-home .hero-highlight { background:linear-gradient(120deg,#ead7a4,#b88a40); -webkit-background-clip:text; background-clip:text; }
+.cards-home .hero-subtitle { color:#989e99; line-height:1.7; }
+.cards-home .btn-primary { color:#171209; background:linear-gradient(135deg,#eedca7,#aa7d34); box-shadow:0 12px 32px rgba(0,0,0,.38); }
+.cards-home .btn-secondary { border-color:#34463f; background:#111b17; }
+.cards-home .hero-stats { color:#e5ded1; }
+.cards-home .stat-label { color:#69756f; text-transform:uppercase; letter-spacing:.08em; font-size:9px; }
+.cards-hero-visual { min-height:390px; display:grid; place-items:center; }
+.cards-hero-table {
+  position:relative;
+  width:min(430px,90vw);
+  height:310px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border:14px solid #432a1a;
+  border-radius:48% 48% 15px 15px;
+  background:
+    radial-gradient(ellipse at 50% 25%,rgba(255,255,255,.08),transparent 48%),
+    repeating-linear-gradient(4deg,transparent 0 6px,rgba(0,0,0,.03) 7px 8px),
+    #075037;
+  box-shadow:0 32px 55px rgba(0,0,0,.52),inset 0 0 0 3px #b48a4c,inset 0 0 45px rgba(0,0,0,.48),0 0 0 1px #18110c;
+  transform:perspective(900px) rotateX(5deg) rotateY(-4deg);
+}
+.cards-table-label { position:absolute; top:24px; color:rgba(239,219,172,.54); font-size:8px; font-weight:900; letter-spacing:.18em; }
+.cards-hero-hand { display:flex; gap:14px; transform:translateY(5px) rotate(-2deg); }
+.cards-hero-hand .pcard { width:108px; height:154px; }
+.cards-table-rule { position:absolute; right:24px; bottom:20px; display:grid; text-align:right; color:#d6bd82; }
+.cards-table-rule span { font-size:7px; font-weight:900; letter-spacing:.18em; }
+.cards-table-rule strong { font-family:Georgia,serif; font-size:21px; font-weight:500; }
+.cards-home .section-title { color:#ece5d8; font-family:Georgia,serif; font-weight:500; }
+.cards-home .section-subtitle { color:#77817c; }
+.cards-home .mode-card,
+.cards-home .step-card { border-color:#27332e; border-radius:5px; background:#101713; box-shadow:0 18px 38px rgba(0,0,0,.2); }
+.cards-home .mode-card:hover { border-color:#b08a49; background:#141e19; }
+.cards-home .mode-card h3,
+.cards-home .step-title { color:#eae3d7; font-family:Georgia,serif; font-size:20px; font-weight:500; }
+.cards-home .mode-card p,
+.cards-home .step-desc { color:#7b8680; line-height:1.65; }
+.cards-home .mode-card .mode-tag { color:#9bc4ad; border-color:rgba(112,170,139,.25); background:rgba(112,170,139,.07); font-size:8px; letter-spacing:.13em; }
+.cards-home .step-number { color:#17120a; background:linear-gradient(135deg,#ead69e,#aa7d34); }
+.cards-home .step-icon { color:#c6a45d; font-family:Georgia,serif; font-size:18px; }
+.cards-home .notice-inline { border-color:rgba(198,164,91,.25); border-radius:4px; background:rgba(198,164,91,.06); color:#aba99f; }
+.cards-home .footer,
+.cards-play .footer { background:#080d0b; border-top-color:#26312d; }
+
+.pcard {
+  width:98px;
+  height:140px;
+  border-radius:8px;
+  border:1px solid rgba(65,49,35,.5);
+  background:
+    radial-gradient(circle at 30% 10%,rgba(255,255,255,.92),transparent 36%),
+    repeating-linear-gradient(4deg,rgba(87,65,41,.025) 0 1px,transparent 1px 4px),
+    #f1ecdf;
+  box-shadow:0 12px 20px rgba(0,0,0,.42),inset 0 0 0 3px rgba(255,255,255,.46),inset 0 0 16px rgba(81,57,31,.1);
+  color:#131719;
+}
+.pcard-red { color:#9e2930; }
+.pcard-corner { font-family:Georgia,serif; font-size:14px; }
+.pcard-pip { font-family:Georgia,serif; font-size:38px; text-shadow:0 1px rgba(255,255,255,.7); }
+.pcard-back {
+  border:5px solid #eee4ce;
+  background:
+    repeating-linear-gradient(45deg,transparent 0 5px,rgba(255,255,255,.07) 5px 6px),
+    repeating-linear-gradient(-45deg,#172e47 0 7px,#21415e 7px 14px);
+  box-shadow:0 12px 20px rgba(0,0,0,.45),inset 0 0 0 2px #816f52;
+}
+.pcard-mark { color:rgba(236,225,198,.75); }
+.cards-stage {
+  position:relative;
+  min-height:580px;
+  border:12px solid #3d271a;
+  border-radius:10px;
+  padding:30px;
+  background:
+    radial-gradient(ellipse at 50% 12%,rgba(255,255,255,.065),transparent 52%),
+    repeating-linear-gradient(3deg,transparent 0 6px,rgba(0,0,0,.018) 7px),
+    #064b35;
+  box-shadow:0 28px 55px rgba(0,0,0,.46),inset 0 0 0 3px rgba(190,151,82,.46),inset 0 0 58px rgba(0,0,0,.48);
+}
+.cards-play .gk-hud { border-radius:5px; border-color:#293630; background:#0f1713; }
+.cards-play .gk-rules { border-color:#293630; border-radius:5px; background:#0f1713; }
+.cards-play .gk-btn-primary { color:#17120a; border-color:#c5a25c; background:linear-gradient(145deg,#ead69c,#a97b33); }
+.cards-play .gk-btn { border-radius:3px; }
+.hl-table { grid-template-columns:1fr 190px; gap:18px; }
+.hl-side { border-color:rgba(229,210,167,.16); border-radius:4px; background:rgba(1,32,22,.42); box-shadow:inset 0 1px rgba(255,255,255,.025); }
+.hl-side-title,
+.bj-hand-title { color:rgba(232,216,181,.57); }
+.hl-score { color:#f0e7d8; font-family:Georgia,serif; font-weight:500; }
+.hl-verdict,
+.bj-message { color:#e5ddcf; font-family:Georgia,serif; font-size:17px; font-weight:500; }
+.hl-note,
+.bj-legend { color:rgba(232,216,181,.48); }
+.bj-table { gap:20px; padding:18px; border-color:rgba(229,210,167,.15); border-radius:5px; background:rgba(1,32,22,.35); box-shadow:inset 0 0 35px rgba(0,0,0,.18); }
+.bj-cards { min-height:142px; }
+
+@media (max-width: 720px) {
+  .cards-home .hero { min-height:0; }
+  .cards-hero-visual { min-height:330px; }
+  .cards-hero-table { width:min(390px,94vw); height:280px; }
+  .hl-table { grid-template-columns:1fr; }
+  .cards-stage { padding:18px; border-width:8px; }
+}
 @media (max-width: 560px) {
-  .hl-table { grid-template-columns: 1fr; }
-  .pcard { width: 68px; height: 98px; }
-  .pcard-pip { font-size: 24px; }
-  .pcard-corner { font-size: 11px; }
-  .bj-cards { min-height: 102px; }
+  .pcard { width:72px; height:104px; }
+  .pcard-pip { font-size:27px; }
+  .pcard-corner { font-size:11px; }
+  .bj-cards { min-height:108px; }
+  .cards-stage { min-height:480px; padding:13px; }
+  .cards-hero-hand .pcard { width:88px; height:126px; }
 }

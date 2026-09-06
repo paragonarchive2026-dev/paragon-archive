@@ -283,3 +283,40 @@ Invoice, Resume, Recipe, Flash, Files, Travel, Photo, Shop (shopper). Meal Plann
 **Standing gotchas (new):** free play NEVER calls addCoins/spendCoins/recordResult (suite-games greps for it); the stake gate is the only door to `mode: "stake"` and the browser never settles a stake — when real money is switched on, build the stake UI on top of `gate()` + the `paragon_game_settle` contract (plan §4) and add the settle-path checks to suite-finance; play chips ≠ coins in every string; personal bests need a real score (> 0).
 
 **Owner next:** demo pass on Paragon Cards (then buildProgress 90 → 100), then say "build Arcade" (or another game) — the framework absorbs it in one folder.
+
+## 7s. WHERE WE STOPPED — after P-117 / EOP v1.08.0 (2026-09-06) — SPIN + CHESS + GAME ROOMS
+
+**Owner-direct priority completed:** the earlier order said Arcade → Chess, but this prompt explicitly
+ordered **Paragon Spin then Paragon Chess** for review. Both are built and live; Arcade remains next.
+
+- `games/spin/` — Precision Wheel: 12 sectors, 6 turns, player and house lock predictions before
+  one shared seeded result; exact/adjacent/two-away = 120/60/25. Free-only, exact resume, premium
+  brass/enamel private-room UI, photographic hero.
+- `games/chess/` — complete local chess rules (king safety, mate/stalemate, both castlings, en
+  passant, Q/R/B/N promotion, repetition, fifty-move, insufficient material), Casual/Club/Master
+  alpha-beta opponent, hints, captures and move ledger, exact resume, premium walnut club UI.
+- `games/_shared/game-kit.js` — game-specific board with **General / Free / Bet / Multiplayer**.
+  General combines actual mode points. Free performance is local to that game and NEVER enters the
+  money-paying Coins Leaderboard. Online adapter rows require `verified: true`; no adapter means an
+  honest empty state, never fake “searching” users.
+- `games/cards/` — realism pass (felt/walnut table, paper cards, brass details) + same performance
+  board. Cards/Spin/Chess all stay `buildProgress: 90` until the owner demos them.
+- `vercel.json` — removed the newly introduced unsupported `$comment` and `errorDocument` keys and
+  added the official schema. GitHub points the failed main deployment at project configuration;
+  exact private build logs still require a Vercel dashboard session.
+- Catalogue/manifest/Paragon Mind live truth updated; cache **v91**; suite-games **233 checks**;
+  all five repository suites green. Dedicated jsdom playthrough: Spin selection → animated result;
+  Chess e2-e4 → legal computer reply; all game pages boot without runtime errors.
+
+**STANDING MONEY RULE:** there is NO stake input, real matchmaking list or
+`paragon_game_settle` browser wiring in these rooms while real money is OFF. Future Chess Bet is
+human 1v1 only. Never render sample opponents as if real. Use server presence + match records only
+when activated.
+
+**STORAGE DECISION:** do not bolt on Firebase to save Supabase. Free game sessions/assets use local
+storage + static hosting and consume no Supabase rows. Supabase remains the one identity and future
+authoritative match/money store; use compact server records when online modes ship.
+
+**NEXT:** owner demo Cards + Spin + Chess; move each 90 → 100 only after approval. Then build
+**Arcade → Quiz onto engine → Cards wave 2 (solitaire/memory) → Bet last**. See
+`docs/P-117-GAMES-WAVE.md` and each game's `SPEC.md`.

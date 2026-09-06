@@ -75,6 +75,22 @@
     return env;
   }
 
+  function loadSpin(seed) {
+    const env = makeContext(seed);
+    run("games/manifest.js", env.context);
+    run("games/engine.js", env.context);
+    run("games/spin/js/spin.js", env.context);
+    return env;
+  }
+
+  function loadChess(seed) {
+    const env = makeContext(seed);
+    run("games/manifest.js", env.context);
+    run("games/engine.js", env.context);
+    run("games/chess/js/chess.js", env.context);
+    return env;
+  }
+
   const read = file => fs.readFileSync(path.join(root, file), "utf8");
   const exists = file => fs.existsSync(path.join(root, file));
 
@@ -83,17 +99,23 @@
   /* ---------- 1. Files, identity headers, platform shell rules ---------- */
   ["games/engine.js", "games/manifest.js", "games/_shared/game-kit.js", "games/_shared/game-kit.css",
     "games/cards/index.html", "games/cards/play.html", "games/cards/css/style.css",
-    "games/cards/js/cards.js", "games/cards/js/home.js"].forEach(file => {
+    "games/cards/js/cards.js", "games/cards/js/home.js",
+    "games/spin/index.html", "games/spin/play.html", "games/spin/css/style.css", "games/spin/js/spin.js", "games/spin/js/home.js", "games/spin/assets/spin-table-hero.jpg",
+    "games/chess/index.html", "games/chess/play.html", "games/chess/css/style.css", "games/chess/js/chess.js", "games/chess/js/home.js", "games/chess/assets/chess-club-hero.jpg"].forEach(file => {
     check(exists(file), file + " exists");
   });
 
   ["games/engine.js", "games/manifest.js", "games/_shared/game-kit.js", "games/cards/js/cards.js",
-    "games/cards/js/home.js", "games/_shared/game-kit.css", "games/cards/css/style.css"].forEach(file => {
+    "games/cards/js/home.js", "games/_shared/game-kit.css", "games/cards/css/style.css",
+    "games/spin/js/spin.js", "games/spin/js/home.js", "games/spin/css/style.css",
+    "games/chess/js/chess.js", "games/chess/js/home.js", "games/chess/css/style.css"].forEach(file => {
     check(read(file).includes("PARAGON ARCHIVE — EXPORT IDENTITY"), file + " carries the export identity header");
   });
 
   const gameSources = ["games/engine.js", "games/manifest.js", "games/_shared/game-kit.js",
-    "games/cards/js/cards.js", "games/cards/js/home.js", "games/cards/index.html", "games/cards/play.html"];
+    "games/cards/js/cards.js", "games/cards/js/home.js", "games/cards/index.html", "games/cards/play.html",
+    "games/spin/js/spin.js", "games/spin/js/home.js", "games/spin/index.html", "games/spin/play.html",
+    "games/chess/js/chess.js", "games/chess/js/home.js", "games/chess/index.html", "games/chess/play.html"];
   gameSources.forEach(file => {
     check(!/window\.(alert|prompt|confirm)\s*\(/.test(read(file)), file + " has no browser dialogs");
   });
@@ -104,6 +126,10 @@
   const cardsSource = read("games/cards/js/cards.js");
   check(!/addCoins|spendCoins|coinBalance|recordResult|realMoney/i.test(cardsSource),
     "cards.js never touches coins, balances or leaderboard points — free play stays free");
+  const spinSource = read("games/spin/js/spin.js");
+  const chessSource = read("games/chess/js/chess.js");
+  check(!/Math\.random\s*\(/.test(spinSource) && !/Math\.random\s*\(/.test(chessSource), "Spin and Chess never call Math.random — gameplay draws/ties use the seeded engine");
+  check(!/addCoins|spendCoins|recordResult|paragon_game_settle/.test(spinSource + chessSource), "Spin and Chess free clients never move coins, record prize-board results or settle stakes");
 
   /* ---------- 2. Manifest honesty ---------- */
   const manifestEnv = makeContext({});
@@ -116,7 +142,13 @@
   check(cardsEntry.minStake === 100 && cardsEntry.maxStake === 10000 && cardsEntry.stakeStep === 50,
     "Paragon Cards honours the platform stake limits (100–10,000 in steps of 50)");
   check(Array.isArray(cardsEntry.variants) && cardsEntry.variants.length === 2, "Paragon Cards ships two rule sets");
-  check(cardsEntry.variants.every(v => Array.isArray(v.rules) && v.rules.length >= 4), "every rule set publishes its rules (one-tap rules card)");
+  check(cardsEntry.variants.every(v => Array.isArray(v.rules) && v.rules.length >= 4), "every Cards rule set publishes its rules (one-tap rules card)");
+  const spinEntry = manifest.find("spin");
+  const chessEntry = manifest.find("chess");
+  check(spinEntry && spinEntry.status === "live" && spinEntry.path === "games/spin/index.html", "Paragon Spin is live only at its real built page");
+  check(spinEntry.supportsStake === false && spinEntry.variants[0].rules.length >= 5, "Paragon Spin is explicitly free-only with published rules");
+  check(chessEntry && chessEntry.status === "live" && chessEntry.path === "games/chess/index.html", "Paragon Chess is live only at its real built page");
+  check(chessEntry.supportsStake === true && chessEntry.variants[0].rules.length >= 5, "Paragon Chess keeps future stake capability gated and publishes full free rules");
   check(manifest.live().every(g => !!g.path && exists(g.path)), "every game marked live has a real page on disk");
   check(manifest.planned().every(g => !g.path), "planned games never claim a built page (P-009 honesty)");
   check(manifest.STAKE_RULE.houseFeePct === 5, "the manifest restates the 5% house fee used by the stake desk");
@@ -321,7 +353,96 @@
   check(rules.houseCallFor(7, () => 0.1) === "higher", "the house coin-flips the middle ranks from the seeded RNG");
   check(rules.houseCallFor(7, () => 0.9) === "lower", "the same middle rank can flip the other way");
 
-  /* ---------- 11. Game screen shell (game-kit) ---------- */
+  /* ---------- 11. Paragon Spin rules + free-only boundary ---------- */
+  const spinEnv = loadSpin({});
+  const spinRules = spinEnv.context.ParagonSpin;
+  check(!!spinRules, "spin.js exports its pure Precision Wheel rules");
+  check(spinRules.circularDistance(12, 1, 12) === 1, "wheel distance wraps: sector 12 is beside sector 1");
+  check(spinRules.circularDistance(2, 12, 12) === 2, "wheel distance uses the shorter circular route");
+  check(spinRules.scorePrediction(7, 7).points === 120, "an exact Spin prediction scores 120");
+  check(spinRules.scorePrediction(12, 1).points === 60, "an adjacent Spin prediction scores 60 across the wrap");
+  check(spinRules.scorePrediction(2, 12).points === 25, "two sectors away scores 25");
+  check(spinRules.scorePrediction(3, 9).points === 0, "a distant Spin prediction scores zero");
+  for (let sector = 1; sector <= 12; sector += 1) {
+    const rotation = spinRules.rotationForResult(137, sector, 5);
+    const finalModulo = ((rotation % 360) + 360) % 360;
+    const expected = ((-(sector - 1) * 30) % 360 + 360) % 360;
+    check(finalModulo === expected, "Spin rotation lands exactly on sector " + sector);
+  }
+  const spinFree = spinEnv.context.ParagonGames.start({ gameKey: "spin", variant: "wheel-duel", mode: "free" });
+  check(spinFree.ok && spinFree.session.stakeCoins === 0, "a guest with no coin balance can start Paragon Spin");
+  const spinStake = spinEnv.context.ParagonGames.start({ gameKey: "spin", variant: "wheel-duel", mode: "stake", stakeCoins: 500 });
+  check(!spinStake.ok && spinStake.verdict.reasons.some(r => r.code === "no-stake-support"), "Paragon Spin refuses stakes because it is free-only by design");
+
+  /* ---------- 12. Paragon Chess full-rule engine + local AI ---------- */
+  const chessEnv = loadChess({});
+  const chess = chessEnv.context.ParagonChess;
+  check(!!chess, "chess.js exports its pure full-rule engine");
+  let position = chess.createInitialState();
+  check(position.board.length === 64 && chess.legalMoves(position, "w").length === 20, "the initial chess position has exactly 20 legal White moves");
+  check(chess.squareName(chess.parseSquare("e4")) === "e4", "chess square names round-trip");
+
+  function play(from, to, promotion) {
+    const move = chess.findMove(position, from, to, promotion);
+    check(!!move, from + "-" + to + " is legal in the regression line");
+    position = chess.applyMove(position, move);
+    return move;
+  }
+  play("f2", "f3"); play("e7", "e5"); play("g2", "g4"); play("d8", "h4");
+  const mate = chess.gameStatus(position);
+  check(mate.over && mate.kind === "checkmate" && mate.winner === "b", "Fool's Mate is recognized as Black checkmate");
+
+  position = chess.createInitialState();
+  play("e2", "e4"); play("e7", "e5"); play("g1", "f3"); play("b8", "c6"); play("f1", "e2"); play("g8", "f6");
+  const castle = chess.findMove(position, "e1", "g1");
+  check(castle && castle.castle === "K", "legal king-side castling is generated after the path clears");
+  position = chess.applyMove(position, castle);
+  check(position.board[chess.parseSquare("g1")] === "K" && position.board[chess.parseSquare("f1")] === "R", "castling moves both king and rook");
+
+  position = chess.createInitialState();
+  play("e2", "e4"); play("a7", "a6"); play("e4", "e5"); play("d7", "d5");
+  const ep = chess.findMove(position, "e5", "d6");
+  check(ep && ep.enPassant, "en passant is generated immediately after a two-square pawn move");
+  position = chess.applyMove(position, ep);
+  check(position.board[chess.parseSquare("d5")] === null && position.board[chess.parseSquare("d6")] === "P", "en passant removes the passed pawn from its real square");
+
+  const promotionState = chess.createInitialState();
+  promotionState.board = Array(64).fill(null);
+  promotionState.board[chess.parseSquare("e1")] = "K";
+  promotionState.board[chess.parseSquare("e8")] = "k";
+  promotionState.board[chess.parseSquare("a7")] = "P";
+  promotionState.turn = "w"; promotionState.castling = ""; promotionState.enPassant = null; promotionState.positions = [chess.positionKey(promotionState)];
+  const promotions = chess.legalMoves(promotionState, "w").filter(m => m.from === chess.parseSquare("a7") && m.to === chess.parseSquare("a8"));
+  check(promotions.length === 4 && ["q","r","b","n"].every(piece => promotions.some(m => m.promotion === piece)), "promotion offers queen, rook, bishop and knight");
+
+  const pinState = chess.createInitialState();
+  pinState.board = Array(64).fill(null);
+  pinState.board[chess.parseSquare("e1")] = "K";
+  pinState.board[chess.parseSquare("e2")] = "R";
+  pinState.board[chess.parseSquare("e8")] = "r";
+  pinState.board[chess.parseSquare("a8")] = "k";
+  pinState.turn = "w"; pinState.castling = ""; pinState.enPassant = null; pinState.positions = [chess.positionKey(pinState)];
+  check(!chess.legalMoves(pinState, "w").some(m => m.from === chess.parseSquare("e2") && m.to === chess.parseSquare("d2")), "a pinned rook cannot expose its king to check");
+
+  const stale = chess.createInitialState();
+  stale.board = Array(64).fill(null);
+  stale.board[chess.parseSquare("a8")] = "k";
+  stale.board[chess.parseSquare("c6")] = "K";
+  stale.board[chess.parseSquare("c7")] = "Q";
+  stale.turn = "b"; stale.castling = ""; stale.enPassant = null; stale.positions = [chess.positionKey(stale)];
+  check(chess.gameStatus(stale).kind === "stalemate", "a known stalemate position is recognized as a draw");
+
+  const kingsOnly = chess.createInitialState();
+  kingsOnly.board = Array(64).fill(null);
+  kingsOnly.board[chess.parseSquare("a1")] = "K";
+  kingsOnly.board[chess.parseSquare("h8")] = "k";
+  kingsOnly.turn = "w"; kingsOnly.castling = ""; kingsOnly.positions = [chess.positionKey(kingsOnly)];
+  check(chess.gameStatus(kingsOnly).kind === "insufficient-material", "king versus king is an automatic material draw");
+  const aiPosition = chess.createInitialState();
+  const aiMove = chess.chooseAiMove(aiPosition, "club", () => 0.25);
+  check(!!aiMove && chess.legalMoves(aiPosition, "w").some(m => m.from === aiMove.from && m.to === aiMove.to), "the local Club AI always returns a legal move");
+
+  /* ---------- 13. Game screen shell + honest in-game leaderboard ---------- */
   const kitSource = read("games/_shared/game-kit.js");
   check(kitSource.includes("STAKE · LOCKED"), "the HUD shows an honest locked-stake chip");
   check(kitSource.includes("FREE PLAY"), "the HUD always shows the mode chip");
@@ -329,7 +450,16 @@
   check(kitSource.includes("Carry on where you left off?"), "the shell offers to resume an unfinished game");
   check(kitSource.includes("seed"), "the result overlay prints the session seed + log hash (auditable results)");
   check(kitSource.includes("onSettled") && !/isBest:\s*!!\(opts\.isBest\)/.test(kitSource), "the personal-best verdict on the result card comes from the engine, never from the game");
-  check(kitSource.includes("scoreUnit") && !kitSource.includes("<small>points</small>"), "the result card prints the variant's own score unit (points vs play chips)");
+  check(kitSource.includes("scoreUnit") && kitSource.includes("variantRow && variantRow.scoreUnit"), "the result card prints the variant's own score unit (points vs play chips)");
+  check(kitSource.includes("General") && kitSource.includes("Free") && kitSource.includes("Bet") && kitSource.includes("Multiplayer"), "every game can render the requested General / Free / Bet / Multiplayer board views");
+  check(kitSource.includes("verified !== true") && kitSource.includes("No real results"), "the in-game board refuses fake online names and shows an honest empty state");
+  const boardFixture = loadEngine({});
+  run("games/_shared/game-kit.js", boardFixture.context);
+  const localResult = boardFixture.context.ParagonGames.start({ gameKey: "spin", variant: "wheel-duel", mode: "free", displayName: "Local player" });
+  localResult.api.finish({ outcome: "win", score: 220, meta: { boardPoints: 220, competitionMode: "free" } });
+  const localRows = boardFixture.context.ParagonGameKit.performanceRows("spin", "general");
+  check(localRows.length === 1 && localRows[0].player === "Local player" && localRows[0].points === 220, "General includes real free performance from this game");
+  check(boardFixture.context.ParagonGameKit.performanceRows("spin", "bet").length === 0, "Bet stays empty instead of inventing searching opponents while the server is off");
   const manifestSource = read("games/manifest.js");
   check(/key: "blackjack"[\s\S]{0,200}scoreUnit: "play chips"/.test(manifestSource), "Blackjack declares its unit as play chips");
   check(!/isBest:\s*!bestBefore/.test(cardsSource), "cards.js no longer computes its own personal-best verdict");
@@ -357,6 +487,19 @@
   check(cardsRow.includes("live: true"), "Paragon Cards is marked live in the catalogue");
   const progress = Number((cardsRow.match(/buildProgress:\s*(\d+)/) || [])[1] || 0);
   check(progress > 0 && progress < 100, "buildProgress stays below 100 until the owner's demo pass (kit acceptance rule)");
+  [
+    { name: "Paragon Spin", path: "games/spin/index.html" },
+    { name: "Paragon Chess", path: "games/chess/index.html" }
+  ].forEach(game => {
+    const row = catalogue.split("\n").find(line => line.includes('name: "' + game.name + '"'));
+    check(!!row && row.includes('siteUrl: "' + game.path + '"') && row.includes("live: true"), game.name + " catalogue row opens its real live game room");
+    const built = Number((row.match(/buildProgress:\s*(\d+)/) || [])[1] || 0);
+    check(built > 0 && built < 100, game.name + " remains below 100 until the owner's demo pass");
+  });
+  const sw = read("service-worker.js");
+  check(sw.includes("paragon-archive-v91") && sw.includes('"./games/spin/play.html"') && sw.includes('"./games/chess/play.html"'), "cache v91 precaches both new free game rooms for offline play");
+  const vercel = JSON.parse(read("vercel.json"));
+  check(!("errorDocument" in vercel) && !("$comment" in vercel), "Vercel config removes the unsupported keys that blocked deployment");
 
   console.log("\n🎉 " + passed + " games checks passed.");
 })();

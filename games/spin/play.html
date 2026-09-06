@@ -1,0 +1,59 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: play.html
+  EXPECTED PROJECT PATH: /games/spin/play.html
+  ROLE: Paragon Spin Precision Wheel play room. Uses the shared game HUD for free/stake law,
+        rules, resume, quit and audited results; js/spin.js owns only wheel rules and drawing.
+  RESTORE-LOAD NOTE: Load site-kit CSS, game-kit CSS, spin CSS, then site-kit JS, manifest,
+        engine, game-kit and js/spin.js in that order.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Spin — Precision Wheel room</title>
+  <meta name="description" content="Play the seeded Paragon Spin Precision Wheel duel for free against the house.">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="shortcut icon" href="../../assets/brand/favicon.ico">
+  <link rel="apple-touch-icon" href="../../assets/brand/apple-touch-180.png">
+  <link rel="stylesheet" href="../../sites/_shared/site-kit.css">
+  <link rel="stylesheet" href="../_shared/game-kit.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="spin-play">
+  <header class="header spin-header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Spin" title="View Paragon Spin in the Paragon Archive">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-spin.png" alt="">
+        <span class="brand-name">Paragon Spin</span>
+      </a>
+    </div>
+    <nav class="header-nav" aria-label="Paragon Spin">
+      <a href="index.html" class="nav-link">Room</a>
+      <a href="play.html" class="nav-link active">Play</a>
+      <a href="index.html#leaderboard" class="nav-link">Leaderboard</a>
+    </nav>
+  </header>
+
+  <main class="game-main spin-game-main">
+    <div class="spin-room-title">
+      <div><p class="spin-overline">Table 01 · Free play</p><h1>Precision Wheel</h1></div>
+      <p>Player versus house · one shared result</p>
+    </div>
+    <div id="game-hud"></div>
+    <section id="game-stage" class="game-stage spin-stage" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer spin-footer">
+    <p><strong>Paragon Spin</strong> · seeded free play · points are not Paragon Coins</p>
+    <p><a href="index.html">Return to the Spin room</a> · <a href="../../paragon-archive.html?site=Paragon%20Spin">Open in Paragon Archive</a></p>
+  </footer>
+
+  <script src="../../sites/_shared/site-kit.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../engine.js"></script>
+  <script src="../_shared/game-kit.js"></script>
+  <script src="js/spin.js"></script>
+</body>
+</html>

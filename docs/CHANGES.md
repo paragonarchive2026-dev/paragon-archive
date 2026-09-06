@@ -1,5 +1,50 @@
 # 📦 Changed files
 
+## 2026-09-06 — P-117 premium games wave: Paragon Spin + Paragon Chess
+
+**Two new live free rooms:** `games/spin/` ships Precision Wheel (twelve sectors, six turns,
+player and house predictions scored against one shared seeded result); `games/chess/` ships
+full-rule chess against a local computer at Casual/Club/Master strength (castling, en passant,
+four promotions, check/checkmate, stalemate, repetition, fifty-move and material draws, hints,
+move ledger and exact resume). Each has its own premium club environment and 1376×768 photographic
+hero, with no toy/avatar opponent treatment. Both catalogue rows are real live paths at
+`buildProgress: 90` pending the owner demo—not fake 100.
+
+**Shared room model:** `games/_shared/game-kit.js` now renders the requested in-game **General /
+Free / Bet / Multiplayer** performance views. General combines actual available modes; completed
+free scores count on this game board only. This remains separate from the revenue-funded Coins
+Leaderboard. Bet/Multiplayer show an honest empty state unless a production adapter supplies
+`verified: true` rows; no fake “searching” players. Stake inputs and `paragon_game_settle` UI remain
+absent while real money is OFF.
+
+**Cards realism pass:** Paragon Cards received a walnut/felt table, paper-textured playing cards,
+restrained brass navigation and a game-specific performance board. Higher·Lower and Blackjack
+logic remains unchanged except finished sessions now carry explicit game-board performance points.
+
+**Vercel recovery:** PR #5 was already merged into `main`. GitHub shows its preview and production
+deployments failed immediately and routes the current failure to Vercel project configuration.
+`vercel.json` contained non-schema keys (`$comment`, `errorDocument`); they were removed and the
+official `$schema` key was added. The exact private dashboard build log still requires the owner's
+Vercel session, but the repository-side configuration blocker is corrected in this wave.
+
+**Storage architecture:** free games keep board/session data on-device and game assets on the
+static host/CDN, so they do not consume Supabase rows. Firebase is not added: it would duplicate the
+existing Supabase auth/data authority. Supabase stays reserved for real identity, verified online
+presence/matches and server-authoritative money outcomes when those modes are activated.
+
+**Wiring/tests:** manifest + catalogue + Paragon Mind live-state updated; already-live products are
+excluded from the construction-demand queue; service worker **v91** precaches Spin/Chess including
+hero assets; `tests/suite-games.test.js` expands **143 → 233 checks**. All five repository suites
+pass (the legacy general browser-smoke utility still reports its known jsdom network/scroll
+limitations; dedicated live-DOM game playthroughs pass).
+
+**New:** `games/spin/{index.html,play.html,SPEC.md,css/style.css,js/spin.js,js/home.js,assets/spin-table-hero.jpg}`;
+`games/chess/{index.html,play.html,SPEC.md,css/style.css,js/chess.js,js/home.js,assets/chess-club-hero.jpg}`.
+**Changed:** shared game kit, engine law copy, Cards UI/session metadata, game manifest, catalogue,
+Paragon Mind, service worker/tests, Vercel config, README and game/docs handoff files.
+
+---
+
 ## 2026-09-06 — P-116 games wave (first playable game)
 **Shared game framework (GAMES-BUILD-PLAN.md §2):** `games/engine.js` (ParagonGameEngine —
 session lifecycle, seeded RNG, save/resume checkpoints, personal bests, the free-vs-stake gate,

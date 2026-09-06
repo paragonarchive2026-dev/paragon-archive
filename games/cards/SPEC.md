@@ -29,6 +29,8 @@ Card games — two rule sets live: **Higher · Lower** (a head-to-head call agai
 - [x] Local personal bests and honest real-zero counters
 - [x] One-tap rules card that states every rule of the mode being played
 - [x] Mode chip: FREE PLAY always visible, STAKE · LOCKED with every reason listed
+- [x] Game-specific General / Free / Bet / Multiplayer performance views (real rows only)
+- [x] P-117 realism pass: tactile felt/walnut table, paper card faces and restrained brass UI
 
 ## 3. Features deliberately NOT built (honest scope)
 - [ ] Stake play — wired in the engine and gated, but no stake UI ships until real money is ON
@@ -40,7 +42,7 @@ Card games — two rule sets live: **Higher · Lower** (a head-to-head call agai
 ## 4. Owner rules that win (merged verbatim)
 1. Free play is always playable — guest included, no coins, no KYC.
 2. The browser never settles a money outcome and never mints coins.
-3. Leaderboard points come only from eligible staked results.
+3. Revenue-funded Coins Leaderboard points come only from eligible staked results; free performance may appear only on this game's local board.
 4. One suspicious signal never bans anyone — it opens a Risk case.
 5. Every website/game carries the Paragon bar with the logo linked back to its Archive detail.
 6. No `alert`/`prompt`/`confirm`; no fake data; counters start at real zero.
@@ -76,9 +78,9 @@ engine.finish({ outcome }) · engine.abandon(reason)
 - [x] Paragon bar present; logo → `paragon-archive.html?site=Paragon Cards`
 - [x] Free mode playable by guest, and offline (files precached by the service worker)
 - [x] Stake mode gated: account + KYC + real money + no pause + no kill switch
-- [x] Leaderboard points impossible in free play
+- [x] Coins Leaderboard points impossible in free play; local in-game performance remains separate
 - [x] Audit row written for every session start, finish and plausibility flag
-- [x] `node tests/suite-games.test.js` — 143 checks green (incl. settlement table + double-down + real-zero best)
+- [x] `node tests/suite-games.test.js` — 233 checks green across Cards, Spin, Chess and shared room law
 - [x] Real-DOM playthrough (jsdom) of both modes incl. reload → resume, quit panel, shoe end at ≥ 200 or 0
 - [ ] **Owner demo pass** → then `buildProgress` 90 → 100
 
@@ -86,7 +88,7 @@ engine.finish({ outcome }) · engine.abandon(reason)
 **Higher · Lower:** aces are LOW (1). Both sides see the same up-card and the same next card.
 Correct call = 10 × streak, multiplier capped at 5x. Wrong call resets the streak. Equal ranks
 push (no points, streaks kept). Ten rounds; highest total wins; equal totals draw.
-The house calls: rank ≤ 6 → higher, rank ≥ 8 → lower, ranks 7–8 → seeded coin flip.
+The house calls: rank ≤ 6 → higher, rank ≥ 8 → lower, rank 7 → seeded coin flip.
 
 **Blackjack 21:** start 100 play chips, target 200, six-deck shoe reshuffled below 78 cards.
 Bets 10/25/50. Blackjack pays 3:2. Dealer draws to 17 and stands (soft 17 included). Double
