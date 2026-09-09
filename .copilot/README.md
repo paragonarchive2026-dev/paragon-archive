@@ -4,6 +4,11 @@ This folder contains configuration for GitHub Copilot integrations with your Par
 
 ## Files
 
+### `mcp.json` (in `.vscode/`)
+Workspace MCP config read by VS Code / GitHub Codespace. Auto-links the
+Supabase MCP server when the repo opens in Codespaces — approve the prompt in
+Copilot Chat and sign in via the Codespace Browser tab.
+
 ### `mcp-config.json`
 Model Context Protocol (MCP) server configuration for Supabase integration.
 
@@ -31,9 +36,10 @@ Features: Database, Functions, Debugging, Development, Branching, Docs, Account
 
 | Component | Status |
 |-----------|--------|
-| MCP Config | ✅ Configured |
+| MCP Config (`.copilot/`) | ✅ Configured |
+| VS Code MCP Config (`.vscode/mcp.json`) | ✅ Configured |
 | Supabase Link | ✅ Connected |
-| Local Authentication | ⏳ Pending (run `copilot -i /mcp`) |
+| Authentication | ⏳ Pending — approve in Copilot Chat inside a GitHub Codespace |
 | Agent Skills | ⏳ Optional |
 
 ## Need Help?
