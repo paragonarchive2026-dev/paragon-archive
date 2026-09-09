@@ -6,6 +6,30 @@ This guide helps you complete the Supabase Model Context Protocol (MCP) setup fo
 - `mcp-config.json` has been created in this folder
 - Supabase project is linked: `qnylhlyyzpwlfftiygcn`
 
+## 💻 Using GitHub Codespaces (No Laptop Needed)
+
+GitHub Codespaces gives you a full VS Code **with a terminal** in your browser,
+so every step below can be done from your phone or any browser.
+
+1. **Open the repo in Codespaces** — on the repo page, click `<> Code` →
+   **Codespaces** tab → **Create codespace**.
+2. **Connect the MCP server** — when the Codespace opens, VS Code detects
+   `.vscode/mcp.json` automatically. Open **Copilot Chat** (`@`/chat icon) and
+   you'll see a prompt to connect the `supabase` MCP server ("New tool
+   available"). Click it to connect.
+3. **Log in to Supabase** — VS Code opens a browser tab (the **Browser** tab
+   in Codespaces). Sign in to your Supabase account and authorize access.
+   ⚠️ Do this *inside the Codespace's Browser tab*, not an external browser —
+   the sign-in redirect goes back to the Codespace's local port.
+4. **Verify** — in Copilot Chat ask: *"What tables are there in the database?
+   Use MCP tools."* You should get a list from your Supabase project.
+
+> The terminal is available anytime: click **Terminal** in the top menu bar
+> (or the terminal icon, top-right). You can also verify the config with:
+> ```bash
+> node .copilot/verify-setup.js
+> ```
+
 ## 🔧 What You Need to Do (When You Have Terminal Access)
 
 ### Step 1: Authenticate the MCP
