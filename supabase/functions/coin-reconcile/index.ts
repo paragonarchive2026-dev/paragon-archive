@@ -3,7 +3,7 @@
   REAL FILE NAME: index.ts
   EXPECTED PROJECT PATH: /supabase/functions/coin-reconcile/index.ts
   ROLE: Team/service reconcile worker — list open intents, manual match, health.
-        Protected by PARAGON_COIN_WEBHOOK_SECRET or authenticated team JWT + service path.
+        Protected by PARAGON_COIN_WEBHOOK_SECRET only; team JWT authentication is not implemented.
   RESTORE/LOAD NOTE: Deploy after coins-master-phase3.sql. Does not flip real_money_enabled.
 */
 
