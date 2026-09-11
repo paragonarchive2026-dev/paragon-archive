@@ -4910,3 +4910,43 @@ html.light .board-topbar { box-shadow: 0 1px 0 rgba(214,164,60,0.25), 0 8px 28px
 }
 .auth-text-action:hover { color: var(--divine-gold); text-shadow: 0 0 12px rgba(247,207,122,0.4); }
 /* HEAVEN-04 end */
+
+/* ============================================================
+   HEAVEN-06 — motion: scroll-reveal bloom + gentle float.
+   Hidden states only ever applied by heaven-motion.js, so
+   no-JS and reduced-motion users see everything instantly.
+   ============================================================ */
+
+.heaven-rise { transition: opacity 0.65s ease, transform 0.65s ease; }
+.heaven-rise:not(.is-revealed) { opacity: 0; transform: translateY(16px); }
+.heaven-rise.is-revealed { animation: heavenBloom 1.5s ease both; }
+@keyframes heavenBloom {
+  0%   { box-shadow: 0 0 0 rgba(255,214,140,0); }
+  35%  { box-shadow: 0 0 36px rgba(255,214,140,0.28); }
+  100% { box-shadow: 0 0 0 rgba(255,214,140,0); }
+}
+
+/* gentle float on the little lights */
+@keyframes heavenFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+.cat-chip .emoji, .hub-quick-card > span, .hub-doc-card > span {
+  animation: heavenFloat 5s ease-in-out infinite;
+}
+.cat-chip:nth-child(2n) .emoji, .hub-quick-card:nth-child(2n) > span, .hub-doc-card:nth-child(2n) > span {
+  animation-delay: -2.5s;
+}
+.hero .wotd-badge { animation: heavenFloat 6s ease-in-out infinite; }
+.account-hero .logo-mark {
+  animation: heavenFloat 7s ease-in-out infinite, haloPulse 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heaven-rise, .heaven-rise:not(.is-revealed), .heaven-rise.is-revealed {
+    opacity: 1; transform: none; transition: none; animation: none;
+  }
+  .cat-chip .emoji, .hub-quick-card > span, .hub-doc-card > span,
+  .hero .wotd-badge, .account-hero .logo-mark { animation: none; }
+}
+/* HEAVEN-06 end */
