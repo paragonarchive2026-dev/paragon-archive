@@ -4448,3 +4448,149 @@ html.light .g-article-copy b { color: #1a56db; }
 .goal-mark-btn { flex: 0 0 auto; padding: 7px 12px; font-size: 11px; }
 .goal-row .goal-check { flex: 0 0 auto; font-size: 16px; color: var(--text-faint); }
 .goal-row.is-complete .goal-check { color: #4ade80; }
+
+/* ============================================================
+   HEAVEN-01 — "Heaven Gradient" visual round 1
+   Aurora-sky ambience, a heavenly gradient ramp and a glow
+   pass across the surfaces people touch first. Pure CSS on
+   top of the existing design system; every rule below lives
+   after the base rules so it layers without breaking them.
+   ============================================================ */
+
+:root {
+  --heaven-1: #4c1d95; /* deep violet  */
+  --heaven-2: #7c3aed; /* violet       */
+  --heaven-3: #db2777; /* rose         */
+  --heaven-4: #f59e0b; /* dawn gold    */
+  --heaven-5: #22d3ee; /* sky aqua     */
+  --heaven-grad: linear-gradient(115deg, var(--heaven-1) 0%, var(--heaven-2) 24%, var(--heaven-3) 48%, var(--heaven-4) 74%, var(--heaven-5) 100%);
+  --heaven-text: linear-gradient(100deg, #c4b5fd 0%, #f0abfc 32%, #fcd34d 62%, #67e8f9 100%);
+  --heaven-veil-top: rgba(11,11,14,0.86);
+  --heaven-veil-mid: rgba(11,11,14,0.78);
+  --heaven-veil-bot: rgba(11,11,14,0.9);
+}
+html.light {
+  --heaven-text: linear-gradient(100deg, #6d28d9 0%, #be185d 36%, #b45309 66%, #0e7490 100%);
+  --heaven-veil-top: rgba(243,242,239,0.9);
+  --heaven-veil-mid: rgba(243,242,239,0.84);
+  --heaven-veil-bot: rgba(243,242,239,0.92);
+}
+
+/* Full-viewport heavenly ambience behind every page.
+   Rebuilds the old accent blobs as radial glows on top of the
+   generated aurora sky + pearl cloud veil, all fixed so the
+   sky stays put while content scrolls over it. */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2;
+  width: auto; height: auto; border-radius: 0; filter: none; opacity: 1;
+  background:
+    radial-gradient(42vw 42vw at -10% -14%, var(--accent-glow), transparent 70%),
+    radial-gradient(46vw 46vw at 112% 118%, rgba(139,92,246,0.26), transparent 72%),
+    linear-gradient(180deg, var(--heaven-veil-top) 0%, var(--heaven-veil-mid) 42%, var(--heaven-veil-bot) 100%),
+    url('assets/heaven/cloud-veil.jpg') center / 860px auto repeat,
+    url('assets/heaven/aurora-sky.jpg') center / cover no-repeat;
+  animation: heavenDrift 70s ease-in-out infinite alternate;
+}
+@keyframes heavenDrift {
+  from { background-position: 0% 0%, 100% 100%, center, 0% 0%, 46% 54%; }
+  to   { background-position: 0% 0%, 100% 100%, center, 14% 10%, 54% 46%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body::before, .primary-action, .chip.active, .chip[aria-pressed="true"] { animation: none; }
+}
+
+/* Gradient heaven text on the brand + page titles. */
+#top-bar .logo-text .accent,
+.eyebrow,
+.updates-header h1,
+.account-hero:not(.logged-in) h2 {
+  background: var(--heaven-text);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; text-shadow: none;
+}
+
+/* Section titles get a little dawn bar under them. */
+.section-header h2 { position: relative; padding-bottom: 9px; }
+.section-header h2::after {
+  content: ''; position: absolute; left: 2px; bottom: 0; width: 54px; height: 3px;
+  border-radius: 999px; background: var(--heaven-grad);
+  box-shadow: 0 0 12px rgba(219,39,119,0.45);
+}
+
+/* Primary buttons: flowing heaven gradient. */
+.primary-action {
+  background: linear-gradient(115deg, var(--heaven-2), var(--heaven-3), var(--heaven-4), var(--heaven-5), var(--heaven-2));
+  background-size: 280% 100%;
+  animation: heavenFlow 7s ease-in-out infinite;
+  border: 0; color: #fff;
+  box-shadow: 0 6px 22px rgba(124,58,237,0.35);
+}
+.primary-action:hover { transform: translateY(-1px); filter: brightness(1.1); box-shadow: 0 10px 30px rgba(219,39,119,0.42); }
+@keyframes heavenFlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Active chips ride the same ramp. */
+.chip.active, .chip[aria-pressed="true"] {
+  background: var(--heaven-grad); background-size: 220% 100%;
+  border-color: transparent; color: #fff;
+  box-shadow: 0 0 18px rgba(124,58,237,0.4);
+  animation: heavenFlow 9s ease-in-out infinite;
+}
+
+/* See-all pills glow rose on hover. */
+.section-header .see-all-pill:hover {
+  background: color-mix(in srgb, var(--heaven-3) 16%, transparent);
+  box-shadow: 0 0 22px rgba(219,39,119,0.35);
+}
+
+/* Category chips + list rows pick up the aurora on hover. */
+.cat-chip:hover, .cat-chip.active {
+  border-color: transparent;
+  box-shadow: 0 10px 26px rgba(124,58,237,0.3), inset 0 0 0 1px rgba(196,181,253,0.4);
+}
+.recent-item:hover { background: linear-gradient(90deg, rgba(124,58,237,0.16), rgba(34,211,238,0.1)); }
+
+/* Website-of-the-Day hero: heavenly ring + light wash. */
+.hero { box-shadow: 0 0 0 1px rgba(196,181,253,0.25), 0 18px 52px rgba(76,29,149,0.38); }
+.hero::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  pointer-events: none; z-index: 4; mix-blend-mode: screen;
+  background: linear-gradient(180deg, rgba(103,232,249,0.16), transparent 24%, transparent 76%, rgba(219,39,119,0.2));
+}
+
+/* Account welcome: dawn sky behind the sign-in card. */
+.account-hero:not(.logged-in) {
+  position: relative; overflow: hidden;
+  border: 1px solid rgba(196,181,253,0.28);
+  background:
+    linear-gradient(180deg, rgba(11,11,14,0.58), rgba(11,11,14,0.82)),
+    url('assets/heaven/hero-dawn.jpg') center 32% / cover no-repeat;
+}
+html.light .account-hero:not(.logged-in) {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.66), rgba(255,255,255,0.86)),
+    url('assets/heaven/hero-dawn.jpg') center 32% / cover no-repeat;
+}
+
+/* Dialogs open under a heavenly hairline. */
+.auth-dialog-illus { max-height: 128px; opacity: 0.95; object-position: center 38%; }
+.auth-dialog { position: relative; overflow: hidden; }
+.auth-dialog::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--heaven-grad); opacity: 0.9; pointer-events: none; z-index: 6;
+}
+
+/* Entry splash blooms from a violet horizon. */
+#welcome-splash.show {
+  background: radial-gradient(120% 90% at 50% 112%, rgba(124,58,237,0.4), rgba(5,6,10,0.55) 62%), rgba(5,6,10,0.55);
+}
+
+/* Archive Hub landing hero: pearl-and-rose light wash. */
+.hub-landing-hero::after {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  mix-blend-mode: screen;
+  background: linear-gradient(160deg, rgba(124,58,237,0.3), rgba(219,39,119,0.16) 46%, rgba(34,211,238,0.22));
+}
+/* HEAVEN-01 end */
