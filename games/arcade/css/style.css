@@ -148,3 +148,21 @@
   .arcade-card, .arcade-pad, .arcade-target { transition: none; }
   .arcade-main-action { box-shadow: none; }
 }
+
+/* HEAVEN-05 — the marquee glows with dawn light, main action is divine gold */
+.arcade-hero-marquee {
+  box-shadow: 0 0 0 1px rgba(255,236,190,0.22), 0 0 44px rgba(255,206,130,0.16),
+              inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.hero-highlight {
+  background: linear-gradient(100deg, #e9dcff 0%, #ffd9ec 34%, #ffe9b8 64%, #c9f1ff 100%);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 16px rgba(255,236,190,0.35));
+}
+.arcade-main-action {
+  background: linear-gradient(135deg, #ffe7ad, #f6c66a 38%, #e3a53f 62%, #ffd98a);
+  color: #2b1c05;
+  box-shadow: 0 6px 22px rgba(246,198,106,0.35), inset 0 1px 0 rgba(255,255,255,0.7);
+}
+/* ARCADE-05 end */

@@ -292,3 +292,10 @@
 @media (prefers-reduced-motion: reduce) {
   .spin-disc.is-spinning { transition-duration: .01ms !important; }
 }
+
+/* HEAVEN-05 — the brass wheel wears a halo */
+.spin-wheel-assembly {
+  filter: drop-shadow(0 30px 26px rgba(0,0,0,0.55)) drop-shadow(0 0 34px rgba(255,206,130,0.20));
+}
+.spin-wheel-shell { box-shadow: inset 0 1px 0 rgba(255,246,220,0.25), inset 0 0 18px rgba(0,0,0,0.35); }
+/* SPIN-05 end */

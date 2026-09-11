@@ -4640,7 +4640,9 @@ html.light .account-hero:not(.logged-in) {
 }
 
 /* --- dialogs open under a line of light ------------------------ */
-.auth-dialog { position: relative; overflow: hidden; }
+/* overflow: clip (not hidden) so the sticky dialog head keeps working —
+   clip rounds the hairline without creating a scroll container. */
+.auth-dialog { position: relative; overflow: hidden; overflow: clip; }
 .auth-dialog::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
   background: linear-gradient(90deg, transparent, rgba(255,231,175,0.95), transparent);
@@ -4695,12 +4697,19 @@ html { scrollbar-color: var(--divine-gold-deep) transparent; }
   border-color: color-mix(in srgb, var(--divine-gold) 38%, var(--border-strong));
   box-shadow: var(--halo), var(--shadow-float);
 }
-.card::after, .featured-card::after {
+.card:not(.recent-card)::after, .featured-card::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(115deg, transparent 34%, rgba(255,246,220,0.16) 50%, transparent 66%);
   transform: translateX(-130%); transition: transform 0.75s ease;
 }
-.card:hover::after, .featured-card:hover::after { transform: translateX(130%); }
+.card:not(.recent-card):hover::after, .featured-card:hover::after { transform: translateX(130%); }
+/* recent cards keep their inset ring on ::after; shimmer rides ::before */
+.recent-card::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: linear-gradient(115deg, transparent 34%, rgba(255,246,220,0.16) 50%, transparent 66%);
+  transform: translateX(-130%); transition: transform 0.75s ease;
+}
+.recent-card:hover::before { transform: translateX(130%); }
 .card { position: relative; }
 .featured-card { position: relative; }
 .card .thumb::before, .featured-card .feat-img::before {
@@ -4803,7 +4812,7 @@ html { scrollbar-color: var(--divine-gold-deep) transparent; }
 .saved-update-star { box-shadow: 0 0 16px rgba(251,191,36,0.4); }
 
 @media (prefers-reduced-motion: reduce) {
-  .card::after, .featured-card::after, .trending-rank-card::after { transition: none; transform: none; }
+  .card::after, .featured-card::after, .trending-rank-card::after, .recent-card::before { transition: none; transform: none; }
   .timeline-dot { animation: none; box-shadow: 0 0 12px rgba(247,207,122,0.5); }
 }
 /* HEAVEN-03 end */

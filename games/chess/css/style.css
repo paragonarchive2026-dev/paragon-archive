@@ -276,3 +276,14 @@
 @media (prefers-reduced-motion:reduce) {
   .chess-thinking i { animation:none; }
 }
+
+/* HEAVEN-05 — dusk light over the club entrance, gold rim on the board */
+.chess-hero::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(120% 60% at 50% -12%, rgba(255,222,150,0.15), transparent 62%);
+}
+.chess-board {
+  box-shadow: inset 0 0 18px rgba(0,0,0,0.28), 0 0 30px rgba(255,206,130,0.14);
+  border-color: rgba(229,210,167,0.4);
+}
+/* CHESS-05 end */
