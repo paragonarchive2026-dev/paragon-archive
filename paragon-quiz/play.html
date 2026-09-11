@@ -52,6 +52,7 @@
                 </div>
             </div>
             <div class="play-best" id="playBest" style="display:none;"></div>
+            <p class="points-note">Scoring: 100 per correct answer × your streak multiplier (up to 5x), plus up to 50 speed bonus on timed quizzes. A wrong answer resets the streak.</p>
             <div class="paid-notice" id="paidNotice" role="status" style="display:none;"></div>
             <button class="btn btn-primary btn-large" id="startQuizBtn">
                 🎮 Start Quiz
@@ -80,6 +81,8 @@
             </div>
             <div class="progress-info">
                 <span id="currentQuestion">1</span> / <span id="totalQuestions">10</span>
+                <span class="streak-badge" id="streakBadge">Streak —</span>
+                <span class="points-live">Points <b id="pointsLive">0</b></span>
             </div>
         </div>
 
@@ -148,7 +151,16 @@
                     <span class="detail-label">Time</span>
                     <span class="detail-value" id="totalTime">0s</span>
                 </div>
+                <div class="score-detail">
+                    <span class="detail-label">Points</span>
+                    <span class="detail-value" id="enginePoints">0</span>
+                </div>
+                <div class="score-detail">
+                    <span class="detail-label">Best streak</span>
+                    <span class="detail-value" id="bestStreakCount">0</span>
+                </div>
             </div>
+            <p class="points-note">Points = 100 per correct answer × streak multiplier (up to 5x) + speed bonus. Local performance only — paid prizes use the server score.</p>
             <div class="complete-message" id="completeMessage"></div>
             <div class="complete-best" id="completeBest"></div>
             <div class="complete-actions">
@@ -177,6 +189,8 @@
     </div>
 
     <script src="../config/supabase.js"></script>
+    <script src="../games/manifest.js"></script>
+    <script src="../games/engine.js"></script>
     <script src="js/quiz-paid-bridge.js"></script>
     <script src="js/quiz.js"></script>
 </body>

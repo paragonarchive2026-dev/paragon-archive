@@ -192,6 +192,29 @@
     });
   }
 
+  /* P-120 Quiz-on-engine scoring (pure — also used by the regression suite).
+     Consecutive correct answers build a streak multiplier (1x–5x, same cap language
+     as Higher·Lower); a per-question timer pays a speed bonus up to 50. Wrong or
+     timed-out answers score 0 and reset the streak. Points are local performance —
+     paid prize eligibility is decided ONLY by the Stage 4 server score. */
+  function quizStreakMultiplier(streak) {
+    return Math.max(1, Math.min(5, Math.round(Number(streak) || 0) || 1));
+  }
+
+  function quizQuestionPoints(timeLeft, limit, streak) {
+    var left = Math.max(0, Number(timeLeft) || 0);
+    var total = Math.max(0, Number(limit) || 0);
+    var bonus = total > 0 ? Math.round(50 * Math.min(1, left / total)) : 0;
+    return (100 + bonus) * quizStreakMultiplier(streak);
+  }
+
+  function quizOutcomeForPercent(percent) {
+    var p = Number(percent) || 0;
+    if (p >= 80) return "win";
+    if (p >= 50) return "draw";
+    return "loss";
+  }
+
   function categoryInfo(key) { return CATEGORIES[key] || CATEGORIES.other; }
   function difficultyInfo(key) { return DIFFICULTY[key] || DIFFICULTY.medium; }
 
@@ -292,7 +315,10 @@
     categoryInfo: categoryInfo,
     difficultyInfo: difficultyInfo,
     escapeHTML: escapeHTML,
-    animateNumber: animateNumber
+    animateNumber: animateNumber,
+    quizStreakMultiplier: quizStreakMultiplier,
+    quizQuestionPoints: quizQuestionPoints,
+    quizOutcomeForPercent: quizOutcomeForPercent
   };
 })();
 
@@ -630,6 +656,35 @@ if (document.getElementById("startScreen")) {
   var startedAt = 0;
   var paidAttemptId = null;
   var paidMode = false;
+  /* P-120 Quiz-on-engine: streak multiplier + speed-bonus points tracked in a real
+     engine session (bests, audit, plausibility). Paid prize eligibility stays 100%
+     server-side; this session is local performance and never touches the money board. */
+  var streak = 0;
+  var bestStreak = 0;
+  var points = 0;
+  var quizEngine = null;
+
+  function engineStart() {
+    try {
+      if (!window.ParagonGames || typeof window.ParagonGames.start !== "function") return;
+      var started = window.ParagonGames.start({ gameKey: "quiz", variant: "standard", mode: "free", meta: { quizId: quiz.id } });
+      quizEngine = started && started.ok ? started.api : null;
+    } catch (e) { quizEngine = null; /* play continues honestly without a session */ }
+  }
+
+  function engineLog(name, detail) {
+    try { if (quizEngine) quizEngine.action(name, detail); } catch (e) { /* noop */ }
+  }
+
+  function paintStreak() {
+    var badge = el("streakBadge");
+    if (!badge) return;
+    var mult = PQ.quizStreakMultiplier(streak);
+    badge.textContent = streak > 1 ? "🔥 Streak " + streak + " · " + mult + "x" : (streak === 1 ? "🔥 Streak 1 · 1x" : "Streak —");
+    badge.classList.toggle("hot", streak >= 3);
+    var live = el("pointsLive");
+    if (live) live.textContent = String(points);
+  }
   var TIMER_CIRCUMFERENCE = 2 * Math.PI * 45;
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -709,7 +764,21 @@ if (document.getElementById("startScreen")) {
     if (isCorrect) correct += 1;
     else if (timedOut) skipped += 1;
     else wrong += 1;
-    answers.push({ chosen: index, correct: question.correct, timedOut: timedOut });
+    /* P-120 streak multiplier + speed bonus (pure fns in the shared engine). */
+    var gained = 0;
+    if (isCorrect) {
+      streak += 1;
+      bestStreak = Math.max(bestStreak, streak);
+      gained = PQ.quizQuestionPoints(timeLeft, Number(quiz.timer) || 0, streak);
+      points += gained;
+    } else {
+      streak = 0;
+    }
+    engineLog(isCorrect ? "quiz-correct" : (timedOut ? "quiz-timeout" : "quiz-wrong"),
+      "q" + (current + 1) + " streak " + streak + " +" + gained);
+    try { if (quizEngine) quizEngine.score(points); } catch (e) { /* noop */ }
+    paintStreak();
+    answers.push({ chosen: index, correct: question.correct, timedOut: timedOut, points: gained, streak: streak });
 
     el("optionsContainer").querySelectorAll(".option-btn").forEach(function (button) {
       var buttonIndex = Number(button.dataset.index);
@@ -741,8 +810,20 @@ if (document.getElementById("startScreen")) {
       wrong: wrong, skipped: skipped, seconds: seconds,
       finishedAt: new Date().toISOString(),
       paidAttemptId: paidAttemptId || null,
-      clientOnly: !paidMode
+      clientOnly: !paidMode,
+      points: points, bestStreak: bestStreak
     });
+
+    /* P-120: close the engine session (local performance; paid prizes stay server-side). */
+    try {
+      if (quizEngine) {
+        quizEngine.finish({
+          outcome: PQ.quizOutcomeForPercent(percent),
+          score: points,
+          meta: { boardPoints: points, competitionMode: "free", quizId: quiz.id, correct: correct, total: total, bestStreak: bestStreak, paidAttemptId: paidAttemptId || null }
+        });
+      }
+    } catch (e) { /* local history above is already saved */ }
 
     /* Stage 4: if paid attempt active, submit answers for SERVER score (authoritative). */
     if (paidMode && paidAttemptId && window.ParagonQuizPaid) {
@@ -776,6 +857,8 @@ if (document.getElementById("startScreen")) {
     el("wrongCount").textContent = String(wrong);
     el("skippedCount").textContent = String(skipped);
     el("totalTime").textContent = seconds >= 60 ? Math.floor(seconds / 60) + "m " + (seconds % 60) + "s" : seconds + "s";
+    el("enginePoints").textContent = String(points);
+    el("bestStreakCount").textContent = "🔥 " + bestStreak;
 
     var newBest = PQ.getBestScore(quiz.id);
     el("completeBest").textContent = newBest && newBest.score === correct && percent > 0
@@ -829,6 +912,8 @@ if (document.getElementById("startScreen")) {
       hide("startScreen");
       show("playScreen");
       startedAt = Date.now();
+      engineStart();
+      paintStreak();
       renderQuestion();
       window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
     }

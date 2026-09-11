@@ -1,5 +1,37 @@
 # 📦 Changed files
 
+## 2026-09-11 — P-120 Cards wave 2 + Quiz onto the engine
+
+**Paragon Cards grows to four cabinets:** Solitaire (full Klondike — seeded deal, alternating-colour
+tableau, King-only empty columns, suit-up foundations, unlimited exact-order recycles, 10/5/3/5/−20
+scoring, 1000−moves win bonus, honest stalemate loss, auto-finish gate) and Memory Match (16 cards /
+8 seeded rank pairs, 100 + 25×combo, (24−moves)×15 bonus) join Higher·Lower and Blackjack 21 on the
+shared engine — seeded, resumable, per-cabinet bests, audited. Home announces “Four fair games”.
+
+**Paragon Quiz runs on the engine:** every attempt opens a real engine session — timed rounds with a
+1x–5x streak multiplier + speed bonus per correct answer, live streak HUD, per-answer audit, 80/50
+win/draw close. Points are local performance; paid prize eligibility stays 100% server-side.
+
+**Owner vision recorded (spec-only, build later):** World-Cup-style team brackets + a SportyBet-style
+spectator prediction book (Paragon Bet) fed by form stats; stake/multiplayer connects into the same
+fixtures. No bet/multiplayer code ships — money/legal gates stand.
+
+**Verified beyond static tests:** jsdom boot + full playthroughs — Solitaire draw → waste, reload →
+Resume restores exact piles; Memory exact-pair match locks +100 with audit; Quiz perfect 10/10 banks
+6000 (streak 10 · 5x), session closes as win with a 10-answer audit. Three defects fixed pre-demo
+(missing cabinet script tags, uncalled engineStart, missing quiz HUD rows).
+
+**Wiring/tests:** manifest cards row = four ruled variants + new live quiz row; catalogue lists all
+four cabinets; cache v93 → **v94**; P-116 cards count 2 → 4; `tests/suite-games.test.js` +69 P-120
+checks (**412 total**). All five suites green.
+
+**New:** `games/cards/js/{solitaire.js,memory.js}`.
+**Changed:** cards dispatch/home/play/CSS/SPEC, manifest, quiz play screen/engine/scoring/CSS, catalogue,
+service worker + suite cache assertions, suite-games, GAMES-BUILD-PLAN (P-120 status + Bet vision),
+SOP (D-239, P-120), EOP v1.11.0, NEXT-AGENT §7u, file tree.
+
+---
+
 ## 2026-09-11 — P-119 Paragon Arcade: five cabinets, complete
 
 **Fourth live game:** `games/arcade/` ships Reflex Tap (5 seeded reaction rounds), Memory Match

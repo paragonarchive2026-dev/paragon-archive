@@ -558,18 +558,32 @@
     if (!kit || !games) return;
 
     currentVariant = pickVariant();
-    var isBlackjack = currentVariant === "blackjack";
-    var stats = isBlackjack
-      ? [{ id: "chips", label: "Chips" }, { id: "bet", label: "Bet" }, { id: "hand", label: "Hand" }, { id: "dealer", label: "Dealer" }]
-      : [{ id: "score", label: "Score" }, { id: "streak", label: "Streak" }, { id: "house", label: "House" }, { id: "round", label: "Round" }];
+    var STATS = {
+      "higher-lower": [{ id: "score", label: "Score" }, { id: "streak", label: "Streak" }, { id: "house", label: "House" }, { id: "round", label: "Round" }],
+      blackjack: [{ id: "chips", label: "Chips" }, { id: "bet", label: "Bet" }, { id: "hand", label: "Hand" }, { id: "dealer", label: "Dealer" }],
+      solitaire: [{ id: "score", label: "Score" }, { id: "moves", label: "Moves" }, { id: "foundations", label: "Foundations" }],
+      memory: [{ id: "score", label: "Score" }, { id: "moves", label: "Moves" }, { id: "pairs", label: "Pairs" }]
+    };
+    var NAMES = { "higher-lower": "Higher · Lower", blackjack: "Blackjack 21", solitaire: "Solitaire", memory: "Memory" };
 
     kit.mount({
       hud: "#game-hud",
       gameKey: "cards",
       variant: currentVariant,
-      stats: stats,
+      stats: STATS[currentVariant] || STATS["higher-lower"],
       onStart: function (engine, savedState, resumed, shell) {
-        if (isBlackjack) Blackjack(engine, shell, savedState);
+        /* Wave 2 cabinets live in their own files; the shell degrades honestly if one
+           failed to load instead of leaving a dead stage. */
+        if (currentVariant === "blackjack") Blackjack(engine, shell, savedState);
+        else if (currentVariant === "solitaire" && global.ParagonCardsSolitaire) global.ParagonCardsSolitaire.play(engine, shell, savedState);
+        else if (currentVariant === "memory" && global.ParagonCardsMemory) global.ParagonCardsMemory.play(engine, shell, savedState);
+        else if (currentVariant === "solitaire" || currentVariant === "memory") {
+          shell.showPanel({
+            title: "This cabinet did not load",
+            body: "The " + currentVariant + " rules file is missing on this device. Go back and try again.",
+            actions: [{ label: "Back to Paragon Cards", primary: true, onClick: function () { global.location.href = "index.html"; } }]
+          });
+        }
         else HigherLower(engine, shell, savedState);
       },
       onQuit: function () { global.location.href = "index.html"; }
@@ -580,7 +594,7 @@
       var row = games.variant("cards", currentVariant);
       title.textContent = row ? row.name : currentVariant;
     }
-    doc.title = "Paragon Cards — " + (isBlackjack ? "Blackjack 21" : "Higher · Lower");
+    doc.title = "Paragon Cards — " + (NAMES[currentVariant] || "Play");
   }
 
   /* The pure rules are exported so tests/suite-games.test.js can check them without a

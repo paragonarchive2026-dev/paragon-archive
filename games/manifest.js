@@ -57,6 +57,36 @@
             "You may Hit, Stand, or Double Down (double your bet for exactly one more card).",
             "Push returns your bet. Reaching 200 chips wins the shoe; running out ends it."
           ]
+        },
+        {
+          key: "solitaire",
+          name: "Solitaire",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 20000,
+          summary: "Classic Klondike patience on a seeded 52-card deal. Build tableau runs down in alternating colours; stack each suit Ace to King on the foundations.",
+          rules: [
+            "Tap the stock to draw to the waste (one card at a time). An empty stock recycles the waste in order at −20 points, unlimited passes.",
+            "Tableau builds DOWN in alternating colours; only a King (or a valid King-led run) starts an empty column.",
+            "Foundations stack ONE suit UP from the Ace. Tap a selected card again to send it up when one fits.",
+            "Scoring: foundation +10, waste to tableau +5, tableau move +3, flipping a hidden card +5, recycle −20 (total never below 0). Winning adds a 1000 − moves bonus.",
+            "Stacking all 52 cards wins. If no legal move remains the game ends as an honest stalemate, never a silent dead end.",
+            "Auto-finish unlocks when the stock and waste are empty and every tableau card is face up."
+          ]
+        },
+        {
+          key: "memory",
+          name: "Memory",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 5000,
+          summary: "Sixteen playing cards hide eight pairs matched by RANK — suits never matter. Eight seeded ranks, two seeded suits each, one seeded shuffle.",
+          rules: [
+            "Flip two cards. A rank match stays open and scores 100 plus 25 per combo step; a miss closes both and resets the combo.",
+            "Clearing in 24 moves or fewer adds an efficiency bonus of (24 − moves) × 15.",
+            "Clearing the board is always a win. A half-open pair closes if you quit and resume.",
+            "Every flip is logged to the session audit trail with the seed."
+          ]
         }
       ]
     },
@@ -232,6 +262,30 @@
       supportsFree: true, supportsStake: false,
       minStake: 0, maxStake: 0, stakeStep: 0, minDurationMs: 15000,
       variants: [{ key: "story", name: "Story runs", seats: "solo", summary: "Planned — choose your path, manage resources, reach an ending.", rules: [] }]
+    },
+    {
+      key: "quiz",
+      name: "Paragon Quiz", icon: "❓", group: "Education & Learning",
+      path: "paragon-quiz/index.html", playPath: "paragon-quiz/play.html", status: "live",
+      blurb: "Create and play quizzes — timed rounds, streak multipliers and server-scored paid attempts.",
+      supportsFree: true, supportsStake: true,
+      minStake: 100, maxStake: 10000, stakeStep: 50, minDurationMs: 10000,
+      variants: [{
+        key: "standard",
+        name: "Standard rounds",
+        seats: "solo",
+        scoreUnit: "points",
+        minDurationMs: 10000,
+        summary: "Answer each question before its timer runs out. Correct answers build a streak multiplier up to 5x; fast answers add a speed bonus.",
+        rules: [
+          "Each correct answer scores 100 × your streak multiplier (1x to 5x, counting consecutive correct answers).",
+          "Timed quizzes add a speed bonus up to 50, scaled by time left when you answer.",
+          "A wrong answer or timeout scores 0 and resets the streak to zero.",
+          "80%+ correct is a win, 50–79% a draw, below that a loss. Points are local performance recorded in an engine session with seed and audit trail.",
+          "Paid attempts are scored by the server (Stage 4) — the server score alone decides prize eligibility, never this browser.",
+          "Future staked quiz play stays locked until real-money mode and the authoritative settle contract are switched on."
+        ]
+      }]
     },
     {
       key: "bet",

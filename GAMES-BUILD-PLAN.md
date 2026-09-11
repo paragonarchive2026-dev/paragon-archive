@@ -4,6 +4,23 @@ Owner note: "Maybe I should start building all the games — let's think on how 
 This plan is written against what ALREADY exists in the repo, so each game plugs into real engines
 instead of inventing new money/leaderboard logic.
 
+> **STATUS — 2026-09-11 (P-120).** **Cards wave 2 is built and Quiz runs on the
+> engine.** Paragon Cards now ships four live cabinets (Higher·Lower, Blackjack 21,
+> **Solitaire**, **Memory Match**) on the shared engine — seeded deals, honest resume,
+> per-cabinet bests, published scoring, full regression cover; `buildProgress: 90`
+> pending the owner demo, like Spin/Chess/Arcade. Paragon Quiz now opens a real engine
+> session per attempt: timed rounds with streak multipliers (1x–5x) + speed bonus, live
+> HUD, per-answer audit, win/draw/loss close — while paid prize eligibility stays 100%
+> server-side (Stage 4). Remaining order is now **Bet LAST**.
+>
+> **Owner vision recorded (P-120, SPEC-ONLY — build later).** One day the site hosts
+> real matches (e.g. a football-style World Cup bracket with a set squad size per team);
+> **Paragon Bet** becomes a SportyBet-style book where spectators predict match winners
+> with form stats (point strength and friends), and stake/multiplayer modes connect into
+> the same fixtures. Money/legal gates stand: nothing pays out until real money is ON,
+> the settle contract is authoritative server-side, and the jurisdiction/age/KYC answers
+> are documented. No bet/multiplayer code ships in P-120 beyond this paragraph.
+>
 > **STATUS — 2026-09-11 (P-119).** **Paragon Arcade is built and complete:** five live
 > cabinets (Reflex Tap, Memory Match, Timing Bar, Sequence Repeat, Target Sprint) on the shared
 > engine — seeded rounds, honest resume per cabinet, per-cabinet bests, in-game board, published

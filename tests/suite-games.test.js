@@ -141,7 +141,7 @@
   check(cardsEntry.path === "games/cards/index.html" && exists(cardsEntry.path), "Paragon Cards points at a page that really exists");
   check(cardsEntry.minStake === 100 && cardsEntry.maxStake === 10000 && cardsEntry.stakeStep === 50,
     "Paragon Cards honours the platform stake limits (100–10,000 in steps of 50)");
-  check(Array.isArray(cardsEntry.variants) && cardsEntry.variants.length === 2, "Paragon Cards ships two rule sets");
+  check(Array.isArray(cardsEntry.variants) && cardsEntry.variants.length === 4, "Paragon Cards ships four rule sets (P-120: wave 2 adds solitaire/memory)");
   check(cardsEntry.variants.every(v => Array.isArray(v.rules) && v.rules.length >= 4), "every Cards rule set publishes its rules (one-tap rules card)");
   const spinEntry = manifest.find("spin");
   const chessEntry = manifest.find("chess");
@@ -497,7 +497,7 @@
     check(built > 0 && built < 100, game.name + " remains below 100 until the owner's demo pass");
   });
   const sw = read("service-worker.js");
-  check(sw.includes("paragon-archive-v93") && sw.includes('"./games/spin/play.html"') && sw.includes('"./games/chess/play.html"'), "cache v91 precaches both new free game rooms for offline play");
+  check(sw.includes("paragon-archive-v94") && sw.includes('"./games/spin/play.html"') && sw.includes('"./games/chess/play.html"'), "cache v91 precaches both new free game rooms for offline play");
   const vercel = JSON.parse(read("vercel.json"));
   check(!("errorDocument" in vercel) && !("$comment" in vercel), "Vercel config removes the unsupported keys that blocked deployment");
 
@@ -576,7 +576,7 @@
   check(read("GAMES-BUILD-PLAN.md").includes("P-118"), "GAMES-BUILD-PLAN status block records P-118");
 
   /* ---------- 7. Cache bump for the shell change ---------- */
-  check(read("service-worker.js").includes("paragon-archive-v93"), "cache is v92 after the app.js + docs shell change");
+  check(read("service-worker.js").includes("paragon-archive-v94"), "cache is v92 after the app.js + docs shell change");
 
   console.log("\nPASS: " + passed + " checks — P-118 stale-SQL-docs correction, dead-branch banners, Edge runbook, Quiz dialogs, stake-matched matchmaking");
 })();
@@ -679,7 +679,7 @@
   const playHtml = read("games/arcade/play.html");
   check(playHtml.includes('id="game-hud"') && playHtml.includes('id="game-stage"'), "arcade play.html provides the HUD + stage the kit expects");
   const sw = read("service-worker.js");
-  check(sw.includes("paragon-archive-v93") && sw.includes('"./games/arcade/play.html"') && sw.includes('"./games/arcade/js/arcade.js"'), "cache v93 precaches the arcade floor for offline play");
+  check(sw.includes("paragon-archive-v94") && sw.includes('"./games/arcade/play.html"') && sw.includes('"./games/arcade/js/arcade.js"'), "cache v93 precaches the arcade floor for offline play");
 
   /* ---------- 10. Platform laws inside arcade.js ---------- */
   const src = read("games/arcade/js/arcade.js");
@@ -692,4 +692,153 @@
   check(read("GAMES-BUILD-PLAN.md").includes("P-119"), "GAMES-BUILD-PLAN status block records P-119");
 
   console.log("\nPASS: " + passed + " checks — P-119 Paragon Arcade (five cabinets, complete)");
+})();
+/* ================= FIXTURE: P-120 — Cards wave 2 + Quiz-on-engine ================= */
+(function () {
+  const fs = require("fs");
+  const path = require("path");
+  const vm = require("vm");
+  const root = path.resolve(__dirname, "..");
+  function assert(value, message) { if (!value) throw new Error("P-120: " + message); }
+  let passed = 0;
+  function check(value, label) { assert(value, label); passed += 1; console.log("  ✅ " + label); }
+  const read = p => fs.readFileSync(path.join(root, p), "utf8");
+  const exists = p => fs.existsSync(path.join(root, p));
+
+  /* ---------- 1. Wave-2 cabinet files exist with identity headers ---------- */
+  ["games/cards/js/solitaire.js", "games/cards/js/memory.js"].forEach(file => {
+    check(exists(file), file + " exists");
+    check(read(file).includes("PARAGON ARCHIVE — EXPORT IDENTITY"), file + " carries the identity header");
+  });
+
+  /* ---------- 2. Pure rules load in a DOM-free context ---------- */
+  const storage = {};
+  const localStorage = {
+    getItem: key => (key in storage ? storage[key] : null),
+    setItem: (key, value) => { storage[key] = String(value); },
+    removeItem: key => { delete storage[key]; },
+    key: index => Object.keys(storage)[index] || null,
+    get length() { return Object.keys(storage).length; }
+  };
+  const documentStub = {
+    readyState: "complete", title: "",
+    getElementById: () => null, querySelector: () => null, querySelectorAll: () => [],
+    createElement: () => ({ classList: { add() {}, toggle() {} }, setAttribute() {}, addEventListener() {}, querySelector: () => null, querySelectorAll: () => [], appendChild() {} }),
+    body: { appendChild() {} }, addEventListener() {}
+  };
+  const context = {
+    console, localStorage, document: documentStub, window: null,
+    location: { pathname: "/blank.html", href: "", search: "", origin: "" },
+    navigator: {}, setTimeout, clearTimeout, URLSearchParams
+  };
+  context.window = context;
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(read("games/manifest.js"), context, { filename: "games/manifest.js" });
+  vm.runInContext(read("games/cards/js/solitaire.js"), context, { filename: "games/cards/js/solitaire.js" });
+  vm.runInContext(read("games/cards/js/memory.js"), context, { filename: "games/cards/js/memory.js" });
+  vm.runInContext(read("paragon-quiz/js/quiz.js"), context, { filename: "paragon-quiz/js/quiz.js" });
+  const S = context.ParagonCardsSolitaire;
+  const M = context.ParagonCardsMemory;
+  const PQ = context.ParagonQuiz;
+  check(!!S && !!M && !!PQ, "solitaire, memory and quiz exports load in a DOM-free context");
+
+  /* ---------- 3. Solitaire scoring + Klondike rules ---------- */
+  check(S.SCORE.toFoundation === 10 && S.SCORE.wasteToTableau === 5 && S.SCORE.tableauMove === 3 &&
+    S.SCORE.flip === 5 && S.SCORE.recyclePenalty === 20 && S.SCORE.winBonusBase === 1000,
+    "solitaire: published scoring constants (10/5/3/5/-20/1000 bonus)");
+  const C = (r, s) => ({ r: r, s: s, up: true });
+  check(S.canPlaceOnFoundation({ r: 1, s: "h" }, null) === true, "solitaire: ace starts an empty foundation");
+  check(S.canPlaceOnFoundation(C(2, "h"), C(1, "h")) === true, "solitaire: 2h builds on Ah");
+  check(S.canPlaceOnFoundation(C(2, "h"), C(3, "h")) === false, "solitaire: foundation rejects skipping ranks");
+  check(S.canPlaceOnFoundation(C(2, "s"), C(1, "h")) === false, "solitaire: foundation rejects mixed suits");
+  check(S.canPlaceOnTableau(C(12, "h"), C(13, "s")) === true, "solitaire: Q-red builds on K-black");
+  check(S.canPlaceOnTableau(C(12, "h"), C(13, "h")) === false, "solitaire: tableau rejects same colour");
+  check(S.canPlaceOnTableau(C(12, "h"), C(12, "s")) === false, "solitaire: tableau rejects same rank");
+  check(S.canPlaceOnTableau(C(13, "s"), null) === true, "solitaire: only a king starts an empty column");
+  check(S.canPlaceOnTableau(C(12, "h"), null) === false, "solitaire: non-king rejected on empty column");
+  check(S.movingStackValid([C(13, "s"), C(12, "h"), C(11, "c")]) === true, "solitaire: descending alternating run is grabbable");
+  check(S.movingStackValid([C(13, "s"), C(12, "c")]) === false, "solitaire: same-colour run is not grabbable");
+  check(S.movingStackValid([{ r: 13, s: "s", up: false }]) === false, "solitaire: face-down card is not grabbable");
+  const recycled = S.recycleOrder([C(1, "h"), C(2, "h"), C(3, "h")]);
+  check(recycled.length === 3 && recycled[0].r === 3 && recycled.every(c => c.up === false),
+    "solitaire: recycling reverses waste face-down with order preserved");
+  check(S.solitaireHasMove({ stock: [], waste: [], tableau: [[], [], [], [], [], [], []], foundations: [[], [], [], []] }) === false,
+    "solitaire: empty board honestly reports no moves");
+
+  /* ---------- 4. Memory Match scoring ---------- */
+  check(M.rankMatch({ r: 1 }, { r: 1 }) === true && M.rankMatch({ r: 1 }, { r: 13 }) === false,
+    "memory: rank-only matching");
+  check(M.memoryPoints(0) === 100 && M.memoryPoints(3) === 175, "memory: 100 + 25/combo");
+  check(M.memoryBonus(8) === 240 && M.memoryBonus(24) === 0 && M.memoryBonus(25) === 0,
+    "memory: (24-moves)x15 efficiency bonus through 24 moves");
+
+  /* ---------- 5. Quiz scoring (timed rounds + streak multipliers) ---------- */
+  check([0, 1, 2, 3, 4, 5, 6].map(PQ.quizStreakMultiplier).join(",") === "1,1,2,3,4,5,5",
+    "quiz: streak multiplier 1x-5x, capped at five");
+  check(PQ.quizQuestionPoints(30, 30, 2) === 300, "quiz: full-time correct at 2x scores (100+50)x2");
+  check(PQ.quizQuestionPoints(0, 30, 1) === 100, "quiz: no time left still scores base 100 at 1x");
+  check(PQ.quizQuestionPoints(0, 0, 1) === 100, "quiz: untimed quizzes score base 100, no speed bonus");
+  check(PQ.quizOutcomeForPercent(100) === "win" && PQ.quizOutcomeForPercent(80) === "win" &&
+    PQ.quizOutcomeForPercent(79) === "draw" && PQ.quizOutcomeForPercent(50) === "draw" &&
+    PQ.quizOutcomeForPercent(49) === "loss", "quiz: 80+/50+ win/draw thresholds");
+
+  /* ---------- 6. Manifest rows: cards x4, quiz registered ---------- */
+  const manifest = context.ParagonGameManifest;
+  const cards = manifest.find("cards");
+  check(cards && cards.status === "live", "manifest: cards stays live");
+  check(cards.variants.map(v => v.key).join(",") === "higher-lower,blackjack,solitaire,memory",
+    "manifest: cards ships all four wave-1+2 variants");
+  cards.variants.forEach(v => {
+    check(Array.isArray(v.rules) && v.rules.length >= 4, "manifest: cards/" + v.key + " publishes its rules");
+    check(!!v.scoreUnit, "manifest: cards/" + v.key + " declares its score unit");
+  });
+  const quiz = manifest.find("quiz");
+  check(quiz && quiz.status === "live", "manifest: quiz is registered live");
+  check(quiz.path === "paragon-quiz/index.html" && quiz.playPath === "paragon-quiz/play.html", "manifest: quiz paths are real");
+  check(quiz.variants.length === 1 && quiz.variants[0].key === "standard", "manifest: quiz ships the standard variant");
+  check(quiz.variants[0].rules.length >= 4 && quiz.variants[0].scoreUnit === "points",
+    "manifest: quiz/standard publishes rules and the points unit");
+  check(quiz.supportsStake === true && quiz.variants[0].rules.join(" ").includes("server"),
+    "manifest: quiz declares server-scored paid attempts with money still locked");
+
+  /* ---------- 7. Cabinet + quiz wiring ---------- */
+  const playHtml = read("games/cards/play.html");
+  check(playHtml.includes('<script src="js/solitaire.js">') && playHtml.includes('<script src="js/memory.js">'), "cards play.html loads both wave-2 cabinets");
+  check(playHtml.includes("?v=solitaire") && playHtml.includes("?v=memory"), "cards play.html nav reaches both wave-2 cabinets");
+  const cardsIndex = read("games/cards/index.html");
+  check(cardsIndex.includes("?v=solitaire") && cardsIndex.includes("?v=memory"), "cards home links both wave-2 cabinets");
+  check(cardsIndex.includes("Four fair games"), "cards home announces four fair games");
+  const cardsSrc = read("games/cards/js/cards.js");
+  check(cardsSrc.includes("ParagonCardsSolitaire") && cardsSrc.includes("ParagonCardsMemory"), "cards.js dispatches both wave-2 cabinets");
+  check(cardsSrc.includes("solitaire:") && cardsSrc.includes("memory:"), "cards.js declares wave-2 leaderboard columns");
+  check(read("games/cards/js/home.js").includes("bestSolitaire") && read("games/cards/js/home.js").includes("bestMemory"),
+    "cards home tracks best solitaire + memory scores");
+  const quizPlay = read("paragon-quiz/play.html");
+  check(quizPlay.includes('<script src="../games/manifest.js">') && quizPlay.includes('<script src="../games/engine.js">'), "quiz play.html boots the games engine");
+  check(quizPlay.includes('id="streakBadge"') && quizPlay.includes('id="pointsLive"'), "quiz play.html shows the streak HUD + live points");
+  check(quizPlay.includes('id="enginePoints"') && quizPlay.includes('id="bestStreakCount"'), "quiz complete screen shows points + best streak");
+  const quizSrc = read("paragon-quiz/js/quiz.js");
+  check(quizSrc.includes("ParagonGames.start({ gameKey: \"quiz\""), "quiz.js opens a quiz/variant engine session");
+  check(quizSrc.includes("engineStart();"), "quiz.js starts the engine session when play begins");
+  check(quizSrc.includes("quizQuestionPoints(timeLeft,"), "quiz.js scores each answer through the pure points function");
+  check(quizSrc.includes("quizEngine.finish({"), "quiz.js closes the engine session with outcome + score");
+
+  /* ---------- 8. Offline + platform laws + records ---------- */
+  const sw = read("service-worker.js");
+  check(sw.includes("paragon-archive-v94") && sw.includes('"./games/cards/js/solitaire.js"') && sw.includes('"./games/cards/js/memory.js"'),
+    "cache v94 precaches both wave-2 cabinets for offline play");
+  ["games/cards/js/solitaire.js", "games/cards/js/memory.js"].forEach(file => {
+    const src = read(file);
+    check(!/window\.(alert|prompt|confirm)\s*\(/.test(src), file + " keeps the no-browser-dialogs law");
+    check(!/Math\.random\s*\(/.test(src), file + " draws only through the seeded engine (no Math.random)");
+    check(!/addCoins|spendCoins|recordResult|ParagonWallets|ParagonLeaderboards/.test(src), file + " never touches coins, wallets or the money leaderboard");
+  });
+  check((read("games/cards/js/solitaire.js").match(/engine\.checkpoint\(/g) || []).length >= 1, "solitaire checkpoints for resume");
+  check((read("games/cards/js/solitaire.js").match(/engine\.action\(/g) || []).length >= 3, "solitaire audits gameplay actions");
+  check((read("games/cards/js/memory.js").match(/engine\.action\(/g) || []).length >= 2, "memory audits gameplay actions");
+  check(read("games/cards/SPEC.md").includes("P-120"), "cards SPEC.md records the P-120 build");
+  check(read("GAMES-BUILD-PLAN.md").includes("P-120"), "GAMES-BUILD-PLAN status block records P-120");
+
+  console.log("\nPASS: " + passed + " checks — P-120 Cards wave 2 + Quiz-on-engine");
 })();

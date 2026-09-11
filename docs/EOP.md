@@ -5774,3 +5774,29 @@ The repo no longer tells anyone to run the dead branch, the agent-connector trut
 ### Result
 
 The Arcade floor is a fourth live game: five complete, honest, offline-capable cabinets with the money path gated exactly as platform law demands. Next in the build order: **Quiz onto the engine → Cards wave 2 (solitaire/memory) → Bet LAST**.
+
+## v1.11.0 — 2026-09-11 — Cards wave 2 + Quiz onto the engine (P-120 / D-239)
+
+**Request reference:** SOP §11, Prompt P-120 (owner: cards wave 2 now — solitaire/memory; quiz onto the engine too; bet + stake/multiplayer connected vision recorded spec-only for later).
+**Status:** `[x]` repository implementation complete + jsdom playthrough-verified; owner demo pass pending.
+
+### Executed actions
+
+1. **Solitaire cabinet** (`games/cards/js/solitaire.js`, pure exports on `window.ParagonCardsSolitaire`). Full Klondike, click-to-move: seeded 52-card deal with no re-deal button, tableau builds down in alternating colours, only Kings start empty columns, foundations stack one suit up from the Ace, unlimited waste recycles in exact order. Scoring 10/5/3/5/−20 with a 1000−moves win bonus; win = all 52 home, stalemate (no draw/flip/foundation/tableau move) ends honestly as a loss, auto-finish offered once stock + waste are empty and every tableau card is face-up. Every move checkpoints; deals/flips/draws/finishes audited.
+2. **Memory Match cabinet** (`games/cards/js/memory.js`, pure exports on `window.ParagonCardsMemory`). 16 cards / 8 seeded rank pairs; matches score 100 + 25×combo with a (24−moves)×15 efficiency bonus; rank-only matching; half-open pairs honestly close on resume. Checkpoints + audits like Solitaire. Neither cabinet touches coins, wallets or the money leaderboard.
+3. **Quiz onto the engine** (`paragon-quiz/`). Pure `quizStreakMultiplier` (1x–5x) / `quizQuestionPoints` ((100 + ≤50 speed bonus) × multiplier) / `quizOutcomeForPercent` (80/50 win/draw) in the shared core; each attempt opens a `quiz/standard` engine session, scores + audits every answer, and closes with outcome + score; streak HUD, live points, complete-screen points + best streak. Paid prize eligibility stays 100% server-side (Stage 4); the manifest `quiz` row publishes the server-scored-paid rule with money still locked.
+4. **Wiring:** `cards.js` dispatches all four cabinets with per-cabinet STATS/NAMES and an honest missing-file panel; home announces "Four fair games" + bests; manifest cards row = four ruled variants; catalogue lists all four; SPEC.md §9; service worker precaches wave 2 — cache **v94** (P-016). Bet/multiplayer vision recorded spec-only in the plan status block (team brackets + spectator prediction); no bet code ships.
+5. **Tests:** `tests/suite-games.test.js` +69 P-120 checks (**412 total**: Klondike rule table, memory + quiz scoring tables, manifest/cards/quiz/home/offline wiring, no-dialogs/no-Math.random/no-coins laws, checkpoints + audit, SPEC/plan records). jsdom boot + full playthroughs all green: Solitaire 7 columns/24 stock, draw → waste, reload → Resume restores exact piles; Memory exact-pair match locks +100 with audit; Quiz perfect run banks 6000 (streak 10 · 5x), session closes as win with a 10-answer audit. Three defects found and fixed pre-demo (missing cabinet script tags — fixture check tightened to match real `<script>` tags, not comments; `engineStart()` never called at beginPlay; quiz HUD/complete rows missing).
+
+### Acceptance boundaries
+
+- [x] Guest, member and zero-coin free access; no coin calls in solitaire.js/memory.js.
+- [x] Scoring published in manifest rules + SPEC, enforced by pure functions.
+- [x] Quiz engine session is local performance; server score alone decides paid prizes.
+- [x] No stake input, live search, browser settlement or bet/multiplayer code introduced.
+- [x] No `window.alert/prompt/confirm`; all gameplay draws seeded (`Date.now` measures time only).
+- [ ] Owner demo pass; only then Cards 90 → 100 (joins Spin/Chess/Arcade in the demo queue).
+
+### Result
+
+Paragon Cards is a four-cabinet live game and Paragon Quiz runs on the engine with timed, streak-multiplied rounds — all offline-capable, all money paths gated exactly as platform law demands. Next in the build order: **Bet LAST** (tournament + spectator-prediction vision already recorded, buildable only behind the money/legal gates).

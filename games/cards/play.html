@@ -3,8 +3,9 @@
   REAL FILE NAME: play.html
   EXPECTED PROJECT PATH: /games/cards/play.html
   ROLE: Paragon Cards play screen — game-kit HUD (mode chip, stats, rules card, quit panel)
-        plus the game stage that js/cards.js renders into. ?v=higher-lower (default) or
-        ?v=blackjack selects the rule set.
+        plus the game stage that js/cards.js renders into. ?v=higher-lower (default),
+        blackjack, solitaire or memory selects the rule set (wave 2 in js/solitaire.js
+        and js/memory.js, dispatched from cards.js boot).
   RESTORE-LOAD NOTE: Loads site-kit.css, ../_shared/game-kit.css, css/style.css, then
         site-kit.js, ../manifest.js, ../engine.js, ../_shared/game-kit.js and js/cards.js.
 -->
@@ -34,6 +35,8 @@
       <a href="index.html" class="nav-link">Home</a>
       <a href="play.html?v=higher-lower" class="nav-link" data-nav="higher-lower">Higher·Lower</a>
       <a href="play.html?v=blackjack" class="nav-link" data-nav="blackjack">Blackjack 21</a>
+      <a href="play.html?v=solitaire" class="nav-link" data-nav="solitaire">Solitaire</a>
+      <a href="play.html?v=memory" class="nav-link" data-nav="memory">Memory</a>
       <a href="index.html#leaderboard" class="nav-link">Leaderboard</a>
     </nav>
   </header>
@@ -56,6 +59,8 @@
   <script src="../engine.js"></script>
   <script src="../_shared/game-kit.js"></script>
   <script src="js/cards.js"></script>
+  <script src="js/solitaire.js"></script>
+  <script src="js/memory.js"></script>
   <script>
     /* Underline the live mode in the topbar — markup only, no behaviour invented. */
     (function () {
