@@ -5718,3 +5718,85 @@ The games programme has its shared framework and its first honest, playable, off
 ### Result
 
 The owner can now review three distinct real-feeling rooms: Cards, Spin and Chess. Spin and Chess are complete free releases on the shared engine, while every money/online promise remains honestly absent. Arcade is now the next unbuilt game, followed by Quiz-on-engine, Cards wave 2 and Bet last.
+
+## v1.09.0 — 2026-09-11 — Stale-SQL-docs correction, Edge runbook, Updates.txt spec, half-built game completions (P-118 / D-237)
+
+**Request reference:** SOP §11, Prompt P-118 (owner audit: stale docs point at a dead branch; agent-can't-reach-Supabase assumption outdated — direct connector live; all SQL done through Phase 5 + Stage 4 with Edge deploys next; Updates.txt games spec; complete any half-built game).
+**Status:** `[x]` repository implementation complete; Edge deploys + owner demo pass pending.
+
+### Executed actions
+
+1. **Dead-branch SQL bannered (D-237).** `supabase/coins-schema.sql`, `supabase/finance-schema.sql`, `supabase/leaderboards-schema.sql` each carry a ⛔ SUPERSEDED — DO NOT RUN banner (never applied; incompatible `paragon_withdrawals` / `paragon_economic_settings` / `paragon_leaderboard_entries` shapes vs the live master architecture). Files stay on disk because `suite-ux` (P-100), `suite-finance` (§15) and `suite-ai-team` (P-099) assert their presence + content tokens — deletion would break the suites with no benefit.
+2. **Run docs corrected.** `OWNER-SQL-CHECKLIST.md`, `SQL-RUN-PACK.md`, `SUPABASE-AI-VERIFY-PROMPT.md` rewritten: all-SQL-done status, master run order steps 0–9 (phase1→phase2→stage1-hardening→phase3→phase4→phase5→stage2→stage3-games→stage4-quiz), `coins-schema.sql` removed as a step, Script A gains phase5/stage3/stage4 rows plus a `legacy-absent` must-be-false check, Supabase-AI prompt guards the migration list. `COINS-PHASE3-DEPLOY.md` §0 fixed. Live refs in `docs/COIN-SYSTEM.md`, `docs/COINS-PHASES.md`, `docs/COINS-AUDIT-CHECKLIST.md` corrected (historical EOP/SOP entries kept as history).
+3. **Connector correction.** The "sandbox gets DNS failures / owner must paste SQL manually" assumption is retired in this interface: the agent's direct Supabase connector applies migrations + runs advisors in-chat (7 migrations done this way 2026-09-11). Manual VERIFY/probe paths stay as fallbacks.
+4. **Edge deploy runbook (the actual next blocker).** New `supabase/functions/EDGE-DEPLOY-RUNBOOK.md`: secrets table (`PARAGON_COIN_WEBHOOK_SECRET` required; `OPAY_`/`MONIEPOINT_`/`PAYSTACK_`/`FLUTTERWAVE_` conditional), CLI deploy commands (`--no-verify-jwt`), all five webhook URLs, ordered verify curls, first-live drill, fail-closed law, troubleshooting, rollback. All three `index.ts` verified complete (no TODOs; `Deno.serve` + secret-gated).
+5. **Updates.txt spec adopted.** New `docs/GAMES-UPDATES-SPEC.md`: Spin + Chess live as the new games; free tier (guest/signed-up/0 coins) beside gated bet mode; stake-matched matchmaking; in-game General/Free/Bet/Multiplayer board explicitly separate from the revenue-funded money leaderboard (phase-4 periods/entries); Supabase free-tier estimate ≈115 MB at 10k economy users (≈4× headroom; audit retention is the lever; real risks are 7-day auto-pause + audit growth, not game storage); "Firebird" clarified as a Firebase typo with D-236 (no Firebase) standing.
+6. **Half-built game audit + completions.** Cards/Spin/Chess verified genuinely complete (90, owner-demo-gated); Arcade/Quiz-on-engine/Cards-wave-2/Bet confirmed planned-not-half-built. Two real half-built pieces completed: (a) paid Quiz called `window.alert()` twice (dialog-law violation) — now an inline `#paidNotice` panel with Continue semantics (`play.html` host + `style.css` tones + `quiz.js showPaidNotice`); (b) the 1v1 desk had no stake matching — now a match-my-stake toggle (default on), STAKE MATCH rows first, honest empty state, limit raised 15→30 for matching pool (client-side; no new SQL since `paragon_competition_open_challenges` has no stake param).
+7. **Governance + tests.** Cache v91 → **v92** (P-016; app.js shell changed) with all suite assertions bumped. `tests/suite-games.test.js` 233 → **280 checks** (47-check P-118 fixture: banners, run docs, runbook, quiz dialog law, stake matching, spec doc, cache). SOP D-237 + P-118, CTA §13 (master SQL done; dead RUN items removed; Edge next), CHANGES.md P-118 entry, NEXT-AGENT §7s, file tree regenerated. All five suites green.
+
+### Acceptance boundaries
+
+- [x] No run doc routes through `coins-schema.sql` / `finance-schema.sql` / `leaderboards-schema.sql`; banners cite D-237.
+- [x] Old fixtures still green (dead files kept for their token assertions).
+- [x] Zero `window.alert/prompt/confirm` calls in `paragon-quiz/js/quiz.js`.
+- [x] Stake-matched pairing ships with no new SQL and no fake opponents.
+- [x] No stake inputs added to game rooms; browser still never settles money.
+- [ ] Edge Functions deployed + secrets set (owner, via runbook).
+- [ ] Owner demo pass; only then Cards/Spin/Chess 90 → 100.
+- [ ] OPay/Moniepoint account numbers; production domain; Brevo hold; licence/KYC.
+
+### Result
+
+The repo no longer tells anyone to run the dead branch, the agent-connector truth is recorded so future SQL work skips the manual detour, the Edge path is a single executable runbook, the Updates.txt games spec is pinned to built reality with a concrete capacity estimate, and the two genuinely half-built game pieces are finished and regression-locked. Next build order stands: **Arcade → Quiz onto the engine → Cards wave 2 → Bet LAST.**
+
+## v1.10.0 — 2026-09-11 — Paragon Arcade: five cabinets, complete (P-119 / D-238)
+
+**Request reference:** SOP §11, Prompt P-119 (owner: build the recommended next game completely — Arcade per the P-118 guidance).
+**Status:** `[x]` repository implementation complete + jsdom playthrough-verified; owner demo pass pending.
+
+### Executed actions
+
+1. **Five cabinets, one router.** `games/arcade/` ships Reflex Tap (5 seeded 900–2600 ms reaction rounds, fouls 0, 1000−ms points), Memory Match (12 cards / 6 seeded pairs, 100+25×combo, (18−moves)×20 bonus), Timing Bar (5 seeded 1200–2200 ms sweeps, 200/120/60/0 zones), Sequence Repeat (4 numbered pads, seeded patterns 3→10 over 8 rounds, 10/pad + 50×round, one mistake ends the run) and Target Sprint (25 s wall clock, seeded positions/sizes, +100/−25 floored at 0) behind `play.html?v=`, each with per-cabinet stats, manifest rules card, quit/resume panels and result overlay.
+2. **Honest resume per cabinet** (all stated in the manifest rules): Memory exact (half-open pair closes, initial board checkpointed); Reflex/Timing restart the current round; Sequence redeals the round pattern; Sprint restarts. Keyboard play (Space/Enter, 1–4), reduced-motion paths, labelled-not-colour-only zones/pads.
+3. **Wiring:** manifest row live with five ruled variants (scoreUnit + thresholds published); catalogue row live at `buildProgress: 90` with the five REAL features (old Snake/Tetris concept list retired — no licensed clones, no fake rows); Arcade icon art in headers; home counters + per-cabinet bests + shared in-game board; `LIVE_SITES` learns Arcade; service worker precaches the floor — cache **v93** (P-016); `SPEC.md` acceptance checklist.
+4. **Tests:** `tests/suite-games.test.js` +63 P-119 checks (**343 total**: scoring tables for all five cabinets, manifest/catalogue/home/offline wiring, no-dialogs/no-Math.random/no-coins laws, checkpoints + audit, SPEC/plan records). jsdom boot suite (12 checks) + full playthroughs all green: Reflex 5-round win with board row + 5-action audit; Memory perfect game = exactly 1215; Timing 5 stops; Sequence round-1 clear + wrong-pad ends run keeping 80; Targets full 25 s sprint win. One defect found and fixed pre-demo (Memory initial checkpoint).
+5. **Docs:** GAMES-BUILD-PLAN status + §3.4 (Arcade DONE; next Quiz-on-engine), GAMES-UPDATES-SPEC §4, SOP D-238 + P-119, CHANGES P-119 entry, NEXT-AGENT §7t, file tree regenerated. All five suites green.
+
+### Acceptance boundaries
+
+- [x] Guest, member and zero-coin free access; no coin calls in arcade.js.
+- [x] Win/draw/loss thresholds published in manifest rules, enforced by pure functions.
+- [x] Bet/Multiplayer board tabs stay honestly empty (solo cabinets; no fake opponents).
+- [x] No stake input, live search or browser settlement introduced.
+- [x] No `window.alert/prompt/confirm`; all gameplay draws seeded (`Date.now` measures time only).
+- [ ] Owner demo pass; only then Arcade 90 → 100 (joins Cards/Spin/Chess in the demo queue).
+
+### Result
+
+The Arcade floor is a fourth live game: five complete, honest, offline-capable cabinets with the money path gated exactly as platform law demands. Next in the build order: **Quiz onto the engine → Cards wave 2 (solitaire/memory) → Bet LAST**.
+
+## v1.11.0 — 2026-09-11 — Cards wave 2 + Quiz onto the engine (P-120 / D-239)
+
+**Request reference:** SOP §11, Prompt P-120 (owner: cards wave 2 now — solitaire/memory; quiz onto the engine too; bet + stake/multiplayer connected vision recorded spec-only for later).
+**Status:** `[x]` repository implementation complete + jsdom playthrough-verified; owner demo pass pending.
+
+### Executed actions
+
+1. **Solitaire cabinet** (`games/cards/js/solitaire.js`, pure exports on `window.ParagonCardsSolitaire`). Full Klondike, click-to-move: seeded 52-card deal with no re-deal button, tableau builds down in alternating colours, only Kings start empty columns, foundations stack one suit up from the Ace, unlimited waste recycles in exact order. Scoring 10/5/3/5/−20 with a 1000−moves win bonus; win = all 52 home, stalemate (no draw/flip/foundation/tableau move) ends honestly as a loss, auto-finish offered once stock + waste are empty and every tableau card is face-up. Every move checkpoints; deals/flips/draws/finishes audited.
+2. **Memory Match cabinet** (`games/cards/js/memory.js`, pure exports on `window.ParagonCardsMemory`). 16 cards / 8 seeded rank pairs; matches score 100 + 25×combo with a (24−moves)×15 efficiency bonus; rank-only matching; half-open pairs honestly close on resume. Checkpoints + audits like Solitaire. Neither cabinet touches coins, wallets or the money leaderboard.
+3. **Quiz onto the engine** (`paragon-quiz/`). Pure `quizStreakMultiplier` (1x–5x) / `quizQuestionPoints` ((100 + ≤50 speed bonus) × multiplier) / `quizOutcomeForPercent` (80/50 win/draw) in the shared core; each attempt opens a `quiz/standard` engine session, scores + audits every answer, and closes with outcome + score; streak HUD, live points, complete-screen points + best streak. Paid prize eligibility stays 100% server-side (Stage 4); the manifest `quiz` row publishes the server-scored-paid rule with money still locked.
+4. **Wiring:** `cards.js` dispatches all four cabinets with per-cabinet STATS/NAMES and an honest missing-file panel; home announces "Four fair games" + bests; manifest cards row = four ruled variants; catalogue lists all four; SPEC.md §9; service worker precaches wave 2 — cache **v94** (P-016). Bet/multiplayer vision recorded spec-only in the plan status block (team brackets + spectator prediction); no bet code ships.
+5. **Tests:** `tests/suite-games.test.js` +69 P-120 checks (**412 total**: Klondike rule table, memory + quiz scoring tables, manifest/cards/quiz/home/offline wiring, no-dialogs/no-Math.random/no-coins laws, checkpoints + audit, SPEC/plan records). jsdom boot + full playthroughs all green: Solitaire 7 columns/24 stock, draw → waste, reload → Resume restores exact piles; Memory exact-pair match locks +100 with audit; Quiz perfect run banks 6000 (streak 10 · 5x), session closes as win with a 10-answer audit. Three defects found and fixed pre-demo (missing cabinet script tags — fixture check tightened to match real `<script>` tags, not comments; `engineStart()` never called at beginPlay; quiz HUD/complete rows missing).
+
+### Acceptance boundaries
+
+- [x] Guest, member and zero-coin free access; no coin calls in solitaire.js/memory.js.
+- [x] Scoring published in manifest rules + SPEC, enforced by pure functions.
+- [x] Quiz engine session is local performance; server score alone decides paid prizes.
+- [x] No stake input, live search, browser settlement or bet/multiplayer code introduced.
+- [x] No `window.alert/prompt/confirm`; all gameplay draws seeded (`Date.now` measures time only).
+- [ ] Owner demo pass; only then Cards 90 → 100 (joins Spin/Chess/Arcade in the demo queue).
+
+### Result
+
+Paragon Cards is a four-cabinet live game and Paragon Quiz runs on the engine with timed, streak-multiplied rounds — all offline-capable, all money paths gated exactly as platform law demands. Next in the build order: **Bet LAST** (tournament + spectator-prediction vision already recorded, buildable only behind the money/legal gates).

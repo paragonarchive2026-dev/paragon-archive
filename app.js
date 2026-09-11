@@ -5214,6 +5214,8 @@ window.openGamesCompeteDesk = function() {
         <input id="compete-game-key" value="1v1-practice" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit">
         <label style="display:block;margin:10px 0 4px;font-size:12px">Stake (coins)</label>
         <input id="compete-stake" type="number" min="100" max="10000" step="50" value="100" style="width:100%;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit">
+        <label style="display:flex;align-items:center;gap:8px;margin:2px 0 4px;font-size:12px"><input id="compete-match-stake" type="checkbox" checked style="width:16px;height:16px"> Match my stake — show only open challenges at exactly this stake</label>
+        <p class="install-popup-note" style="margin-top:0">Matchmaking pairs you with a player who staked the same amount. Same game, same stake, same 5% pool fee — the server seats both stakes, then the Team settles.</p>
         <div class="install-popup-actions" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
           <button type="button" class="primary-action" onclick="createOneVOneChallenge()">Create challenge (lock my stake)</button>
           <button type="button" class="secondary-action" onclick="refreshOpenChallenges()">Open challenges</button>
@@ -5265,16 +5267,29 @@ window.refreshOpenChallenges = function() {
   host.innerHTML = "<small>Loading open challenges…</small>";
   supabaseRest("/rest/v1/rpc/paragon_competition_open_challenges", {
     method: "POST",
-    body: JSON.stringify({ p_game_key: null, p_limit: 15 })
+    body: JSON.stringify({ p_game_key: null, p_limit: 30 })
   }).then(rows => {
     const list = Array.isArray(rows) ? rows : (rows ? [rows] : []);
+    /* P-118 stake-matched matchmaking: the Updates spec pairs players by equal
+       stake. The server RPC has no stake filter, so the desk matches client-side
+       against the stake input — matching rows first, honestly labelled. */
+    const myStake = Math.round(Number(document.getElementById("compete-stake")?.value) || 0);
+    const onlyMatching = document.getElementById("compete-match-stake")?.checked !== false;
+    const matched = list.filter(c => Number(c.stake_coins || 0) === myStake);
+    const others = list.filter(c => Number(c.stake_coins || 0) !== myStake);
+    const shown = onlyMatching ? matched : matched.concat(others);
     if (!list.length) {
       host.innerHTML = "<small>No open challenges (or Stage 3 SQL not run).</small>";
       return;
     }
-    host.innerHTML = `<h4 style="font-size:13px">Open challenges</h4>` + list.map(c => {
+    if (!shown.length) {
+      host.innerHTML = `<h4 style="font-size:13px">Open challenges</h4><p class="install-popup-note">${list.length} open challenge${list.length === 1 ? " is" : "s are"} waiting, but none at your ${myStake.toLocaleString()}c stake. Create one above and a rival at the same stake can join you — or uncheck match-my-stake to browse every stake.</p>`;
+      return;
+    }
+    host.innerHTML = `<h4 style="font-size:13px">Open challenges</h4><p class="install-popup-note">${matched.length} of ${list.length} match${matched.length === 1 ? "es" : ""} your ${myStake.toLocaleString()}c stake${onlyMatching && others.length ? " — others hidden by match-my-stake" : ""}.</p>` + shown.map(c => {
       const id = String(c.id || "").replace(/'/g, "");
-      return `<div class="coin-intent-row"><span>${String(c.game_key || "").replace(/[<>]/g, "")} · ${Number(c.stake_coins || 0)}c · fee ${Number(c.fee_coins || 0)}c</span>
+      const isMatch = Number(c.stake_coins || 0) === myStake;
+      return `<div class="coin-intent-row"><span>${isMatch ? "<b>STAKE MATCH</b> · " : ""}${String(c.game_key || "").replace(/[<>]/g, "")} · ${Number(c.stake_coins || 0)}c · fee ${Number(c.fee_coins || 0)}c</span>
         <button type="button" class="secondary-action coin-claim-btn" onclick="joinOneVOneChallenge('${id}')">Join (lock my stake)</button></div>`;
     }).join("");
   }).catch(() => {

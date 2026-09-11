@@ -99,3 +99,22 @@ ends at 200 or more (won) or exactly 0 (over). Play chips are **not** Paragon Co
 
 **Personal bests:** decided by the engine, never by the game, and only for a real score above
 zero — a busted shoe or ten wrong calls is a play and a loss, never a "new best".
+
+## 9. Wave 2 — Solitaire + Memory Match (P-120)
+**Solitaire:** full Klondike, click-to-move on the shared engine. Seeded 52-card deal
+(no re-deal button — the seed is the fairness proof). Tableau builds down in alternating
+colours, only a King starts an empty column, foundations stack one suit up from the Ace,
+unlimited waste recycles in exact order. Scoring: foundation +10, waste→tableau +5,
+tableau move +3, flip +5, recycle −20, win bonus 1000 − moves. Win = all 52 home;
+stalemate (no draw, flip, foundation or tableau move) ends honestly as a loss; auto-finish
+offers one-tap completion once the stock and waste are empty and every tableau card is
+face-up. Resume restores the exact piles, score and move count.
+
+**Memory Match:** 16 cards, 8 seeded rank pairs. A match scores 100 + 25 × combo
+(combo counts consecutive matches, resets on a miss). Clearing the board adds an
+efficiency bonus of (24 − moves) × 15 through 24 moves, zero after. Matches are
+rank-only; suits never matter.
+
+Both cabinets checkpoint every move for resume, audit deals/matches/finishes, and never
+touch coins, wallets or the money leaderboard. `buildProgress` stays 90 pending the
+owner demo pass.

@@ -4,6 +4,43 @@ Owner note: "Maybe I should start building all the games — let's think on how 
 This plan is written against what ALREADY exists in the repo, so each game plugs into real engines
 instead of inventing new money/leaderboard logic.
 
+> **STATUS — 2026-09-11 (P-120).** **Cards wave 2 is built and Quiz runs on the
+> engine.** Paragon Cards now ships four live cabinets (Higher·Lower, Blackjack 21,
+> **Solitaire**, **Memory Match**) on the shared engine — seeded deals, honest resume,
+> per-cabinet bests, published scoring, full regression cover; `buildProgress: 90`
+> pending the owner demo, like Spin/Chess/Arcade. Paragon Quiz now opens a real engine
+> session per attempt: timed rounds with streak multipliers (1x–5x) + speed bonus, live
+> HUD, per-answer audit, win/draw/loss close — while paid prize eligibility stays 100%
+> server-side (Stage 4). Remaining order is now **Bet LAST**.
+>
+> **Owner vision recorded (P-120, SPEC-ONLY — build later).** One day the site hosts
+> real matches (e.g. a football-style World Cup bracket with a set squad size per team);
+> **Paragon Bet** becomes a SportyBet-style book where spectators predict match winners
+> with form stats (point strength and friends), and stake/multiplayer modes connect into
+> the same fixtures. Money/legal gates stand: nothing pays out until real money is ON,
+> the settle contract is authoritative server-side, and the jurisdiction/age/KYC answers
+> are documented. No bet/multiplayer code ships in P-120 beyond this paragraph.
+>
+> **STATUS — 2026-09-11 (P-119).** **Paragon Arcade is built and complete:** five live
+> cabinets (Reflex Tap, Memory Match, Timing Bar, Sequence Repeat, Target Sprint) on the shared
+> engine — seeded rounds, honest resume per cabinet, per-cabinet bests, in-game board, published
+> win/draw/loss thresholds, full regression cover. `buildProgress: 90` pending the owner demo,
+> like Cards/Spin/Chess. Remaining order is now **Quiz onto the engine → Cards wave 2
+> (solitaire/memory) → Bet LAST**. Stake inputs, live opponent search and `paragon_game_settle`
+> UI wiring remain deliberately deferred until real money is ON.
+>
+> **STATUS — 2026-09-11 (P-118).** All SQL is done through Phase 5 + Stage 4; the next
+> blocker is Edge Function deploys (`supabase/functions/EDGE-DEPLOY-RUNBOOK.md`). The Updates.txt
+> spec is mapped in `docs/GAMES-UPDATES-SPEC.md`: Spin + Chess live as the new games, free tier
+> (guest/signed-up/0 coins) beside gated bet mode, **stake-matched 1v1 matchmaking completed**
+> (match-my-stake desk, equal-stake pairing), in-game General/Free/Bet/Multiplayer board live and
+> explicitly separate from the revenue-funded money leaderboard (phase-4 periods/entries).
+> Supabase free-tier estimate: ≈115 MB @ 10k economy users (4× headroom); Firebase not added
+> (D-236 stands; "Firebird" clarified as Firebase typo). Two half-built pieces completed: Quiz
+> paid-path `window.alert` calls are now inline panels, and the desk matches by stake amount.
+> Cards/Spin/Chess stay at `buildProgress: 90` pending the owner demo. Remaining order is still
+> **Arcade → Quiz onto the engine → Cards wave 2 (solitaire/memory) → Bet LAST**.
+>
 > **STATUS — 2026-09-06 (P-117).** The shared framework and anti-cheat/UX shell are built.
 > Three honest free game rooms are now live: **Paragon Cards** (Higher·Lower + Blackjack 21),
 > **Paragon Spin** (Precision Wheel) and **Paragon Chess** (full-rule computer chess at three
@@ -76,9 +113,11 @@ Free/stake split the engine enforces:
    en passant, four promotions, check/mate and draw rules), three alpha-beta computer strengths,
    hints, move ledger and resume. Free is player versus computer; future stake is human versus
    human only and remains locked.
-4. **Paragon Arcade — NEXT.** Build 3–5 reflex/timing/memory games in one arcade shell; free
-   performance can appear on its game board, but coins only ever move through future server-led
-   competitions.
+4. **Paragon Arcade — DONE (P-119).** `games/arcade/` ships five complete cabinets —
+   Reflex Tap (5 reaction rounds), Memory Match (6 seeded pairs + combo), Timing Bar (5 bullseye
+   stops), Sequence Repeat (patterns 3→10 over 8 rounds) and Target Sprint (25-second aim) — on
+   one `play.html?v=` router with honest per-cabinet resume, bests and board. Free performance
+   can appear on its game board, but coins only ever move through future server-led competitions.
 5. **Paragon Quiz — AFTER ARCADE.** Upgrade the existing `paragon-quiz/` product onto this engine:
    timed rounds and streak multipliers first. Paid-entry UI remains deferred with real money.
 6. **Paragon Cards wave 2 — AFTER QUIZ.** Solitaire and memory first; Snap can follow with live

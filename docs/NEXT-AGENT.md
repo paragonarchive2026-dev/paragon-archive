@@ -320,3 +320,29 @@ authoritative match/money store; use compact server records when online modes sh
 **NEXT:** owner demo Cards + Spin + Chess; move each 90 → 100 only after approval. Then build
 **Arcade → Quiz onto engine → Cards wave 2 (solitaire/memory) → Bet last**. See
 `docs/P-117-GAMES-WAVE.md` and each game's `SPEC.md`.
+
+## 7s. WHERE WE STOPPED — after P-118 / EOP v1.09.0 (2026-09-11)
+
+**Owner audit turn — docs truth, Edge next, spec pinned, half-built games finished (D-237):**
+
+- **Dead branch closed:** `supabase/coins-schema.sql`, `finance-schema.sql`, `leaderboards-schema.sql` are ⛔ SUPERSEDED (never applied; incompatible shapes vs live master). Kept on disk ONLY because suite-ux/finance/ai-team assert their presence + tokens. Never route anyone through them again.
+- **Run docs corrected:** `OWNER-SQL-CHECKLIST.md` / `SQL-RUN-PACK.md` / `SUPABASE-AI-VERIFY-PROMPT.md` state ALL SQL DONE (Phase 1–5 + Stage 1-hardening/2/3/4), master order 0–9, legacy-absence check, Supabase-AI guard. `COINS-PHASE3-DEPLOY.md` §0 fixed. Live refs in COIN-SYSTEM/COINS-PHASES/COINS-AUDIT-CHECKLIST fixed.
+- **CONNECTOR LAW CHANGE:** the "agent can't reach Supabase / DNS failure / paste manually" assumption is RETIRED in this interface — the agent has a direct Supabase connector (applied 7 migrations + advisors in-chat 2026-09-11). Default route = agent in-chat; manual VERIFY = fallback. Do not reintroduce the old wording as current.
+- **Next blocker = Edge:** `supabase/functions/EDGE-DEPLOY-RUNBOOK.md` is the single executable path (3 functions, `PARAGON_COIN_WEBHOOK_SECRET` + conditional OPay/Moniepoint/Paystack/Flutterwave secrets, verify curls, live drill, rollback). All three `index.ts` verified complete.
+- **Updates.txt spec pinned:** `docs/GAMES-UPDATES-SPEC.md` — Spin/Chess live; free tier + gated bet; stake-matched matchmaking; in-game board vs money leaderboard; free-tier estimate ≈115 MB @ 10k users (4× headroom; watch 7-day pause + audit retention); "Firebird" = Firebase typo, D-236 no-Firebase stands.
+- **Half-built completions:** paid Quiz `window.alert` × 2 → inline `#paidNotice` (dialog law); 1v1 desk match-my-stake toggle + STAKE MATCH rows (client-side, no new SQL). Cards/Spin/Chess verified complete @ 90. Arcade/Quiz-engine/Cards-w2/Bet = planned, not half-built.
+- **State:** cache **v92**; suite-games **280** (233 + 47 P-118); 5/5 suites green; SOP D-237 + P-118; CTA §13 (Edge next); CHANGES P-118 entry; tree regenerated.
+
+**NEXT (owner-side first):** Edge deploys + secrets → OPay/Moniepoint numbers → Cards/Spin/Chess demo (90 → 100 each after approval). **Build order stands:** Arcade → Quiz onto engine → Cards wave 2 → Bet LAST. Standing money rule + storage decision from §7r still hold (note: the "no real matchmaking list" line now means no FAKE/sample lists — the honest stake-matched open-challenge desk is live and server-backed).
+
+## 7t. WHERE WE STOPPED — after P-119 / EOP v1.10.0 (2026-09-11)
+
+**Arcade built completely (D-238):** `games/arcade/` — five live cabinets (reflex/memory/timing/sequence/targets) on one `play.html?v=` router, manifest live with five ruled variants, catalogue live at 90 (old Snake/Tetris concept list retired), home + board + SPEC + `LIVE_SITES`, cache **v93**, suite-games **343** (233 + 47 P-118 + 63 P-119), jsdom boot (12) + full playthroughs green (Reflex win/board/audit; Memory perfect 1215; Timing stops; Sequence clear + fail-keep-80; Targets 25 s win). Pure exports in `window.ParagonArcade`; resume map: Memory exact, Reflex/Timing restart round, Sequence redeals, Sprint restarts.
+
+**Demo queue (owner):** Cards + Spin + Chess + Arcade, each 90 → 100 only after approval. **Build order now:** Quiz onto the engine → Cards wave 2 (solitaire/memory) → Bet LAST. Money/storage laws from §7r/§7s still hold. File tree regenerated (453 files).
+
+## 7u. WHERE WE STOPPED — after P-120 / EOP v1.11.0 (2026-09-11)
+
+**Cards wave 2 + Quiz-on-engine (D-239):** `games/cards/js/{solitaire,memory}.js` — Klondike (seeded deal, 10/5/3/5/−20, 1000−moves bonus, stalemate loss, auto-finish gate) + rank-pairs memory (100+25×combo, (24−moves)×15) dispatched from `cards.js` with per-cabinet STATS/NAMES + missing-file panel; home "Four fair games" + bests; manifest cards = 4 ruled variants; catalogue lists all four; SPEC §9. Quiz: pure streak/speed/outcome fns + engine session open → per-answer audit → win/draw close, HUD + complete rows, manifest `quiz` row live (server-paid rule). Cache **v94**, suite-games **412** (233 + 47 + 63 + 69 P-120), jsdom playthroughs green (solitaire draw/resume-exact; memory +100 match; quiz perfect 6000, streak 10·5x, 10-audit win). Harness lesson: jsdom `readyState` sticks at loading → dispatch `DOMContentLoaded` by hand; kit resume needs a Resume-panel click; fixture `includes()` checks must match real tags, not comments (a comment-matching check hid missing `<script>` tags — fixed + tightened).
+
+**Demo queue (owner):** Cards + Spin + Chess + Arcade, each 90 → 100 only after approval. **Build order now:** Bet LAST — tournament/spectator-prediction vision recorded spec-only in the plan status block; no bet code until money/legal gates clear. Money/storage laws from §7r/§7s still hold. File tree regenerated (455 files).

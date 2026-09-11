@@ -6,7 +6,7 @@
   RESTORE/LOAD NOTE: Keep at project root so its scope covers all path-based Paragon assets.
 */
 
-const CACHE_NAME = "paragon-archive-v91";
+const CACHE_NAME = "paragon-archive-v94";
 const APP_SHELL = [
   "./paragon-archive.html",
   "./paragon-archive-hub.html",
@@ -31,6 +31,9 @@ const APP_SHELL = [
   "./games/cards/css/style.css",
   "./games/cards/js/cards.js",
   "./games/cards/js/home.js",
+  // P-120 — Cards wave 2 cabinets (Solitaire + Memory Match must work offline)
+  "./games/cards/js/solitaire.js",
+  "./games/cards/js/memory.js",
   // P-117 — Paragon Spin + Paragon Chess (premium free game rooms)
   "./games/spin/index.html",
   "./games/spin/play.html",
@@ -44,6 +47,12 @@ const APP_SHELL = [
   "./games/chess/js/chess.js",
   "./games/chess/js/home.js",
   "./games/chess/assets/chess-club-hero.jpg",
+  // P-119 — Paragon Arcade (five free cabinets, offline-first)
+  "./games/arcade/index.html",
+  "./games/arcade/play.html",
+  "./games/arcade/css/style.css",
+  "./games/arcade/js/arcade.js",
+  "./games/arcade/js/home.js",
   "./sites/_shared/site-kit.css",
   "./sites/_shared/site-kit.js",
   "./manifest.webmanifest",

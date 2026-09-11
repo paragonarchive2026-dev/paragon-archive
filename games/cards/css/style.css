@@ -310,3 +310,44 @@
   .cards-stage { min-height:480px; padding:13px; }
   .cards-hero-hand .pcard { width:88px; height:126px; }
 }
+
+/* ------------------------------------------------------------------ wave 2: Solitaire */
+.solitaire-table { max-width: 860px; margin: 0 auto; }
+.solitaire-message { text-align: center; font-size: 14px; color: rgba(232,216,181,.85); margin: 4px 0 12px; min-height: 20px; }
+.solitaire-top { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.solitaire-foundations { display: flex; gap: 10px; }
+.solitaire-slot {
+  background: transparent; border: none; padding: 0; cursor: pointer;
+  border-radius: 8px; min-width: 56px; min-height: 76px;
+}
+.solitaire-slot.is-empty {
+  border: 2px dashed rgba(232,216,181,.3); color: rgba(232,216,181,.4);
+  font-size: 20px; font-weight: 800; width: 100%;
+}
+.solitaire-slot.is-stacked { display: block; margin-top: -58px; }
+.solitaire-column:first-child .solitaire-slot.is-stacked:first-child,
+.solitaire-slot.is-stacked:first-child { margin-top: 0; }
+.solitaire-columns { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.solitaire-column { min-height: 120px; }
+.solitaire-card .pcard { width: 100%; height: auto; aspect-ratio: 5 / 7; }
+.solitaire-card .pcard-pip { font-size: 22px; }
+.solitaire-card .pcard-corner { font-size: 10px; }
+.solitaire-card.is-selected .pcard { outline: 3px solid #e8c15a; outline-offset: 2px; transform: translateY(-4px); }
+.solitaire-card.is-down .pcard { filter: brightness(0.85); }
+.solitaire-back { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 56px; height: 76px; border-radius: 8px; background: linear-gradient(160deg, #1d3a5f, #0e1f36); border: 1px solid rgba(232,216,181,.35); color: #e8c15a; font-size: 22px; }
+.solitaire-back small { font-size: 11px; color: rgba(232,216,181,.8); }
+.solitaire-legend { text-align: center; font-size: 12px; color: rgba(232,216,181,.55); margin-top: 12px; }
+.solitaire-table .gk-btn-primary { display: block; margin: 14px auto 0; }
+
+/* ------------------------------------------------------------------ wave 2: Memory */
+.cmemory-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 560px; margin: 0 auto; }
+.cmemory-cell { background: transparent; border: none; padding: 0; cursor: pointer; border-radius: 10px; }
+.cmemory-cell .pcard { width: 100%; height: auto; aspect-ratio: 5 / 7; }
+.cmemory-cell.is-matched { cursor: default; }
+.cmemory-cell.is-matched .pcard { outline: 3px solid #7fd08a; outline-offset: 2px; }
+.cmemory-cell:not(.is-matched):hover .pcard { transform: translateY(-3px); }
+@media (max-width: 560px) {
+  .solitaire-columns { gap: 5px; }
+  .solitaire-slot.is-stacked { margin-top: -52px; }
+  .solitaire-back { width: 42px; height: 60px; }
+}

@@ -1,0 +1,173 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: index.html
+  EXPECTED PROJECT PATH: /games/arcade/index.html
+  ROLE: Paragon Arcade home — hero, honest live counters, the five playable cabinets and the
+        free-vs-stake explanation. Follows docs/SITE-BUILD-KIT.md (12 standing rules).
+  RESTORE-LOAD NOTE: Loads ../../sites/_shared/site-kit.css, ../../_shared/game-kit.css,
+        css/style.css, then site-kit.js, games/manifest.js, games/engine.js,
+        games/_shared/game-kit.js and js/home.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Arcade — Five quick skill cabinets</title>
+  <meta name="description" content="Reflex Tap, Memory Match, Timing Bar, Sequence Repeat and Target Sprint. Free forever, no downloads, no real money.">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="shortcut icon" href="../../assets/brand/favicon.ico">
+  <link rel="apple-touch-icon" href="../../assets/brand/apple-touch-180.png">
+  <link rel="stylesheet" href="../../sites/_shared/site-kit.css">
+  <link rel="stylesheet" href="../_shared/game-kit.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="arcade-home">
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Arcade" title="View Paragon Arcade in the Paragon Archive">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-arcade.png" alt="">
+        <span class="brand-name">Paragon Arcade</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link active">Floor</a>
+      <a href="play.html?v=reflex" class="nav-link">Reflex</a>
+      <a href="play.html?v=memory" class="nav-link">Memory</a>
+      <a href="play.html?v=timing" class="nav-link">Timing</a>
+      <a href="play.html?v=sequence" class="nav-link">Sequence</a>
+      <a href="play.html?v=targets" class="nav-link">Targets</a>
+      <a href="#leaderboard" class="nav-link">Leaderboard</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">Paragon Games · Neon floor · Free play</div>
+        <h1 class="hero-title">Five cabinets.<br><span class="hero-highlight">Sixty seconds each.</span></h1>
+        <p class="hero-subtitle">
+          Reaction, memory, timing, patterns and aim — every cabinet runs on this device on a
+          seeded shuffle you can replay. No account, no coins, no real money — staked play stays
+          switched off until the Paragon Team turns it on.
+        </p>
+        <div class="hero-buttons">
+          <a class="btn btn-primary" href="play.html?v=reflex">▶ Play Reflex Tap</a>
+          <a class="btn btn-secondary" href="play.html?v=targets">◎ Play Target Sprint</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-number" id="statPlays">0</span>
+            <span class="stat-label">Cabinets played</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-number" id="statWins">0</span>
+            <span class="stat-label">Wins</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-number" id="statStreak">0</span>
+            <span class="stat-label">Best streak</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual arcade-hero-visual" aria-hidden="true">
+        <div class="arcade-hero-marquee">
+          <span class="arcade-marquee-label">NOW PLAYING · FREE</span>
+          <div class="arcade-hero-pads">
+            <span class="is-pad1">1</span><span class="is-pad2">2</span><span class="is-pad3">3</span><span class="is-pad4">4</span>
+          </div>
+          <div class="arcade-hero-meter"><i style="width:72%"></i></div>
+          <span class="arcade-marquee-sub">5 SEEDED CABINETS · NO COINS</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section how-it-works">
+      <h2 class="section-title">Choose your cabinet</h2>
+      <p class="section-subtitle">All five are free, all five save your progress on this device</p>
+      <div class="mode-grid arcade-cabinets">
+        <a class="mode-card" href="play.html?v=reflex">
+          <span class="mode-tag">Reaction · 5 rounds</span>
+          <h3>Reflex Tap</h3>
+          <p>Wait for green, then tap. Five rounds against a seeded timer — tap while red and the round is a foul.</p>
+          <span class="mode-best" id="bestReflex">Best: 0 pts</span>
+        </a>
+        <a class="mode-card" href="play.html?v=memory">
+          <span class="mode-tag">Memory · 6 pairs</span>
+          <h3>Memory Match</h3>
+          <p>Twelve cards, six seeded pairs. Consecutive matches build a combo bonus; fewest moves wins the bonus.</p>
+          <span class="mode-best" id="bestMemory">Best: 0 pts</span>
+        </a>
+        <a class="mode-card" href="play.html?v=timing">
+          <span class="mode-tag">Precision · 5 stops</span>
+          <h3>Timing Bar</h3>
+          <p>Stop the sweeping marker on the centre bullseye. Bullseye 200, inner 120, outer 60.</p>
+          <span class="mode-best" id="bestTiming">Best: 0 pts</span>
+        </a>
+        <a class="mode-card" href="play.html?v=sequence">
+          <span class="mode-tag">Pattern · 8 rounds</span>
+          <h3>Sequence Repeat</h3>
+          <p>Watch four numbered pads light, then repeat the pattern. It grows to 10 steps — one mistake ends the run.</p>
+          <span class="mode-best" id="bestSequence">Best: 0 pts</span>
+        </a>
+        <a class="mode-card" href="play.html?v=targets">
+          <span class="mode-tag">Aim · 25 seconds</span>
+          <h3>Target Sprint</h3>
+          <p>One target at a time for 25 seconds. Hits score 100; tapping empty arena costs 25.</p>
+          <span class="mode-best" id="bestTargets">Best: 0 pts</span>
+        </a>
+      </div>
+      <div class="notice-inline">
+        <strong>Arcade points are not Paragon Coins.</strong> Cabinet scores cannot be bought,
+        sold, withdrawn or staked. Free scores can appear on this game’s device-local performance
+        board, but never enter the revenue-funded Coins Leaderboard.
+      </div>
+    </section>
+
+    <section class="section" id="leaderboard">
+      <div id="game-leaderboard" class="gk-board"></div>
+    </section>
+
+    <section class="section how-it-works">
+      <h2 class="section-title">How it works</h2>
+      <p class="section-subtitle">Three honest steps — no account wall</p>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-icon">I</div>
+          <h3 class="step-title">Pick a cabinet</h3>
+          <p class="step-desc">Every cabinet prints its full rules on the Rules card inside the game, so you never play a rule you haven't read.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-icon">II</div>
+          <h3 class="step-title">Play a seeded round</h3>
+          <p class="step-desc">Delays, shuffles, sweeps, patterns and targets all come from a seeded draw. The seed is printed on your result so a game can be replayed exactly.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-icon">III</div>
+          <h3 class="step-title">Pause any time</h3>
+          <p class="step-desc">Close the tab mid-game and the Arcade offers to resume. Memory resumes exactly; timed rounds restart their current round — stated on each cabinet.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p><strong>Paragon Arcade</strong> · free Paragon game · progress stays on this device · no real money</p>
+    <p>
+      <a href="../../paragon-archive.html?site=Paragon%20Arcade">Open in Paragon Archive</a>
+      · <a href="../../paragon-archive-hub.html">Archive Hub</a>
+    </p>
+  </footer>
+
+  <script src="../../sites/_shared/site-kit.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../engine.js"></script>
+  <script src="../_shared/game-kit.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

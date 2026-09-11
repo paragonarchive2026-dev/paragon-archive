@@ -15,6 +15,19 @@
 --       that the SERVER becomes the wallet of record (the browser is never authoritative).
 --       It is idempotent (ON CONFLICT / IF NOT EXISTS). It does NOT activate anything by
 --       itself — no money moves until a provider is wired and the owner flips the gates.
+--
+-- ═══════════════════════════════════════════════════════════════════════════
+-- ⛔ SUPERSEDED — DO NOT RUN (P-118 / D-237, 2026-09-11)
+-- This file is an EARLIER, INCOMPATIBLE draft. It was NEVER applied to the live
+-- project and MUST NOT be applied now: its table shapes (paragon_wallets,
+-- paragon_coin_ledger_entries, paragon_withdrawals, paragon_economic_settings)
+-- conflict with the live coins-master-phase1…5 + stage1…4 architecture, which
+-- defines paragon_withdrawals / paragon_economic_settings DIFFERENTLY.
+-- Running this after the master migrations would break the live economy.
+-- The device finance engine (paragon-wallets.js + Team finance desks) is the
+-- working layer and is unaffected. Kept as a read-only reference.
+-- If you are looking for what to run, see supabase/SQL-RUN-PACK.md (master order).
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- 1. Wallets — balance by type (available / locked / pending / restricted).
 create table if not exists public.paragon_wallets (

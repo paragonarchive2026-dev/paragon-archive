@@ -9,13 +9,16 @@
 
 ## 0. SQL first
 
-In Supabase SQL Editor, run in order (skip any already green from VERIFY):
+In Supabase SQL Editor, run in order (skip any already green from VERIFY).
+Status 2026-09-11 (P-118): ✅ all of these are already live — nothing to run.
 
 1. `announcements-schema.sql` (if needed)
-2. `coins-schema.sql`
-3. `coins-master-phase1.sql`
-4. `coins-master-phase2.sql`
-5. **`coins-master-phase3.sql`** ← webhook inbox, matches, provider settings, `paragon_sql_health`
+2. `coins-master-phase1.sql` (⛔ NOT `coins-schema.sql` — superseded draft, D-237)
+3. `coins-master-phase2.sql` (+ `coins-master-stage1-hardening.sql`)
+4. **`coins-master-phase3.sql`** ← webhook inbox, matches, provider settings, `paragon_sql_health`
+
+> Consolidated deploy steps for all three coin functions now live in
+> `supabase/functions/EDGE-DEPLOY-RUNBOOK.md` — start there.
 
 Then open **Team desk → Settings** and click **Probe SQL health** (uses anon `paragon_sql_health` RPC).
 

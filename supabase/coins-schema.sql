@@ -8,6 +8,18 @@
 --       preferably after announcements-schema.sql. Idempotent (IF NOT EXISTS / ON CONFLICT).
 -- OWNER ACTION: Dashboard → SQL → New query → paste this whole file → Run.
 --               Then add your founder email to paragon_team_members if not already there.
+--
+-- ═══════════════════════════════════════════════════════════════════════════
+-- ⛔ SUPERSEDED — DO NOT RUN (P-118 / D-237, 2026-09-11)
+-- This file is an EARLIER, INCOMPATIBLE draft. It was NEVER applied to the live
+-- project and MUST NOT be applied now: its table shapes (paragon_coin_wallets,
+-- legacy ledger, purchase/withdrawal tables) conflict with the live system, which
+-- was built entirely on the coins-master-phase1…5 + stage1…4 architecture.
+-- The live economy tables are paragon_coin_accounts / paragon_coin_ledger_v2 /
+-- paragon_payment_intents / paragon_withdrawals (phase1 shape) — NOT this file.
+-- Kept in the repo as a read-only reference (regression fixtures point at it).
+-- If you are looking for what to run, see supabase/SQL-RUN-PACK.md (master order).
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- 0. Ensure team membership table exists (also created by announcements-schema.sql)
 create table if not exists public.paragon_team_members (

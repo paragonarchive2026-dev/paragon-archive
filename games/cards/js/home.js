@@ -35,6 +35,12 @@
     setText("bestHigher", "Best: " + (hl ? Number(hl.score || 0) : 0) + " pts" + (hl && hl.outcome ? " (" + hl.outcome + ")" : ""));
     setText("bestBlackjack", "Best: " + (bj ? Number(bj.score || 0) : 0) + " chips" + (bj && bj.outcome ? " (" + bj.outcome + ")" : ""));
 
+    /* Wave 2 cabinets score points (never chips or coins), each with its own best. */
+    var sol = games.best("cards", "solitaire", "free");
+    var mem = games.best("cards", "memory", "free");
+    setText("bestSolitaire", "Best: " + (sol ? Number(sol.score || 0) : 0) + " pts" + (sol && sol.outcome ? " (" + sol.outcome + ")" : ""));
+    setText("bestMemory", "Best: " + (mem ? Number(mem.score || 0) : 0) + " pts" + (mem && mem.outcome ? " (" + mem.outcome + ")" : ""));
+
     /* Nothing is invented: an unplayed device shows zero everywhere. */
     if (!summary || !summary.plays) setText("statPlays", "0");
     if (kit && typeof kit.mountLeaderboard === "function") {

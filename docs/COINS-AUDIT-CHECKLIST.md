@@ -72,8 +72,8 @@
 ### SQL run order (owner)
 
 ```text
-coins-schema.sql                    (if never run)
-coins-master-phase1.sql
+coins-master-phase1.sql             (NOT coins-schema.sql — superseded draft, D-237)
+
 coins-master-phase2.sql
 coins-master-stage1-hardening.sql   ← rate limits, reserves, reports (P-108)
 coins-master-phase3.sql

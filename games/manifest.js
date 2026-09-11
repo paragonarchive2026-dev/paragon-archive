@@ -57,6 +57,36 @@
             "You may Hit, Stand, or Double Down (double your bet for exactly one more card).",
             "Push returns your bet. Reaching 200 chips wins the shoe; running out ends it."
           ]
+        },
+        {
+          key: "solitaire",
+          name: "Solitaire",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 20000,
+          summary: "Classic Klondike patience on a seeded 52-card deal. Build tableau runs down in alternating colours; stack each suit Ace to King on the foundations.",
+          rules: [
+            "Tap the stock to draw to the waste (one card at a time). An empty stock recycles the waste in order at −20 points, unlimited passes.",
+            "Tableau builds DOWN in alternating colours; only a King (or a valid King-led run) starts an empty column.",
+            "Foundations stack ONE suit UP from the Ace. Tap a selected card again to send it up when one fits.",
+            "Scoring: foundation +10, waste to tableau +5, tableau move +3, flipping a hidden card +5, recycle −20 (total never below 0). Winning adds a 1000 − moves bonus.",
+            "Stacking all 52 cards wins. If no legal move remains the game ends as an honest stalemate, never a silent dead end.",
+            "Auto-finish unlocks when the stock and waste are empty and every tableau card is face up."
+          ]
+        },
+        {
+          key: "memory",
+          name: "Memory",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 5000,
+          summary: "Sixteen playing cards hide eight pairs matched by RANK — suits never matter. Eight seeded ranks, two seeded suits each, one seeded shuffle.",
+          rules: [
+            "Flip two cards. A rank match stays open and scores 100 plus 25 per combo step; a miss closes both and resets the combo.",
+            "Clearing in 24 moves or fewer adds an efficiency bonus of (24 − moves) × 15.",
+            "Clearing the board is always a win. A half-open pair closes if you quit and resume.",
+            "Every flip is logged to the session audit trail with the seed."
+          ]
         }
       ]
     },
@@ -67,11 +97,87 @@
     {
       key: "arcade",
       name: "Paragon Arcade", icon: "🕹️", group: "Games",
-      path: "", playPath: "", status: "planned",
-      blurb: "Tiny reflex, timing and memory games in one arcade shell.",
+      path: "games/arcade/index.html", playPath: "games/arcade/play.html", status: "live",
+      blurb: "Five quick reflex, timing and memory cabinets in one neon arcade shell.",
       supportsFree: true, supportsStake: true,
       minStake: 100, maxStake: 10000, stakeStep: 50, minDurationMs: 5000,
-      variants: [{ key: "reflex", name: "Reflex set", seats: "solo", summary: "Planned — tap-timing, memory match and reaction games.", rules: [] }]
+      variants: [
+        {
+          key: "reflex",
+          name: "Reflex Tap",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 6000,
+          summary: "Five rounds of wait-then-tap. The panel turns green after a seeded delay — tap fast, but a tap while it is red is a foul and scores nothing for that round.",
+          rules: [
+            "Five rounds. Each round shows WAIT (red), then TAP (green) after a seeded 900–2600 ms delay.",
+            "Tap while the panel is red and the round is a foul: 0 points, no retry.",
+            "Round points = 1000 minus your reaction milliseconds, minimum 50 for a completed tap (a 200 ms tap scores 800).",
+            "Total 3000+ is a win, 1500–2999 a draw, below that a loss. Keyboard Space or Enter taps too.",
+            "Quitting mid-game resumes at the start of the current round — completed rounds are kept."
+          ]
+        },
+        {
+          key: "memory",
+          name: "Memory Match",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 5000,
+          summary: "Twelve cards, six seeded pairs. Flip two at a time; matches stay open and consecutive matches build a combo bonus.",
+          rules: [
+            "Twelve cards hide six pairs in a seeded shuffle — the same seed replays the same board.",
+            "Flip two cards. A match stays open and scores 100 plus 25 per combo step; a miss closes both and resets the combo.",
+            "Finishing in 18 moves or fewer adds an efficiency bonus of (18 − moves) × 20.",
+            "Clearing the board is always a win. A half-open pair closes if you quit and resume.",
+            "Every flip is logged to the session audit trail with the seed."
+          ]
+        },
+        {
+          key: "timing",
+          name: "Timing Bar",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 8000,
+          summary: "Five rounds on a sweeping marker. Stop it as close to the centre bullseye as you can — each round sweeps at a seeded speed.",
+          rules: [
+            "Five rounds. The marker sweeps the bar at a seeded speed (1200–2200 ms per sweep).",
+            "Press STOP (button or Space). Within 4 of centre scores 200 (bullseye), within 10 scores 120, within 20 scores 60, farther scores 0.",
+            "Total 700+ is a win, 350–699 a draw, below that a loss.",
+            "Zones are labelled in text as well as colour, and the centre line is always marked.",
+            "Quitting mid-game resumes at the start of the current round with a fresh seeded sweep."
+          ]
+        },
+        {
+          key: "sequence",
+          name: "Sequence Repeat",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 8000,
+          summary: "Watch the four numbered pads light in a seeded pattern, then repeat it. Patterns grow from 3 to 10 steps over eight rounds — one wrong pad ends the run.",
+          rules: [
+            "Eight rounds maximum. Round N shows a seeded pattern of N + 2 steps (3 up to 10).",
+            "Watch the pads light, then repeat with clicks/taps or keys 1–4. Pads are numbered, never colour-only.",
+            "Each correct pad scores 10; clearing a round adds a 50 × round bonus.",
+            "One wrong pad ends the run and keeps your score: clearing all 8 is a win, 4–7 a draw, fewer a loss.",
+            "Quitting mid-round resumes that round with a fresh seeded pattern."
+          ]
+        },
+        {
+          key: "targets",
+          name: "Target Sprint",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 20000,
+          summary: "A 25-second sprint. One seeded target at a time — tap it for 100 points; tapping empty arena costs 25. Most hits wins.",
+          rules: [
+            "One 25-second sprint on a wall clock. One target appears at a time at a seeded position and size.",
+            "Tapping the target scores 100 and spawns the next. Tapping empty arena is a miss: −25, total never below 0.",
+            "18+ hits is a win, 10–17 a draw, fewer a loss.",
+            "Quitting restarts the sprint — timer games cannot resume fairly, so this is stated, not hidden.",
+            "Reduced-motion players get the same sprint with instant (non-animated) target changes."
+          ]
+        }
+      ]
     },
     {
       key: "chess",
@@ -156,6 +262,30 @@
       supportsFree: true, supportsStake: false,
       minStake: 0, maxStake: 0, stakeStep: 0, minDurationMs: 15000,
       variants: [{ key: "story", name: "Story runs", seats: "solo", summary: "Planned — choose your path, manage resources, reach an ending.", rules: [] }]
+    },
+    {
+      key: "quiz",
+      name: "Paragon Quiz", icon: "❓", group: "Education & Learning",
+      path: "paragon-quiz/index.html", playPath: "paragon-quiz/play.html", status: "live",
+      blurb: "Create and play quizzes — timed rounds, streak multipliers and server-scored paid attempts.",
+      supportsFree: true, supportsStake: true,
+      minStake: 100, maxStake: 10000, stakeStep: 50, minDurationMs: 10000,
+      variants: [{
+        key: "standard",
+        name: "Standard rounds",
+        seats: "solo",
+        scoreUnit: "points",
+        minDurationMs: 10000,
+        summary: "Answer each question before its timer runs out. Correct answers build a streak multiplier up to 5x; fast answers add a speed bonus.",
+        rules: [
+          "Each correct answer scores 100 × your streak multiplier (1x to 5x, counting consecutive correct answers).",
+          "Timed quizzes add a speed bonus up to 50, scaled by time left when you answer.",
+          "A wrong answer or timeout scores 0 and resets the streak to zero.",
+          "80%+ correct is a win, 50–79% a draw, below that a loss. Points are local performance recorded in an engine session with seed and audit trail.",
+          "Paid attempts are scored by the server (Stage 4) — the server score alone decides prize eligibility, never this browser.",
+          "Future staked quiz play stays locked until real-money mode and the authoritative settle contract are switched on."
+        ]
+      }]
     },
     {
       key: "bet",

@@ -20,7 +20,7 @@
 
 ## What is ALREADY BUILT (P-098 + P-100)
 - **Withdrawals UI** (P-100): Account coin shop → sell-back form → `paragonTeamCoinWithdrawals.v1` → Team settings desk marks Paid → `paragonArchive.coinDebits.v1` deducts on user device.
-- **SQL backend** (P-100): `supabase/coins-schema.sql` — wallets, ledger, purchase/withdraw tables, approve/spend RPCs. Run via `supabase/SQL-RUN-PACK.md`.
+- **SQL backend** (P-100, ⛔ SUPERSEDED P-118/D-237 — do not run): `supabase/coins-schema.sql` was an early draft (wallets, ledger, purchase/withdraw tables). The live backend is the `coins-master-phase1…5` + `stage1…4` architecture — see `supabase/SQL-RUN-PACK.md` for the real run order.
 - **History** shown inside the coin shop popup.
 
 ## What is ALREADY BUILT (P-098)

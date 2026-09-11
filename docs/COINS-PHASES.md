@@ -22,7 +22,7 @@ Tell us the full OPay/Moniepoint merchant story when ready (account numbers, whe
 
 | Phase | Artifact | Status |
 |-------|----------|--------|
-| 0 / base | `coins-schema.sql` + FE shop | Built (legacy + UI) |
+| 0 / base | ~~`coins-schema.sql`~~ ⛔ SUPERSEDED (D-237, never applied) + FE shop | Early draft archived; live base is master phase1 |
 | **1** | `coins-master-phase1.sql` | **Built** — accounts, flags, economy, intents skeleton |
 | **2** | `coins-master-phase2.sql` | **Built** — ledger authority RPCs, withdraw lock |
 | **1b** | `coins-master-stage1-hardening.sql` | **Built (P-108)** — claim/withdraw limits, reserves, 30% fee→reward, finance report |
@@ -37,7 +37,7 @@ Tell us the full OPay/Moniepoint merchant story when ready (account numbers, whe
 
 These are **owner / production** steps, not missing agent code folders:
 
-1. **You run SQL 1→5** in Supabase (agent cannot DNS-verify).
+1. **SQL 1→5 + stages are live** (2026-09-11; agent verified/applied via its Supabase connector — the old "cannot DNS-verify" note is outdated, P-118).
 2. **You deploy Edge** functions + set `PARAGON_COIN_WEBHOOK_SECRET` (+ OPay/Moniepoint secrets if any).
 3. **You publish** OPay/Moniepoint account numbers in `paragon_payment_provider_settings`.
 4. **Optional Phase 6-class work** (only when you want it):  
