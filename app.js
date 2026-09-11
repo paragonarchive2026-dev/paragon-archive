@@ -8077,6 +8077,11 @@ window.openDetail = function(name) {
   try { bumpDailyCounter("detail", `explore:${String(name).slice(0, 80)}`); } catch (_) {} /* P-115 daily goal (detail + explore mission) */
   const site = sites.find(s => s.name === name) || (name === deployedTemplateExample.name ? deployedTemplateExample : null);
   if (!site) return;
+  /* HEAVEN-09 — the detail hero borrows its category's celestial hue */
+  try {
+    const catColor = (categoryDefinitions.find(c => c.name === site.category) || {}).color || site.color || "#7c3aed";
+    document.documentElement.style.setProperty("--detail-hue", catColor);
+  } catch (_) {}
   if (!isRestoringDetailState && !site.illustrative) {
     detailNavigationHistory.push(captureCurrentViewState());
     /* P-094 — views count ONLY when a website is actually OPENED (launchSite completion),
@@ -8413,27 +8418,6 @@ function bindGlobalUI() {
     }), { threshold: 0.08 });
     revealTargets.forEach(target => { target.classList.add("reveal-ready"); observer.observe(target); });
   } else revealTargets.forEach(target => target.classList.add("revealed"));
-}
-
-/* --- Scroll Color for Bottom Nav --- */
-function bindScrollColor() {
-  const nav = document.getElementById("bottom-nav");
-  let ticking = false;
-  window.addEventListener("scroll", () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        const y = window.scrollY;
-        const h = document.documentElement.scrollHeight - window.innerHeight;
-        const progress = h > 0 ? y / h : 0;
-        const hue = Math.floor(progress * 360);
-        document.documentElement.style.setProperty("--h", hue);
-        // Very subtle page wash
-        document.body.style.background = `radial-gradient(circle at 50% 0%, hsla(${hue}, 90%, 15%, 0.08), var(--bg) 70%)`;
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }, { passive: true });
 }
 
 /* --- Scroll Color for Bottom Nav --- */

@@ -387,3 +387,37 @@ body::before {
   .mode-card::after { transition: none; transform: none; }
 }
 /* HEAVEN-05 end */
+
+/* HEAVEN-09 — ripple/spark + seasonal kit skies */
+.gk-btn-primary, .gk-btn { position: relative; overflow: hidden; }
+.heaven-ripple {
+  position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 246, 220, 0.95), rgba(255, 214, 140, 0.45) 55%, transparent 72%);
+  transform: scale(0); opacity: 0.9; pointer-events: none;
+  animation: heavenRipple 0.6s ease-out forwards;
+}
+@keyframes heavenRipple { to { transform: scale(16); opacity: 0; } }
+.heaven-spark {
+  position: absolute; width: 5px; height: 5px; border-radius: 50%;
+  background: #fff6dc; box-shadow: 0 0 9px rgba(255, 224, 148, 0.95);
+  pointer-events: none; animation: heavenSpark 0.8s ease-out forwards;
+}
+@keyframes heavenSpark {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-20px) scale(0.2); opacity: 0; }
+}
+:root[data-season="rain"] body::before {
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(150, 255, 214, 0.13), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(16, 185, 129, 0.16), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(34, 211, 238, 0.16), transparent 70%);
+}
+:root[data-season="harmattan"] body::before {
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(255, 190, 110, 0.2), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(217, 119, 6, 0.13), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(244, 114, 182, 0.09), transparent 70%);
+}
+:root[data-season="harmattan"]::after { opacity: 0.4; }
+@media (prefers-reduced-motion: reduce) { .heaven-ripple, .heaven-spark { display: none; } }
+/* KIT-09 end */

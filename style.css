@@ -5047,3 +5047,79 @@ html.light select { color-scheme: light; }
   body::after, html::after, body::before { animation: none; }
 }
 /* HEAVEN-08 end */
+
+/* ============================================================
+   HEAVEN-09 — seasonal skies, micro-interactions, detail hues.
+   ============================================================ */
+
+/* --- rain season (May–Oct): lush aqua-green aurora ------------- */
+:root[data-season="rain"]::before {
+  background: repeating-conic-gradient(from -16deg at 50% -18%,
+              rgba(150,255,220,0.05) 0deg 3.5deg, transparent 3.5deg 11deg);
+}
+:root[data-season="rain"] body::before {
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(150,255,214,0.13), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(16,185,129,0.17), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(34,211,238,0.17), transparent 70%),
+    radial-gradient(40vw 30vw at 50% 46%, rgba(103,232,249,0.08), transparent 70%);
+}
+:root[data-season="rain"] body::after { opacity: 0.08; }
+
+/* --- harmattan (Nov–Feb): amber haze, gold everywhere ----------- */
+:root[data-season="harmattan"] { --divine-gold: #f2b95c; }
+:root[data-season="harmattan"]::before {
+  background: repeating-conic-gradient(from -16deg at 50% -18%,
+              rgba(255,214,140,0.085) 0deg 3.5deg, transparent 3.5deg 11deg);
+}
+:root[data-season="harmattan"]::after { opacity: 0.4; } /* hazy stars */
+:root[data-season="harmattan"] body::before {
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(255,190,110,0.22), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(217,119,6,0.14), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(244,114,182,0.10), transparent 70%);
+}
+:root[data-season="harmattan"] body::after { opacity: 0.12; } /* dust veil */
+:root[data-season="harmattan"] .logo-mark { filter: sepia(0.15) saturate(1.1); }
+
+/* --- press ripple of light --------------------------------------- */
+.primary-action, .open-btn, .chip, .see-all-pill { position: relative; overflow: hidden; }
+.heaven-ripple {
+  position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,246,220,0.95), rgba(255,214,140,0.45) 55%, transparent 72%);
+  transform: scale(0); opacity: 0.9; pointer-events: none;
+  animation: heavenRipple 0.6s ease-out forwards;
+}
+@keyframes heavenRipple { to { transform: scale(16); opacity: 0; } }
+
+/* --- star-spark on hover ------------------------------------------ */
+.see-all-pill, .hub-quick-card, .category-full-chip { position: relative; }
+.heaven-spark {
+  position: absolute; width: 5px; height: 5px; border-radius: 50%;
+  background: #fff6dc; box-shadow: 0 0 9px rgba(255,224,148,0.95);
+  pointer-events: none; animation: heavenSpark 0.8s ease-out forwards;
+}
+@keyframes heavenSpark {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-20px) scale(0.2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heaven-ripple, .heaven-spark { display: none; }
+}
+
+/* --- detail hero harmonised with the category hue ----------------- */
+.detail-header::after {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--detail-hue, #67e8f9) 16%, transparent), transparent 30%,
+    transparent 74%,
+    color-mix(in srgb, var(--detail-hue, #7c3aed) 22%, transparent));
+}
+.info-bar {
+  background-image: radial-gradient(120% 140% at 50% -60%,
+    color-mix(in srgb, var(--detail-hue, #f7cf7a) 15%, transparent), transparent 62%);
+}
+.info-bar .icon-large {
+  box-shadow: var(--halo), 0 0 26px color-mix(in srgb, var(--detail-hue, #7c3aed) 45%, transparent);
+}
+.launch-ring-value { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--detail-hue, var(--accent)) 70%, transparent)); }
+/* HEAVEN-09 end */
