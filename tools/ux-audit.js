@@ -41,7 +41,11 @@ console.log("== 1. local file links ==");
       const clean = h.split(/[?#]/)[0];
       if (!clean) continue;
       checked++;
-      if (!fs.existsSync(path.join(path.dirname(f), clean))) fail(`${path.relative(ROOT, f)} -> ${h}`);
+      const base = path.join(path.dirname(f), clean);
+      /* vercel.json cleanUrls: /x serves x.html, /x/ serves x/index.html */
+      const ok = clean === "/" || fs.existsSync(base) ||
+        fs.existsSync(base + ".html") || fs.existsSync(path.join(base, "index.html"));
+      if (!ok) fail(`${path.relative(ROOT, f)} -> ${h}`);
     }
   }
   console.log(`  checked ${checked}, dead: ${failures}`);
@@ -187,6 +191,40 @@ console.log("== 8. category chips expose --category-color ==");
   const ok = app.includes("--category-color:${c.color}");
   if (!ok) fail("cat-chip template no longer sets --category-color");
   console.log(`  category hue token: ${ok ? "wired ✅" : "MISSING"}`);
+}
+
+console.log("== 9. SEO heads on public pages ==");
+{
+  const publicPages = [
+    "paragon-archive.html", "paragon-archive-hub.html", "community-board.html",
+    "developer-portal.html", "paragon-product-preview.html",
+    "games/cards/index.html", "games/spin/index.html", "games/chess/index.html",
+    "games/arcade/index.html", "paragon-quiz/explore.html"
+  ];
+  const titles = new Set();
+  let bad = 0;
+  for (const f of publicPages) {
+    const html = fs.readFileSync(path.join(ROOT, f), "utf8");
+    const need = (re, what) => { if (!re.test(html)) { bad++; fail(`${f} missing ${what}`); } };
+    const t = (html.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || "";
+    if (t.length < 25 || titles.has(t)) { bad++; fail(`${f} weak/duplicate title`); }
+    titles.add(t);
+    const d = (html.match(/<meta name="description" content="([^"]+)"/) || [])[1] || "";
+    if (d.length < 50) { bad++; fail(`${f} description too short (${d.length})`); }
+    need(/<link rel="canonical"/, "canonical");
+    need(/property="og:title"/, "og:title");
+    need(/property="og:description"/, "og:description");
+    need(/property="og:image"/, "og:image");
+    need(/property="og:url"/, "og:url");
+    need(/name="twitter:card"/, "twitter:card");
+    const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+    for (const m of ld) { try { JSON.parse(m[1]); } catch (e) { bad++; fail(`${f} invalid JSON-LD`); } }
+    if (!ld.length) { bad++; fail(`${f} missing JSON-LD`); }
+  }
+  if (!fs.existsSync(path.join(ROOT, "robots.txt"))) { bad++; fail("robots.txt missing"); }
+  const pending = fs.readFileSync(path.join(ROOT, "paragon-archive.html"), "utf8").includes("__ORIGIN__");
+  console.log(`  checked ${publicPages.length} pages, failing: ${bad}`);
+  console.log(pending ? "  note: absolute URLs pending — run: node tools/gen-sitemap.js https://<domain>" : "  absolute URLs active ✅");
 }
 
 console.log(failures ? `\nAUDIT: ${failures} issue(s) found` : "\nAUDIT: clean ✅");
