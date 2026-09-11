@@ -4448,3 +4448,678 @@ html.light .g-article-copy b { color: #1a56db; }
 .goal-mark-btn { flex: 0 0 auto; padding: 7px 12px; font-size: 11px; }
 .goal-row .goal-check { flex: 0 0 auto; font-size: 16px; color: var(--text-faint); }
 .goal-row.is-complete .goal-check { color: #4ade80; }
+
+/* ============================================================
+   HEAVEN-02 — "Heaven by design" (pure CSS, no imagery)
+   The whole system is lit like a visit to heaven: divine
+   radiance pouring from above, god-rays, starlight, drifting
+   light-clouds, gold halos and pearl-lit surfaces.
+   Layers back-to-front: rays (-4) stars (-3) glows (-2) clouds (-1).
+   ============================================================ */
+
+:root {
+  /* celestial-night palette: deep indigo instead of near-black */
+  --bg: #0b0a18;
+  --bg-soft: #100e20;
+  --surface: #141227;
+  --surface-2: #181530;
+  --card: #171432;
+  --card-hover: #1d1a3e;
+  --border: rgba(233,225,255,0.08);
+  --border-strong: rgba(233,225,255,0.15);
+
+  /* divine light tokens */
+  --divine-gold: #f7cf7a;
+  --divine-gold-deep: #d9a441;
+  --divine-rose: #f3a8c8;
+  --divine-sky: #9fd8ff;
+  --pearl: #fff6e6;
+  --halo: 0 0 0 1px rgba(255,236,190,0.22), 0 0 26px rgba(255,214,140,0.22);
+
+  /* pearl-lit shadows: top inner light + warm bloom on every surface */
+  --shadow-card: 0 16px 40px rgba(4,3,14,0.42), 0 2px 8px rgba(4,3,14,0.24),
+                 0 0 34px rgba(255,206,130,0.07), inset 0 1px 0 rgba(255,255,255,0.10);
+  --shadow-float: 0 24px 60px rgba(4,3,14,0.5), 0 0 44px rgba(255,206,130,0.10),
+                  inset 0 1px 0 rgba(255,255,255,0.12);
+
+  --heaven-grad: linear-gradient(115deg, #6d5cff 0%, #b06bff 26%, #ff7ab8 50%, #ffcf7a 74%, #7ae0ff 100%);
+  --heaven-text: linear-gradient(100deg, #e9dcff 0%, #ffd9ec 34%, #ffe9b8 64%, #c9f1ff 100%);
+}
+html.light {
+  --halo: 0 0 0 1px rgba(214,178,102,0.3), 0 0 26px rgba(247,207,122,0.38);
+  --shadow-card: 0 16px 40px rgba(120,90,20,0.10), 0 2px 8px rgba(120,90,20,0.06),
+                 0 0 30px rgba(214,164,60,0.12), inset 0 1px 0 rgba(255,255,255,0.85);
+  --shadow-float: 0 24px 60px rgba(120,90,20,0.16), 0 0 40px rgba(214,164,60,0.16),
+                  inset 0 1px 0 rgba(255,255,255,0.9);
+  --heaven-text: linear-gradient(100deg, #6d28d9 0%, #be185d 36%, #b45309 66%, #0e7490 100%);
+}
+
+/* --- god-rays from above ------------------------------------ */
+html::before {
+  content: ''; position: fixed; inset: 0; z-index: -4; pointer-events: none;
+  background: repeating-conic-gradient(from -16deg at 50% -18%,
+              rgba(255,240,205,0.055) 0deg 3.5deg, transparent 3.5deg 11deg);
+  -webkit-mask-image: radial-gradient(130% 85% at 50% 0%, #000 0%, transparent 64%);
+          mask-image: radial-gradient(130% 85% at 50% 0%, #000 0%, transparent 64%);
+}
+html.light::before {
+  background: repeating-conic-gradient(from -16deg at 50% -18%,
+              rgba(214,164,60,0.10) 0deg 3.5deg, transparent 3.5deg 11deg);
+}
+
+/* --- starlight (night only), gently twinkling ---------------- */
+html::after {
+  content: ''; position: fixed; inset: 0; z-index: -3; pointer-events: none;
+  background:
+    radial-gradient(1.1px 1.1px at 18% 28%, rgba(255,255,255,0.8) 45%, transparent 60%) 0 0 / 240px 240px repeat,
+    radial-gradient(1px 1px at 64% 58%, rgba(255,246,220,0.55) 45%, transparent 60%) 40px 90px / 340px 340px repeat,
+    radial-gradient(0.9px 0.9px at 42% 82%, rgba(201,241,255,0.5) 45%, transparent 60%) 120px 30px / 290px 290px repeat;
+  animation: starTwinkle 5.5s ease-in-out infinite alternate;
+}
+html.light::after { display: none; }
+@keyframes starTwinkle { from { opacity: 0.5; } to { opacity: 1; } }
+
+/* --- divine radiance + soft nebula glows --------------------- */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  width: auto; height: auto; border-radius: 0; filter: none; opacity: 1;
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(255,222,150,0.15), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(124,58,237,0.17), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(34,211,238,0.11), transparent 70%),
+    radial-gradient(40vw 30vw at 50% 46%, rgba(255,122,184,0.06), transparent 70%);
+}
+html.light body::before {
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(255,214,140,0.30), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(167,139,250,0.14), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(125,211,252,0.16), transparent 70%);
+}
+
+/* --- drifting light-clouds ------------------------------------ */
+body::after {
+  content: ''; position: fixed; inset: -22%; z-index: -1; pointer-events: none;
+  filter: blur(70px); opacity: 0.06;
+  background:
+    radial-gradient(38% 26% at 24% 30%, rgba(255,255,255,0.9), transparent 70%),
+    radial-gradient(30% 22% at 74% 22%, rgba(255,246,220,0.8), transparent 70%),
+    radial-gradient(34% 24% at 58% 74%, rgba(233,220,255,0.7), transparent 70%);
+  animation: cloudDrift 90s ease-in-out infinite alternate;
+}
+html.light body::after { opacity: 0.5; }
+@keyframes cloudDrift {
+  from { transform: translate3d(-2.5%, -1%, 0) scale(1); }
+  to   { transform: translate3d(2.5%, 1.5%, 0) scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html::after, body::after, #top-bar .logo-mark, .account-hero .logo-mark, .cat-chip::after { animation: none !important; transition: none !important; }
+}
+
+/* --- gradient heaven text + lit titles ------------------------ */
+#top-bar .logo-text .accent,
+.eyebrow,
+.updates-header h1,
+.account-hero:not(.logged-in) h2 {
+  background: var(--heaven-text);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; text-shadow: none;
+}
+.section-header h2, .hero-content h1, .hero-content-v2 h1 {
+  text-shadow: 0 0 26px rgba(255,236,190,0.30), 0 10px 30px rgba(0,0,0,0.55);
+}
+html.light .section-header h2 { text-shadow: 0 0 22px rgba(214,164,60,0.28); }
+
+/* section titles get a lit gold bar */
+.section-header h2 { position: relative; padding-bottom: 9px; }
+.section-header h2::after {
+  content: ''; position: absolute; left: 2px; bottom: 0; width: 54px; height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--divine-gold), var(--divine-rose), var(--divine-sky));
+  box-shadow: 0 0 14px rgba(247,207,122,0.55);
+}
+
+/* --- divine gold actions -------------------------------------- */
+.primary-action {
+  background: linear-gradient(135deg, #ffe7ad, #f6c66a 38%, #e3a53f 62%, #ffd98a);
+  border: 0; color: #2b1c05;
+  box-shadow: 0 6px 22px rgba(246,198,106,0.35), inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.primary-action:hover {
+  transform: translateY(-1px); filter: brightness(1.05);
+  box-shadow: 0 10px 30px rgba(246,198,106,0.5), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+.chip.active, .chip[aria-pressed="true"] {
+  background: linear-gradient(135deg, #ffe7ad, #f2b95c);
+  border-color: transparent; color: #3a2a08; font-weight: 700;
+  box-shadow: var(--halo);
+}
+
+/* --- gold halos on the brand ---------------------------------- */
+#top-bar .logo-mark, .account-hero .logo-mark {
+  box-shadow: var(--halo);
+  animation: haloPulse 6s ease-in-out infinite;
+}
+@keyframes haloPulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,236,190,0.22), 0 0 18px rgba(255,214,140,0.20); }
+  50%      { box-shadow: 0 0 0 1px rgba(255,236,190,0.34), 0 0 34px rgba(255,214,140,0.38); }
+}
+
+/* --- shimmer sweep on category tiles --------------------------- */
+.cat-chip { position: relative; overflow: hidden; }
+.cat-chip::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255,246,220,0.20) 50%, transparent 68%);
+  transform: translateX(-130%); transition: transform 0.7s ease;
+}
+.cat-chip:hover::after { transform: translateX(130%); }
+.cat-chip:hover, .cat-chip.active { border-color: transparent; box-shadow: var(--halo); }
+.cat-chip .emoji, .cat-chip .cat-icon-img { filter: drop-shadow(0 0 10px rgba(255,224,148,0.35)); }
+
+/* --- hero: ring of light --------------------------------------- */
+.hero {
+  box-shadow: 0 0 0 1px rgba(255,236,190,0.28), 0 18px 52px rgba(8,6,24,0.55),
+              0 0 46px rgba(255,206,130,0.14);
+}
+.hero::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  pointer-events: none; z-index: 4; mix-blend-mode: screen;
+  background: linear-gradient(180deg, rgba(255,240,205,0.18), transparent 28%, transparent 76%, rgba(124,58,237,0.18));
+}
+
+/* --- account welcome: radiance, not a photo -------------------- */
+.account-hero:not(.logged-in) {
+  border: 1px solid rgba(255,236,190,0.26);
+  background:
+    radial-gradient(92% 130% at 50% -32%, rgba(255,222,150,0.20), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+}
+html.light .account-hero:not(.logged-in) {
+  background:
+    radial-gradient(92% 130% at 50% -32%, rgba(255,214,140,0.35), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.35));
+}
+
+/* --- dialogs open under a line of light ------------------------ */
+/* overflow: clip (not hidden) so the sticky dialog head keeps working —
+   clip rounds the hairline without creating a scroll container. */
+.auth-dialog { position: relative; overflow: hidden; overflow: clip; }
+.auth-dialog::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,231,175,0.95), transparent);
+  box-shadow: 0 0 18px rgba(255,222,150,0.55);
+  pointer-events: none; z-index: 6;
+}
+
+/* --- entry splash: violet horizon with a gold dawn ------------- */
+#welcome-splash.show {
+  background:
+    radial-gradient(120% 90% at 50% 112%, rgba(255,206,130,0.28), transparent 58%),
+    radial-gradient(140% 100% at 50% 118%, rgba(124,58,237,0.38), rgba(5,6,10,0.55) 64%),
+    rgba(5,6,10,0.55);
+}
+
+/* --- hub landing hero: pearl-and-gold wash --------------------- */
+.hub-landing-hero::after {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  mix-blend-mode: screen;
+  background: linear-gradient(160deg, rgba(255,222,150,0.24), rgba(255,122,184,0.12) 46%, rgba(159,216,255,0.16));
+}
+
+/* --- heaven scrollbar ------------------------------------------- */
+html { scrollbar-color: var(--divine-gold-deep) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  border-radius: 999px; border: 2px solid transparent; background-clip: padding-box;
+  background: linear-gradient(180deg, var(--divine-gold), #b06bff);
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #ffe7ad, #c99cff); background-clip: padding-box; }
+
+/* --- list rows catch the dawn on hover --------------------------- */
+.recent-item:hover { background: linear-gradient(90deg, rgba(247,207,122,0.14), rgba(159,216,255,0.10)); }
+.section-header .see-all-pill:hover {
+  background: color-mix(in srgb, var(--divine-gold) 18%, transparent);
+  box-shadow: 0 0 22px rgba(247,207,122,0.35);
+}
+/* HEAVEN-02 end */
+
+/* ============================================================
+   HEAVEN-03 — heaven pass on cards, detail view, stat boxes,
+   reviews and the updates timeline. Still pure design.
+   ============================================================ */
+
+/* --- website cards: light from above, shimmer on hover -------- */
+.card, .featured-card {
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, rgba(255,246,220,0.05), transparent 34%);
+}
+.card:hover, .featured-card:hover {
+  border-color: color-mix(in srgb, var(--divine-gold) 38%, var(--border-strong));
+  box-shadow: var(--halo), var(--shadow-float);
+}
+.card:not(.recent-card)::after, .featured-card::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 34%, rgba(255,246,220,0.16) 50%, transparent 66%);
+  transform: translateX(-130%); transition: transform 0.75s ease;
+}
+.card:not(.recent-card):hover::after, .featured-card:hover::after { transform: translateX(130%); }
+/* recent cards keep their inset ring on ::after; shimmer rides ::before */
+.recent-card::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: linear-gradient(115deg, transparent 34%, rgba(255,246,220,0.16) 50%, transparent 66%);
+  transform: translateX(-130%); transition: transform 0.75s ease;
+}
+.recent-card:hover::before { transform: translateX(130%); }
+.card { position: relative; }
+.featured-card { position: relative; }
+.card .thumb::before, .featured-card .feat-img::before {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,240,205,0.16), transparent 32%);
+}
+.card .info .meta .stars, .review-stars, .star-fill {
+  text-shadow: 0 0 9px rgba(251,191,36,0.5);
+}
+
+/* --- trending ranks: podium numbers in gold light -------------- */
+.trending-rank-card { position: relative; overflow: hidden; }
+.trending-rank-card:hover {
+  border-color: color-mix(in srgb, var(--divine-gold) 38%, var(--border-strong));
+  box-shadow: var(--halo);
+}
+.trending-rank-card:nth-child(-n+3) .trending-rank-number {
+  background: linear-gradient(180deg, #ffe9b8, var(--divine-gold-deep));
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; text-shadow: none;
+  filter: drop-shadow(0 0 8px rgba(247,207,122,0.45));
+}
+
+/* --- detail view: ring of light + lit info bar ------------------ */
+.detail-header {
+  box-shadow: 0 0 0 1px rgba(255,236,190,0.28), 0 18px 52px rgba(8,6,24,0.55),
+              0 0 46px rgba(255,206,130,0.14);
+}
+.detail-header::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  pointer-events: none; z-index: 1; mix-blend-mode: screen;
+  background: linear-gradient(180deg, rgba(255,240,205,0.16), transparent 30%, transparent 74%, rgba(124,58,237,0.16));
+}
+.detail-hero-info h1 { text-shadow: 0 0 26px rgba(255,236,190,0.32), 0 8px 24px rgba(0,0,0,0.6); }
+.info-bar {
+  background-color: var(--card);
+  background-image: radial-gradient(120% 140% at 50% -60%, rgba(255,222,150,0.12), transparent 62%);
+}
+.info-bar .icon-large { box-shadow: var(--halo); }
+.info-bar .open-btn {
+  background: linear-gradient(135deg, #ffe7ad, #f6c66a 38%, #e3a53f 62%, #ffd98a);
+  border: 0; color: #2b1c05;
+  box-shadow: 0 6px 22px rgba(246,198,106,0.35), inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.info-bar .open-btn:hover {
+  box-shadow: 0 10px 30px rgba(246,198,106,0.5), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+/* --- stat boxes: divine numerals, radiance from the top --------- */
+.stat-box {
+  background-color: var(--card);
+  background-image: radial-gradient(120% 90% at 50% -30%, rgba(255,222,150,0.14), transparent 60%);
+}
+.stat-box:hover { box-shadow: var(--halo), var(--shadow-card); }
+.stat-box .num {
+  background: var(--heaven-text);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; text-shadow: none;
+  filter: drop-shadow(0 0 12px rgba(255,236,190,0.25));
+}
+
+/* --- reviews: pearl cards, halo avatars -------------------------- */
+.review-card {
+  background-color: rgba(255,255,255,0.03);
+  background-image: linear-gradient(180deg, rgba(255,246,220,0.045), transparent 40%);
+  border-color: rgba(233,225,255,0.10);
+  transition: transform 0.18s, border-color 0.2s, box-shadow 0.2s;
+}
+.review-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--divine-gold) 32%, var(--border-strong));
+  box-shadow: var(--halo);
+}
+.review-avatar { box-shadow: 0 0 0 2px rgba(255,236,190,0.25), 0 0 14px rgba(255,214,140,0.25); border-radius: 50%; }
+
+/* --- timeline: golden dots, lit cards, dawn dividers -------------- */
+.timeline-dot {
+  background: linear-gradient(135deg, #ffe7ad, #f2b95c 55%, #ffd98a);
+  animation: dotPulse 3s infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(255,236,190,0.08), 0 0 12px rgba(247,207,122,0.5); }
+  50%      { box-shadow: 0 0 0 8px rgba(255,214,140,0.16), 0 0 22px rgba(247,207,122,0.8); }
+}
+.timeline-card {
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, rgba(255,246,220,0.05), transparent 36%);
+}
+.timeline-card:hover {
+  border-color: color-mix(in srgb, var(--divine-gold) 35%, var(--border-strong));
+  box-shadow: var(--halo), var(--shadow-float);
+}
+.timeline-card .t-thumb { box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0 14px rgba(255,214,140,0.12); }
+.divider-date::before, .divider-date::after {
+  background: linear-gradient(90deg, transparent, rgba(247,207,122,0.55));
+  height: 1px;
+}
+.divider-date::after { background: linear-gradient(90deg, rgba(247,207,122,0.55), transparent); }
+.divider-date { color: var(--divine-gold); text-shadow: 0 0 14px rgba(247,207,122,0.35); }
+.saved-update-star { box-shadow: 0 0 16px rgba(251,191,36,0.4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card::after, .featured-card::after, .trending-rank-card::after, .recent-card::before { transition: none; transform: none; }
+  .timeline-dot { animation: none; box-shadow: 0 0 12px rgba(247,207,122,0.5); }
+}
+/* HEAVEN-03 end */
+
+/* ============================================================
+   HEAVEN-04 — heaven pass on the Hub, community board,
+   developer portal and the auth screens. Pure design.
+   ============================================================ */
+
+/* --- Hub: lit display headings, pearl cards, divine numbers --- */
+.hub-section-heading h2, .devportal-hero h1, .board-brand b {
+  background: var(--heaven-text);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; text-shadow: none;
+  filter: drop-shadow(0 0 18px rgba(255,236,190,0.22));
+}
+html.light .hub-section-heading h2, html.light .devportal-hero h1, html.light .board-brand b {
+  filter: drop-shadow(0 0 14px rgba(214,164,60,0.25));
+}
+.hub-quick-card, .hub-doc-card {
+  background-color: rgba(255,255,255,0.02);
+  background-image: linear-gradient(180deg, rgba(255,246,220,0.05), transparent 38%);
+}
+.hub-quick-card:hover, .hub-doc-card:hover,
+.hub-quick-card:focus-visible, .hub-doc-card:focus-visible {
+  border-color: color-mix(in srgb, var(--divine-gold) 40%, var(--border-strong));
+  box-shadow: var(--halo);
+}
+.hub-quick-card span, .hub-doc-card span { filter: drop-shadow(0 0 10px rgba(255,224,148,0.35)); }
+.hub-stat-box {
+  background-color: rgba(37,99,235,0.05);
+  background-image: radial-gradient(120% 90% at 50% -30%, rgba(255,222,150,0.14), transparent 60%);
+}
+.hub-stat-box strong {
+  background: var(--heaven-text);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; text-shadow: none;
+  filter: drop-shadow(0 0 12px rgba(255,236,190,0.25));
+}
+.hub-join-banner {
+  border-color: color-mix(in srgb, var(--divine-gold) 45%, var(--border-strong));
+  background-image: radial-gradient(120% 140% at 50% -60%, rgba(255,222,150,0.16), transparent 62%);
+}
+.hub-join-banner:hover, .hub-join-banner:focus-visible {
+  border-color: var(--divine-gold);
+  box-shadow: var(--halo);
+}
+.hub-roadmap-timeline li::before { background: linear-gradient(180deg, rgba(247,207,122,0.5), rgba(247,207,122,0.12)); }
+.hub-roadmap-dot { border-color: rgba(247,207,122,0.55); background: var(--card); box-shadow: 0 0 10px rgba(247,207,122,0.3); }
+.hub-official-chips a:hover, .hub-official-chips a:focus-visible {
+  border-color: color-mix(in srgb, var(--divine-gold) 45%, var(--border-strong));
+  background: rgba(247,207,122,0.10);
+  box-shadow: 0 0 16px rgba(247,207,122,0.22);
+}
+.hub-topbar-icon:hover, .hub-topbar-icon:focus-visible { border-color: var(--divine-gold); box-shadow: 0 0 12px rgba(247,207,122,0.3); }
+
+/* --- Community board + developer portal: lit shells ----------- */
+.board-topbar {
+  box-shadow: 0 1px 0 rgba(255,236,190,0.14), 0 8px 28px rgba(8,6,24,0.35);
+}
+html.light .board-topbar { box-shadow: 0 1px 0 rgba(214,164,60,0.25), 0 8px 28px rgba(120,90,20,0.10); }
+.board-post, .board-composer, .board-guidelines, .team-settings-card, .member-mini-panel {
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, rgba(255,246,220,0.05), transparent 36%);
+}
+.board-post { transition: transform 0.18s, border-color 0.2s, box-shadow 0.2s; }
+.board-post:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--divine-gold) 35%, var(--border-strong));
+  box-shadow: var(--halo);
+}
+.devportal-gate-item {
+  background-image: linear-gradient(180deg, rgba(255,246,220,0.05), transparent 40%);
+}
+.devportal-gate-item span { box-shadow: 0 0 10px rgba(34,197,94,0.35); }
+.devportal-hero .hub-page-illus { filter: drop-shadow(0 0 26px rgba(255,214,140,0.25)); }
+
+/* --- Auth screens: pearl dialogs, golden focus ---------------- */
+.auth-dialog {
+  background-color: var(--surface);
+  background-image: radial-gradient(120% 70% at 50% -24%, rgba(255,222,150,0.13), transparent 60%);
+}
+.auth-mode-tabs button.active {
+  background: linear-gradient(135deg, #ffe7ad, #f2b95c);
+  color: #3a2a08;
+  box-shadow: 0 4px 14px rgba(246,198,106,0.35), inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.auth-field input:focus, .auth-field textarea:focus, .auth-field select:focus {
+  border-color: var(--divine-gold);
+  box-shadow: 0 0 0 3px rgba(247,207,122,0.22), 0 0 18px rgba(247,207,122,0.25);
+}
+.account-hero .auth-btn:hover {
+  border-color: color-mix(in srgb, var(--divine-gold) 45%, var(--border-strong));
+  box-shadow: var(--halo);
+}
+.auth-text-action:hover { color: var(--divine-gold); text-shadow: 0 0 12px rgba(247,207,122,0.4); }
+/* HEAVEN-04 end */
+
+/* ============================================================
+   HEAVEN-06 — motion: scroll-reveal bloom + gentle float.
+   Hidden states only ever applied by heaven-motion.js, so
+   no-JS and reduced-motion users see everything instantly.
+   ============================================================ */
+
+.heaven-rise { transition: opacity 0.65s ease, transform 0.65s ease; }
+.heaven-rise:not(.is-revealed) { opacity: 0; transform: translateY(16px); }
+.heaven-rise.is-revealed { animation: heavenBloom 1.5s ease both; }
+@keyframes heavenBloom {
+  0%   { box-shadow: 0 0 0 rgba(255,214,140,0); }
+  35%  { box-shadow: 0 0 36px rgba(255,214,140,0.28); }
+  100% { box-shadow: 0 0 0 rgba(255,214,140,0); }
+}
+
+/* gentle float on the little lights */
+@keyframes heavenFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+.cat-chip .emoji, .hub-quick-card > span, .hub-doc-card > span {
+  animation: heavenFloat 5s ease-in-out infinite;
+}
+.cat-chip:nth-child(2n) .emoji, .hub-quick-card:nth-child(2n) > span, .hub-doc-card:nth-child(2n) > span {
+  animation-delay: -2.5s;
+}
+.hero .wotd-badge { animation: heavenFloat 6s ease-in-out infinite; }
+.account-hero .logo-mark {
+  animation: heavenFloat 7s ease-in-out infinite, haloPulse 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heaven-rise, .heaven-rise:not(.is-revealed), .heaven-rise.is-revealed {
+    opacity: 1; transform: none; transition: none; animation: none;
+  }
+  .cat-chip .emoji, .hub-quick-card > span, .hub-doc-card > span,
+  .hero .wotd-badge, .account-hero .logo-mark { animation: none; }
+}
+/* HEAVEN-06 end */
+
+/* ============================================================
+   HEAVEN-07 — "heavenly day" light refinement + WCAG audit.
+   Audit (computed ratios, this round): dark mode passes AA
+   everywhere; light mode failed on divider gold (1.32), podium
+   rank gold (2.25), stars (1.67), scrollbar (2.01), and the
+   amber heaven-text stop sat at 4.49 for 10px eyebrows.
+   Every fix below swaps to #92400e/#b45309-range golds that
+   measure 4.5:1+ (3:1+ for graphics/UI) on light surfaces.
+   ============================================================ */
+
+html.light {
+  --heaven-text: linear-gradient(100deg, #6d28d9 0%, #be185d 36%, #92400e 66%, #0e7490 100%);
+  --border: rgba(120,90,20,0.10);
+  --border-strong: rgba(120,90,20,0.18);
+}
+
+/* dawn dividers readable in daylight (was 1.32:1) */
+html.light .divider-date { color: #92400e; text-shadow: 0 0 12px rgba(146,64,14,0.25); }
+html.light .divider-date::before { background: linear-gradient(90deg, transparent, rgba(146,64,14,0.5)); }
+html.light .divider-date::after { background: linear-gradient(90deg, rgba(146,64,14,0.5), transparent); }
+
+/* podium ranks in deep gold on white (was 2.25:1) */
+html.light .trending-rank-card:nth-child(-n+3) .trending-rank-number {
+  background: linear-gradient(180deg, #b45309, #92400e);
+  -webkit-background-clip: text; background-clip: text;
+  filter: drop-shadow(0 0 8px rgba(146,64,14,0.3));
+}
+
+/* stars keep their meaning in daylight (was 1.67:1) */
+html.light .card .info .meta .stars,
+html.light .review-stars,
+html.light .star-fill { color: #b45309; text-shadow: 0 0 9px rgba(180,83,9,0.35); }
+html.light .saved-update-star { color: #b45309; background: rgba(180,83,9,0.12); border-color: rgba(180,83,9,0.4); }
+html.light .update-badge.badge-gold { color: #92400e; border-color: rgba(146,64,14,0.4); background: rgba(146,64,14,0.10); }
+
+/* heaven scrollbar in deep gold on ivory (was 2.01:1) */
+html.light { scrollbar-color: #b45309 transparent; }
+html.light ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #b45309, #92400e); background-clip: padding-box; }
+
+/* golden timeline dots stay visible on pearl surfaces */
+html.light .timeline-dot { background: linear-gradient(135deg, #f2b95c, #b45309 60%, #d9a441); }
+
+/* game kit: stake chip + best line readable in daylight */
+html.light .gk-chip-stake { color: #92400e; border-color: rgba(146,64,14,0.4); background: rgba(146,64,14,0.08); }
+html.light .gk-result-best { color: #92400e; }
+
+/* heavenly-day warmth: borders and top light tuned for ivory */
+html.light .card, html.light .featured-card, html.light .timeline-card, html.light .review-card {
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.65), transparent 40%);
+}
+html.light .hero::after, html.light .detail-header::after {
+  background: linear-gradient(180deg, rgba(255,214,140,0.22), transparent 30%, transparent 76%, rgba(109,40,217,0.10));
+}
+/* HEAVEN-07 end */
+
+/* ============================================================
+   HEAVEN-08 — per-category celestial hues, unified controls,
+   low-end performance guards.
+   ============================================================ */
+
+/* each category chip glows in its own heaven tint */
+.cat-chip {
+  border-color: color-mix(in srgb, var(--category-color, var(--accent)) 22%, var(--border));
+}
+.cat-chip:hover, .cat-chip.active {
+  border-color: color-mix(in srgb, var(--category-color, var(--accent)) 55%, var(--border-strong));
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--category-color, var(--accent)) 28%, transparent),
+              inset 0 0 0 1px color-mix(in srgb, var(--category-color, var(--accent)) 40%, transparent);
+}
+.category-full-chip:hover {
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--category-color, var(--accent)) 30%, transparent);
+}
+
+/* one placeholder voice everywhere */
+::placeholder { color: var(--text-faint); opacity: 1; }
+
+/* one heavenly focus ring for every control not otherwise styled */
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--divine-gold) 65%, var(--border-strong));
+  box-shadow: 0 0 0 3px rgba(247,207,122,0.22), 0 0 18px rgba(247,207,122,0.22);
+}
+select { color-scheme: dark; }
+html.light select { color-scheme: light; }
+
+/* low-end phones: keep the heaven, drop the GPU cost */
+@media (hover: none) and (max-width: 700px) {
+  body::after { filter: blur(40px); opacity: 0.05; animation: none; }
+  html::after { animation: none; opacity: 0.7; }
+  body::before { animation: none; }
+  .card::after, .featured-card::after, .recent-card::before, .cat-chip::after, .mode-card::after { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body::after, html::after, body::before { animation: none; }
+}
+/* HEAVEN-08 end */
+
+/* ============================================================
+   HEAVEN-09 — seasonal skies, micro-interactions, detail hues.
+   ============================================================ */
+
+/* --- rain season (May–Oct): lush aqua-green aurora ------------- */
+:root[data-season="rain"]::before {
+  background: repeating-conic-gradient(from -16deg at 50% -18%,
+              rgba(150,255,220,0.05) 0deg 3.5deg, transparent 3.5deg 11deg);
+}
+:root[data-season="rain"] body::before {
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(150,255,214,0.13), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(16,185,129,0.17), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(34,211,238,0.17), transparent 70%),
+    radial-gradient(40vw 30vw at 50% 46%, rgba(103,232,249,0.08), transparent 70%);
+}
+:root[data-season="rain"] body::after { opacity: 0.08; }
+
+/* --- harmattan (Nov–Feb): amber haze, gold everywhere ----------- */
+:root[data-season="harmattan"] { --divine-gold: #f2b95c; }
+:root[data-season="harmattan"]::before {
+  background: repeating-conic-gradient(from -16deg at 50% -18%,
+              rgba(255,214,140,0.085) 0deg 3.5deg, transparent 3.5deg 11deg);
+}
+:root[data-season="harmattan"]::after { opacity: 0.4; } /* hazy stars */
+:root[data-season="harmattan"] body::before {
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(255,190,110,0.22), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(217,119,6,0.14), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(244,114,182,0.10), transparent 70%);
+}
+:root[data-season="harmattan"] body::after { opacity: 0.12; } /* dust veil */
+:root[data-season="harmattan"] .logo-mark { filter: sepia(0.15) saturate(1.1); }
+
+/* --- press ripple of light --------------------------------------- */
+.primary-action, .open-btn, .chip, .see-all-pill { position: relative; overflow: hidden; }
+.heaven-ripple {
+  position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,246,220,0.95), rgba(255,214,140,0.45) 55%, transparent 72%);
+  transform: scale(0); opacity: 0.9; pointer-events: none;
+  animation: heavenRipple 0.6s ease-out forwards;
+}
+@keyframes heavenRipple { to { transform: scale(16); opacity: 0; } }
+
+/* --- star-spark on hover ------------------------------------------ */
+.see-all-pill, .hub-quick-card, .category-full-chip { position: relative; }
+.heaven-spark {
+  position: absolute; width: 5px; height: 5px; border-radius: 50%;
+  background: #fff6dc; box-shadow: 0 0 9px rgba(255,224,148,0.95);
+  pointer-events: none; animation: heavenSpark 0.8s ease-out forwards;
+}
+@keyframes heavenSpark {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-20px) scale(0.2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heaven-ripple, .heaven-spark { display: none; }
+}
+
+/* --- detail hero harmonised with the category hue ----------------- */
+.detail-header::after {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--detail-hue, #67e8f9) 16%, transparent), transparent 30%,
+    transparent 74%,
+    color-mix(in srgb, var(--detail-hue, #7c3aed) 22%, transparent));
+}
+.info-bar {
+  background-image: radial-gradient(120% 140% at 50% -60%,
+    color-mix(in srgb, var(--detail-hue, #f7cf7a) 15%, transparent), transparent 62%);
+}
+.info-bar .icon-large {
+  box-shadow: var(--halo), 0 0 26px color-mix(in srgb, var(--detail-hue, #7c3aed) 45%, transparent);
+}
+.launch-ring-value { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--detail-hue, var(--accent)) 70%, transparent)); }
+/* HEAVEN-09 end */

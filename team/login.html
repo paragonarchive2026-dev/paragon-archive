@@ -28,10 +28,10 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <p id="portal-timeout-note" class="portal-lockout portal-timeout-note" role="status" hidden>⏰ You were logged out after 30 minutes of inactivity. Sign in again to continue.</p>
 
     <form id="team-portal-form" class="hub-team-secure-card" novalidate aria-describedby="team-portal-status">
-      <label><span>Team Email Address</span><input id="portal-email" type="email" name="email" autocomplete="username" required placeholder="you@paragon.team"></label>
+      <label><span>Team Email Address</span><input id="portal-email" aria-label="Email address" type="email" name="email" autocomplete="username" required placeholder="you@paragon.team"></label>
       <label><span>Password</span>
         <span class="portal-password-wrap">
-          <input id="portal-password" type="password" name="password" autocomplete="current-password" required placeholder="●●●●●●●●●●●●●●●●">
+          <input id="portal-password" aria-label="Password" type="password" name="password" autocomplete="current-password" required placeholder="●●●●●●●●●●●●●●●●">
           <button type="button" id="portal-show-toggle" class="portal-show-btn" aria-pressed="false" aria-label="Show password">Show</button>
         </span>
       </label>

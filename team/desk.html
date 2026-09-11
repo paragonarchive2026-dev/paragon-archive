@@ -91,13 +91,13 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <section class="team-dash-section">
       <h2 class="team-dash-heading">BASIC INFORMATION</h2>
       <div class="form-group-stack">
-        <label><span>Website Name *</span><input id="aw-name" maxlength="60" placeholder="Paragon Something"></label>
-        <label><span>Short Description * <small>(shown on cards)</small></span><input id="aw-short" maxlength="150" placeholder="One line that sells it"><small class="aw-counter"><span id="aw-short-count">0</span>/150 characters</small></label>
-        <label><span>Full Description * <small>(shown on detail page)</small></span><textarea id="aw-full" maxlength="1000" rows="5" placeholder="The complete story of this website"></textarea><small class="aw-counter"><span id="aw-full-count">0</span>/1000 characters</small></label>
+        <label><span>Website Name *</span><input id="aw-name" aria-label="Website name" maxlength="60" placeholder="Paragon Something"></label>
+        <label><span>Short Description * <small>(shown on cards)</small></span><input id="aw-short" aria-label="Short pitch" maxlength="150" placeholder="One line that sells it"><small class="aw-counter"><span id="aw-short-count">0</span>/150 characters</small></label>
+        <label><span>Full Description * <small>(shown on detail page)</small></span><textarea id="aw-full" aria-label="Full description" maxlength="1000" rows="5" placeholder="The complete story of this website"></textarea><small class="aw-counter"><span id="aw-full-count">0</span>/1000 characters</small></label>
         <div class="aw-three-col">
-          <label><span>Category *</span><select id="aw-category"><option value="">Select</option></select></label>
-          <label><span>Sub-Category</span><select id="aw-subcategory"><option value="">Select</option><option>Core</option><option>Utility</option><option>Companion</option><option>Experimental</option></select></label>
-          <label><span>Difficulty</span><select id="aw-difficulty"><option value="">Select</option><option>Simple</option><option>Standard</option><option>Advanced</option></select></label>
+          <label><span>Category *</span><select id="aw-category" aria-label="Category"><option value="">Select</option></select></label>
+          <label><span>Sub-Category</span><select id="aw-subcategory" aria-label="Subcategory"><option value="">Select</option><option>Core</option><option>Utility</option><option>Companion</option><option>Experimental</option></select></label>
+          <label><span>Difficulty</span><select id="aw-difficulty" aria-label="Difficulty"><option value="">Select</option><option>Simple</option><option>Standard</option><option>Advanced</option></select></label>
         </div>
       </div>
     </section>
@@ -116,8 +116,8 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <section class="team-dash-section">
       <h2 class="team-dash-heading">TECHNICAL</h2>
       <div class="form-group-stack">
-        <label><span>Internal Page Path or Iframe URL *</span><input id="aw-path" maxlength="200" placeholder="/paragon-notes/ or https://…"></label>
-        <label><span>Version Number *</span><input id="aw-version" maxlength="30" placeholder="1.0"></label>
+        <label><span>Internal Page Path or Iframe URL *</span><input id="aw-path" aria-label="Path or hosted URL" maxlength="200" placeholder="/paragon-notes/ or https://…"></label>
+        <label><span>Version Number *</span><input id="aw-version" aria-label="Version" maxlength="30" placeholder="1.0"></label>
       </div>
     </section>
 
@@ -129,13 +129,13 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
 
     <section class="team-dash-section">
       <h2 class="team-dash-heading">TAGS</h2>
-      <input id="aw-tag-input" class="team-filter-search" maxlength="24" placeholder="Tag input — press Enter to add">
+      <input id="aw-tag-input" aria-label="Add a tag" class="team-filter-search" maxlength="24" placeholder="Tag input — press Enter to add">
       <div id="aw-tags" class="aw-tag-row" aria-live="polite"></div>
     </section>
 
     <section class="team-dash-section">
       <h2 class="team-dash-heading">WHAT'S NEW (VERSION NOTES)</h2>
-      <textarea id="aw-whatsnew" maxlength="600" rows="4" class="aw-notes" placeholder="What changed in this version?"></textarea>
+      <textarea id="aw-whatsnew" aria-label="What is new" maxlength="600" rows="4" class="aw-notes" placeholder="What changed in this version?"></textarea>
     </section>
 
     <section class="team-dash-section">
@@ -312,11 +312,11 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
         </label>
       </div>
       <div class="form-group-stack">
-        <label><span>Title *</span><input id="ann-title" maxlength="100" placeholder="What happened?"></label>
-        <label><span>Message *</span><textarea id="ann-message" maxlength="600" rows="3" placeholder="Tell the archive users the details…"></textarea></label>
+        <label><span>Title *</span><input id="ann-title" aria-label="Announcement title" maxlength="100" placeholder="What happened?"></label>
+        <label><span>Message *</span><textarea id="ann-message" aria-label="Announcement message" maxlength="600" rows="3" placeholder="Tell the archive users the details…"></textarea></label>
       </div>
       <div class="form-group-stack" id="ann-link-row" hidden>
-        <label><span>🔗 Link (special announcements — opens from a LINK pill in the public feed)</span><input id="ann-link" type="url" maxlength="300" placeholder="https://example.com/your-page"></label>
+        <label><span>🔗 Link (special announcements — opens from a LINK pill in the public feed)</span><input id="ann-link" aria-label="Announcement link" type="url" maxlength="300" placeholder="https://example.com/your-page"></label>
       </div>
       <div class="form-group-stack">
         <div class="ticket-attach ann-image-row">
@@ -717,9 +717,9 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   <div class="modal team-site-modal">
     <div class="modal-header"><h2>+ Invite Team Member</h2><button class="modal-close" id="invite-close" aria-label="Close">✕</button></div>
     <div class="modal-body form-group-stack">
-      <label><span>Full Name *</span><input id="invite-name" maxlength="60" placeholder="Their full name"></label>
-      <label><span>Email Address *</span><input id="invite-email" type="email" maxlength="254" placeholder="them@example.com"></label>
-      <label><span>Role *</span><select id="invite-role"><option value="">Select Role</option><option>Admin</option><option>Developer</option><option>Moderator</option><option>Support</option><option>Analyst</option></select></label>
+      <label><span>Full Name *</span><input id="invite-name" aria-label="Invitee full name" maxlength="60" placeholder="Their full name"></label>
+      <label><span>Email Address *</span><input id="invite-email" aria-label="Invitee email" type="email" maxlength="254" placeholder="them@example.com"></label>
+      <label><span>Role *</span><select id="invite-role" aria-label="Invite role"><option value="">Select Role</option><option>Admin</option><option>Developer</option><option>Moderator</option><option>Support</option><option>Analyst</option></select></label>
       <p class="hub-join-note">The system will generate a password and email it to them with setup instructions — the email dispatches when the security backend activates. The invitation record is stored now.</p>
     </div>
     <div class="modal-footer"><button class="secondary-action" id="invite-cancel">Cancel</button><button class="primary-action" id="invite-send">Send Invitation</button></div>
@@ -805,7 +805,7 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   <div class="team-page-head">
     <h1 class="team-page-title">🔑 PERMISSIONS</h1>
     <label class="team-role-switch">Highlight role:
-      <select id="perm-highlight">
+      <select id="perm-highlight" aria-label="Permission highlight">
         <option value="">None</option>
         <option value="sa">Super Admin</option>
         <option value="ad">Admin</option>
@@ -873,12 +873,12 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   <section class="team-dash-section" id="prof-edit-section">
     <h2 class="team-dash-heading">EDIT PROFILE</h2>
     <div class="form-section form-group-stack">
-      <label><span>Display Name</span><input id="edit-name" maxlength="40" value="Paragon"></label>
-      <label><span>Email Address</span><input id="edit-email" type="email" maxlength="254" value="paragon.archive.2026@gmail.com"></label>
+      <label><span>Display Name</span><input id="edit-name" aria-label="Your name" maxlength="40" value="Paragon"></label>
+      <label><span>Email Address</span><input id="edit-email" aria-label="Your email" type="email" maxlength="254" value="paragon.archive.2026@gmail.com"></label>
       <h3 class="team-dash-heading" style="margin-top:8px;">CHANGE PASSWORD</h3>
-      <label><span>Current Password</span><input id="edit-pw-current" type="password" autocomplete="current-password"></label>
-      <label><span>New Password</span><input id="edit-pw-new" type="password" autocomplete="new-password" placeholder="12+ chars, uppercase, number, symbol"></label>
-      <label><span>Confirm New</span><input id="edit-pw-confirm" type="password" autocomplete="new-password"></label>
+      <label><span>Current Password</span><input id="edit-pw-current" aria-label="Current password" type="password" autocomplete="current-password"></label>
+      <label><span>New Password</span><input id="edit-pw-new" aria-label="New password" type="password" autocomplete="new-password" placeholder="12+ chars, uppercase, number, symbol"></label>
+      <label><span>Confirm New</span><input id="edit-pw-confirm" aria-label="Confirm new password" type="password" autocomplete="new-password"></label>
       <div class="aw-bottom-actions"><button type="button" id="prof-save" class="primary-action">Save Changes</button></div>
       <p id="prof-status" class="hub-join-status" role="status" hidden></p>
     </div>
@@ -907,16 +907,16 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <h2 class="team-dash-sectitle">✍️ Compose a notice</h2>
     <div class="team-settings-grid">
       <label>Type
-        <select id="promo-type">
+        <select id="promo-type" aria-label="Promotion type">
           <option value="promotion">📣 Paragon promotion</option>
           <option value="sponsored">🤝 Sponsored notice (requires sponsor)</option>
         </select>
       </label>
       <label>Sponsor name (sponsored only)
-        <input type="text" id="promo-sponsor" maxlength="60" placeholder="Who paid for / sponsors this notice">
+        <input type="text" id="promo-sponsor" aria-label="Sponsor name" maxlength="60" placeholder="Who paid for / sponsors this notice">
       </label>
       <label>Audience
-        <select id="promo-audience">
+        <select id="promo-audience" aria-label="Audience">
           <option value="all">Everyone (accounts + guests)</option>
           <option value="guests">Guests only</option>
           <option value="accounts">Signed-in accounts only</option>
@@ -924,10 +924,10 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
       </label>
     </div>
     <label class="team-settings-grid" style="display:block;">Title
-      <input type="text" id="promo-title" maxlength="80" placeholder="Notice title" style="width:100%;">
+      <input type="text" id="promo-title" aria-label="Promotion title" maxlength="80" placeholder="Notice title" style="width:100%;">
     </label>
     <label class="team-settings-grid" style="display:block;">Message
-      <textarea id="promo-body" rows="3" maxlength="280" placeholder="Notice message (280 characters max)" style="width:100%;"></textarea>
+      <textarea id="promo-body" aria-label="Promotion body" rows="3" maxlength="280" placeholder="Notice message (280 characters max)" style="width:100%;"></textarea>
     </label>
     <p class="team-site-sub">⏳ Every published notice runs for a maximum of <strong>72 hours</strong> (platform rule) and sponsored notices always display the "Sponsored" disclosure to users.</p>
     <p id="promo-error" class="portal-lockout" style="display:none;"></p>
@@ -1004,10 +1004,10 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   <div class="modal team-site-modal">
     <div class="modal-header"><h2 id="rm-modal-title">Add Roadmap Item</h2><button class="modal-close" id="rm-modal-close" aria-label="Close">✕</button></div>
     <div class="modal-body form-group-stack">
-      <label><span>Title *</span><input id="rm-title" maxlength="80" placeholder="Milestone name"></label>
-      <label><span>Detail / date label</span><input id="rm-detail" maxlength="140" placeholder="e.g. Target: August 2027 — the archive goes live"></label>
-      <label><span>Group *</span><select id="rm-group"><option value="completed">✅ Completed</option><option value="progress">🔄 In Progress</option><option value="planned" selected>📅 Planned</option><option value="coming">🔮 Coming Soon</option></select></label>
-      <label><span>Progress % (In Progress only)</span><input id="rm-percent" type="number" min="0" max="100" value="0"></label>
+      <label><span>Title *</span><input id="rm-title" aria-label="Milestone name" maxlength="80" placeholder="Milestone name"></label>
+      <label><span>Detail / date label</span><input id="rm-detail" aria-label="Milestone detail" maxlength="140" placeholder="e.g. Target: August 2027 — the archive goes live"></label>
+      <label><span>Group *</span><select id="rm-group" aria-label="Roadmap group"><option value="completed">✅ Completed</option><option value="progress">🔄 In Progress</option><option value="planned" selected>📅 Planned</option><option value="coming">🔮 Coming Soon</option></select></label>
+      <label><span>Progress % (In Progress only)</span><input id="rm-percent" aria-label="Percent complete" type="number" min="0" max="100" value="0"></label>
       <label class="community-guidelines-check"><input id="rm-public" type="checkbox" checked> 🌐 Public (uncheck for Private — team only)</label>
     </div>
     <div class="modal-footer"><button class="secondary-action" id="rm-modal-cancel">Cancel</button><button class="primary-action" id="rm-modal-save">Save</button></div>
@@ -1119,11 +1119,11 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <h2 class="team-dash-sectitle">🛡️ Session security — REAL, applies on next page load</h2>
     <div class="team-settings-grid">
       <label>Idle warning after (minutes)
-        <input type="number" id="set-idle" min="5" max="120" step="1">
+        <input type="number" id="set-idle" aria-label="Idle timeout in minutes" min="5" max="120" step="1">
         <small>Default 29. The warning modal appears after this much inactivity.</small>
       </label>
       <label>Logout countdown (seconds)
-        <input type="number" id="set-warn" min="30" max="120" step="5">
+        <input type="number" id="set-warn" aria-label="Warning timeout in minutes" min="30" max="120" step="5">
         <small>Default 60. Countdown length once the warning shows.</small>
       </label>
     </div>
@@ -1164,13 +1164,13 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <form id="setup-form" class="hub-team-secure-card" novalidate aria-describedby="setup-status">
       <p id="setup-role-message" class="setup-role-message" hidden>Your initial password was sent to your email. You must create a new password before continuing.</p>
 
-      <label><span>Your Team Email (pre-filled)</span><input id="setup-email" type="email" name="email" autocomplete="username" readonly></label>
+      <label><span>Your Team Email (pre-filled)</span><input id="setup-email" aria-label="Owner email" type="email" name="email" autocomplete="username" readonly></label>
 
-      <label id="setup-initial-wrap" hidden><span>Initial Password (from your email)</span><input id="setup-initial" type="password" name="initialPassword" autocomplete="current-password" placeholder="System-generated password"></label>
+      <label id="setup-initial-wrap" hidden><span>Initial Password (from your email)</span><input id="setup-initial" aria-label="Initial password" type="password" name="initialPassword" autocomplete="current-password" placeholder="System-generated password"></label>
 
       <label><span>Create Password</span>
         <span class="portal-password-wrap">
-          <input id="setup-password" type="password" name="newPassword" autocomplete="new-password" required placeholder="At least 12 characters">
+          <input id="setup-password" aria-label="New password" type="password" name="newPassword" autocomplete="new-password" required placeholder="At least 12 characters">
           <button type="button" id="setup-show-toggle" class="portal-show-btn" aria-pressed="false" aria-label="Show password">Show</button>
         </span>
       </label>
@@ -1185,7 +1185,7 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
         <li data-rule="symbol">Contains a symbol</li>
       </ul>
 
-      <label><span>Confirm Password</span><input id="setup-confirm" type="password" name="confirmPassword" autocomplete="new-password" required placeholder="Repeat the password"></label>
+      <label><span>Confirm Password</span><input id="setup-confirm" aria-label="Confirm password" type="password" name="confirmPassword" autocomplete="new-password" required placeholder="Repeat the password"></label>
 
       <button type="submit" class="primary-action hub-team-secure-submit">✅ SET PASSWORD &amp; ENTER</button>
       <p id="setup-status" class="hub-join-status" role="status" hidden></p>
@@ -1219,7 +1219,7 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
       <p class="team-site-sub">From: <strong id="ticket-from">—</strong> · <a id="ticket-user-link" href="desk.html?page=users">View User Profile</a></p>
       <p class="team-site-sub" id="ticket-received">Received: —</p>
       <p class="team-site-sub ticket-assign-row">Assigned to:
-        <select id="ticket-assignee">
+        <select id="ticket-assignee" aria-label="Assignee">
           <option value="">Unassigned</option>
           <option>Support Mary (example roster)</option>
           <option>Admin John (example roster)</option>
@@ -1237,7 +1237,7 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
 
     <section class="team-dash-section">
       <h2 class="team-dash-heading">REPLY</h2>
-      <textarea id="ticket-reply" class="aw-notes" rows="4" maxlength="2000" placeholder="Write your reply to the user…"></textarea>
+      <textarea id="ticket-reply" aria-label="Reply to member" class="aw-notes" rows="4" maxlength="2000" placeholder="Write your reply to the user…"></textarea>
       <label class="ticket-attach"><input type="file" id="ticket-attach"><span>📎 Attach file <small>(sends with the reply at backend activation)</small></span></label>
       <div class="deployed-actions">
         <button type="button" id="ticket-close-btn" class="secondary-action deployed-reject">Close Ticket</button>
@@ -1248,17 +1248,17 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
 
     <section class="team-dash-section">
       <h2 class="team-dash-heading">INTERNAL NOTES (TEAM ONLY)</h2>
-      <textarea id="ticket-internal" class="aw-notes" rows="2" maxlength="600" placeholder="Add internal note — user cannot see this"></textarea>
+      <textarea id="ticket-internal" aria-label="Internal note" class="aw-notes" rows="2" maxlength="600" placeholder="Add internal note — user cannot see this"></textarea>
       <div class="ticket-controls">
         <label>Priority:
-          <select id="ticket-priority">
+          <select id="ticket-priority" aria-label="Priority">
             <option value="urgent">🔴 Urgent</option>
             <option value="medium">🟡 Medium</option>
             <option value="low">🟢 Low</option>
           </select>
         </label>
         <label>Status:
-          <select id="ticket-status">
+          <select id="ticket-status" aria-label="Status">
             <option value="open">🟢 Open</option>
             <option value="progress">🔵 In Progress</option>
             <option value="resolved">✅ Resolved</option>
@@ -1384,8 +1384,8 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
   <div class="modal team-site-modal">
     <div class="modal-header"><h2>⏸️ Suspend Account</h2><button class="modal-close" id="suspend-close" aria-label="Close">✕</button></div>
     <div class="modal-body form-group-stack">
-      <label><span>Duration</span><select id="suspend-duration"><option value="1">1 day</option><option value="3" selected>3 days</option><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></label>
-      <label><span>Reason *</span><textarea id="suspend-reason" rows="3" maxlength="300" placeholder="Why is this account being suspended?"></textarea></label>
+      <label><span>Duration</span><select id="suspend-duration" aria-label="Suspension duration"><option value="1">1 day</option><option value="3" selected>3 days</option><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></label>
+      <label><span>Reason *</span><textarea id="suspend-reason" aria-label="Suspension reason" rows="3" maxlength="300" placeholder="Why is this account being suspended?"></textarea></label>
     </div>
     <div class="modal-footer"><button class="secondary-action" id="suspend-cancel">Cancel</button><button class="primary-action" id="suspend-confirm">Suspend</button></div>
   </div>
@@ -1482,11 +1482,11 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <div class="modal-header"><h2 id="site-modal-title">Add Website</h2><button class="modal-close" id="site-modal-close" aria-label="Close">✕</button></div>
     <div class="modal-body">
       <div class="form-group-stack">
-        <label><span>Website Name *</span><input id="modal-site-name" maxlength="60" placeholder="Paragon Something"></label>
-        <label><span>Icon (emoji)</span><input id="modal-site-icon" maxlength="4" placeholder="🌐"></label>
-        <label><span>Category *</span><select id="modal-site-category"></select></label>
-        <label><span>Description *</span><textarea id="modal-site-desc" maxlength="200" rows="3" placeholder="What does it do?"></textarea></label>
-        <label><span>Version</span><input id="modal-site-version" maxlength="40" placeholder="v0.1 — Draft"></label>
+        <label><span>Website Name *</span><input id="modal-site-name" aria-label="Website name" maxlength="60" placeholder="Paragon Something"></label>
+        <label><span>Icon (emoji)</span><input id="modal-site-icon" aria-label="Website icon" maxlength="4" placeholder="🌐"></label>
+        <label><span>Category *</span><select id="modal-site-category" aria-label="Category"></select></label>
+        <label><span>Description *</span><textarea id="modal-site-desc" aria-label="Description" maxlength="200" rows="3" placeholder="What does it do?"></textarea></label>
+        <label><span>Version</span><input id="modal-site-version" aria-label="Version" maxlength="40" placeholder="v0.1 — Draft"></label>
       </div>
       <p id="site-modal-note" class="hub-join-note"></p>
     </div>
@@ -1511,10 +1511,10 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
         <select id="con-site" aria-label="Choose website"></select>
       </label>
       <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);width:130px;">Build % (0–100)
-        <input id="con-progress" type="number" min="0" max="100" step="1" value="0">
+        <input id="con-progress" aria-label="Progress percent" type="number" min="0" max="100" step="1" value="0">
       </label>
       <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);flex:1 1 260px;">Team note (shows on the construction page)
-        <input id="con-note" type="text" maxlength="140" placeholder="e.g. Login flow done, building the editor next">
+        <input id="con-note" aria-label="Progress note" type="text" maxlength="140" placeholder="e.g. Login flow done, building the editor next">
       </label>
       <button type="button" id="con-save" class="primary-action">Save log</button>
       <button type="button" id="con-retire" class="secondary-action">Retire construction</button>
@@ -1575,11 +1575,11 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <section class="team-dash-section"><h2 class="team-dash-heading">➕ OPEN A CASE</h2>
       <div class="form-section" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:14px;border:1px solid var(--border);border-radius:14px;">
         <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);flex:1 1 220px;">User email / account
-          <input id="risk-user" type="text" maxlength="120" placeholder="user@email.com"></label>
+          <input id="risk-user" aria-label="Affected user" type="text" maxlength="120" placeholder="user@email.com"></label>
         <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);flex:1 1 200px;">Type
-          <select id="risk-type"><option value="manual">Manual review</option><option value="velocity">Transaction velocity</option><option value="collusion">Collusion / win-trading</option><option value="multiple-accounts">Multiple accounts</option><option value="chargeback">Payment reversal / chargeback</option><option value="dispute">Withdrawal dispute</option><option value="suspicious">Suspicious activity</option></select></label>
+          <select id="risk-type" aria-label="Risk type"><option value="manual">Manual review</option><option value="velocity">Transaction velocity</option><option value="collusion">Collusion / win-trading</option><option value="multiple-accounts">Multiple accounts</option><option value="chargeback">Payment reversal / chargeback</option><option value="dispute">Withdrawal dispute</option><option value="suspicious">Suspicious activity</option></select></label>
         <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--text);flex:1 1 260px;">Reason / evidence reference
-          <input id="risk-reason" type="text" maxlength="240" placeholder="What was observed (correlation IDs help)"></label>
+          <input id="risk-reason" aria-label="Risk reason" type="text" maxlength="240" placeholder="What was observed (correlation IDs help)"></label>
         <button type="button" class="primary-action" id="risk-open-btn">Open case</button>
       </div></section>
     <div class="team-stat-grid" id="risk-stats"></div>
@@ -1600,7 +1600,7 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <div class="team-page-head"><h1 class="team-page-title">📑 FINANCIAL REPORTS</h1>
       <p class="team-site-sub">Device-layer period view built from REAL stores — every number traces to records on this device; items that activate with the backend are marked honestly instead of invented.</p></div>
     <div class="team-filter-bar"><label style="font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;">Report period
-      <select id="rep-period"><option value="all">All time (device)</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option></select></label>
+      <select id="rep-period" aria-label="Report period"><option value="all">All time (device)</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option></select></label>
       <button type="button" class="team-mini-link" id="rep-export">⬇ Export CSV</button></div>
     <div id="rep-report" style="margin-top:12px;"></div>
   </section>

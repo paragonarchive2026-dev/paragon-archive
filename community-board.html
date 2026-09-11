@@ -11,10 +11,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Community Board — Paragon Archive</title>
+<meta name="description" content="The Paragon Archive community board: member posts, appeals and community guidelines, moderated honestly and transparently by the Paragon Team." />
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
 <link rel="shortcut icon" href="assets/brand/favicon.ico">
 <link rel="stylesheet" href="style.css">
 <script>try{if((sessionStorage.getItem("paragonArchive.theme.v2")||localStorage.getItem("paragonArchive.theme.v2"))==="light")document.documentElement.classList.add("light");}catch(e){}</script>
+<!-- SEO-1 -->
+<meta name="robots" content="index, follow" />
+<link rel="canonical" data-seo="abs" href="/community-board" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0a18" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f2ef" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Paragon Archive" />
+<meta property="og:title" content="Community Board — Paragon Archive" />
+<meta property="og:description" content="The Paragon Archive community board: member posts, appeals and community guidelines, moderated honestly and transparently by the Paragon Team." />
+<meta property="og:url" data-seo="abs" content="/community-board" />
+<meta property="og:image" data-seo="abs" content="/assets/brand/og-default.jpg" />
+<meta property="og:image:width" content="1659" />
+<meta property="og:image:height" content="948" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Community Board — Paragon Archive" />
+<meta name="twitter:description" content="The Paragon Archive community board: member posts, appeals and community guidelines, moderated honestly and transparently by the Paragon Team." />
+<meta name="twitter:image" data-seo="abs" content="/assets/brand/og-default.jpg" />
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Paragon Community Board",
+    "url": "__ORIGIN__/community-board",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Paragon Archive",
+      "url": "__ORIGIN__/"
+    }
+  }
+]
+</script>
+<!-- /SEO-1 -->
 </head>
 <body class="hub-page-body board-page-body">
 
@@ -33,10 +69,10 @@
   <section id="board-composer" class="board-composer" hidden>
     <h2>✍️ Share with the community</h2>
     <div class="board-composer-grid">
-      <input id="post-title" type="text" maxlength="90" placeholder="Post title">
+      <input id="post-title" aria-label="Post title" type="text" maxlength="90" placeholder="Post title">
       <select id="post-board-select" aria-label="Board"></select>
     </div>
-    <textarea id="post-body" rows="3" maxlength="600" placeholder="What do you want to say? (Guidelines apply)"></textarea>
+    <textarea id="post-body" aria-label="Post body" rows="3" maxlength="600" placeholder="What do you want to say? (Guidelines apply)"></textarea>
     <p id="composer-error" class="portal-lockout" style="display:none;"></p>
     <div class="board-composer-foot">
       <small>By posting you agree to the <a href="#board-guidelines">community guidelines</a>. Signed in? Your post publishes to the LIVE community backend. Offline or signed out, it queues on this device.</small>
@@ -79,5 +115,8 @@
 <script src="config/supabase.js"></script>
 <script src="auth/supabase-auth.js"></script>
 <script src="community-board.js"></script>
+<script src="heaven-motion.js" defer></script>
+<script src="heaven-season.js" defer></script>
+<script src="heaven-spark.js" defer></script>
 </body>
 </html>

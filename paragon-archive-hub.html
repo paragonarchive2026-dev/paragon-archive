@@ -10,22 +10,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-<title>Paragon Archive Hub — Documentation &amp; Platform Gateway</title>
-<meta name="description" content="Official Paragon Archive documentation, terms, community rules, developer requirements, Deployed-category plans, roadmap, status, and community membership guidance.">
-<meta name="theme-color" content="#2563eb">
+<title>Paragon Archive Hub — Documentation, Roadmap & Platform Gateway</title>
+<meta name="description" content="Official Paragon Archive documentation: About, Privacy, Terms, Community Guidelines, Cookie Policy, FAQ, roadmap, live status and developer requirements — honest platform docs in one hub." />
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-180.png">
 <!-- P-069 — official brand (Concept B faceted ◈): favicons + share meta. og:image becomes absolute at production domain (CTA). -->
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png">
 <link rel="shortcut icon" href="assets/brand/favicon.ico">
-<meta property="og:title" content="Paragon Archive Hub">
-<meta property="og:description" content="The gateway to everything Paragon.">
-<meta property="og:image" content="assets/brand/og-default.jpg">
-<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="style.css">
 <script>/* P-097 — auto day/night follows the clock unless a manual choice exists */
 try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=sessionStorage.getItem("paragonArchive.theme.v2")||localStorage.getItem("paragonArchive.theme.v2")||null;if(_m!=="manual"||!_p){var _h=new Date().getHours();if((_m==="auto"&&_h>=6&&_h<18))document.documentElement.classList.add("light");else if(_m==="auto")document.documentElement.classList.remove("light");else if(_p==="light")document.documentElement.classList.add("light");}else if(_p==="light")document.documentElement.classList.add("light");}catch(e){}</script>
+<!-- SEO-1 -->
+<meta name="robots" content="index, follow" />
+<link rel="canonical" data-seo="abs" href="/paragon-archive-hub" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0a18" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f2ef" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Paragon Archive" />
+<meta property="og:title" content="Paragon Archive Hub — Documentation, Roadmap & Platform Gateway" />
+<meta property="og:description" content="Official Paragon Archive documentation: About, Privacy, Terms, Community Guidelines, Cookie Policy, FAQ, roadmap, live status and developer requirements — honest platform docs in one hub." />
+<meta property="og:url" data-seo="abs" content="/paragon-archive-hub" />
+<meta property="og:image" data-seo="abs" content="/assets/brand/og-default.jpg" />
+<meta property="og:image:width" content="1659" />
+<meta property="og:image:height" content="948" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Paragon Archive Hub — Documentation, Roadmap & Platform Gateway" />
+<meta name="twitter:description" content="Official Paragon Archive documentation: About, Privacy, Terms, Community Guidelines, Cookie Policy, FAQ, roadmap, live status and developer requirements — honest platform docs in one hub." />
+<meta name="twitter:image" data-seo="abs" content="/assets/brand/og-default.jpg" />
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": [
+      "WebPage",
+      "CollectionPage"
+    ],
+    "name": "Paragon Archive Hub",
+    "url": "__ORIGIN__/paragon-archive-hub",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Paragon Archive",
+      "url": "__ORIGIN__/"
+    }
+  }
+]
+</script>
+<!-- /SEO-1 -->
 </head>
 <body class="hub-page-body">
 <a class="skip-link" href="#hub-main">Skip to Hub documentation</a>
@@ -1077,22 +1110,22 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
     <article id="deploy-form" class="hub-policy-card hub-deploy-form-card">
       <div class="hub-form-heading"><span>🚀</span><div><h3>Deploy Your Website in Paragon Archive</h3><p class="hub-deploy-pitch">Host your website inside the world's free website archive. Reach thousands of users without building your own audience from scratch — the developer programme opens submissions when the review backend launches.</p><p>Future submission-form preview. Nothing entered here is uploaded or sent.</p></div></div>
       <form id="hub-deploy-form" novalidate aria-describedby="hub-deploy-status">
-        <label><span>Website Name <b>*</b></span><input id="hub-website-name" name="websiteName" maxlength="120" required placeholder="My Cool App"></label>
-        <label><span>Your Creator/Developer Name <b>*</b></span><input id="hub-creator-name" name="creatorName" maxlength="80" required placeholder="Your display name"></label>
-        <label><span>Website Description <b>*</b></span><textarea id="hub-description" name="description" minlength="20" maxlength="1000" required placeholder="Explain what the website does and who it helps."></textarea><output id="hub-description-count" for="hub-description">0 / 1000 characters</output></label>
-        <label><span>Sub-Category <b>*</b></span><select id="hub-subcategory" name="subcategory" required><option value="">Select sub-category</option><option>Deployed Tools</option><option>Deployed Creative</option><option>Deployed Education</option><option>Deployed Games</option><option>Deployed Social</option><option>Deployed Business</option><option>Deployed Lifestyle</option><option>Deployed Dev</option><option>Deployed Media</option><option>Deployed Other</option></select></label>
+        <label><span>Website Name <b>*</b></span><input id="hub-website-name" aria-label="Website name" name="websiteName" maxlength="120" required placeholder="My Cool App"></label>
+        <label><span>Your Creator/Developer Name <b>*</b></span><input id="hub-creator-name" aria-label="Creator name" name="creatorName" maxlength="80" required placeholder="Your display name"></label>
+        <label><span>Website Description <b>*</b></span><textarea id="hub-description" aria-label="Website description" name="description" minlength="20" maxlength="1000" required placeholder="Explain what the website does and who it helps."></textarea><output id="hub-description-count" for="hub-description">0 / 1000 characters</output></label>
+        <label><span>Sub-Category <b>*</b></span><select id="hub-subcategory" aria-label="Subcategory" name="subcategory" required><option value="">Select sub-category</option><option>Deployed Tools</option><option>Deployed Creative</option><option>Deployed Education</option><option>Deployed Games</option><option>Deployed Social</option><option>Deployed Business</option><option>Deployed Lifestyle</option><option>Deployed Dev</option><option>Deployed Media</option><option>Deployed Other</option></select></label>
         <fieldset class="hub-choice-field"><legend>Does your website have premium features? <b>*</b></legend><label><input type="radio" name="pricing" value="free" required> No — completely free</label><label><input type="radio" name="pricing" value="premium" required> Yes — has free and premium features</label></fieldset>
-        <label id="hub-premium-field" hidden><span>If yes: List what is free and what is premium <b>*</b></span><textarea id="hub-premium-details" name="premiumDetails" maxlength="1500" placeholder="FREE: ...&#10;PREMIUM: ..."></textarea></label>
+        <label id="hub-premium-field" hidden><span>If yes: List what is free and what is premium <b>*</b></span><textarea id="hub-premium-details" aria-label="Premium details" name="premiumDetails" maxlength="1500" placeholder="FREE: ...&#10;PREMIUM: ..."></textarea></label>
         <fieldset class="hub-source-field"><legend>Website Files or URL <b>*</b></legend>
           <label class="hub-source-option"><span>📎 Upload files (ZIP, max 50MB)</span><input id="hub-website-files" type="file" accept=".zip,application/zip"><small>Local selection preview only; no upload endpoint is connected.</small></label>
           <div class="hub-source-or" aria-hidden="true">OR</div>
-          <label class="hub-source-option"><span>Provide hosted URL</span><input id="hub-hosted-url" name="hostedUrl" type="url" placeholder="https://example.com"></label>
+          <label class="hub-source-option"><span>Provide hosted URL</span><input id="hub-hosted-url" aria-label="Hosted URL" name="hostedUrl" type="url" placeholder="https://example.com"></label>
         </fieldset>
         <div class="hub-upload-grid">
           <label><span>Website Icon <b>*</b> · 200×200 PNG</span><input id="hub-website-icon" type="file" accept="image/png"><small>📎 Upload icon · local selection preview only.</small></label>
           <label><span>Screenshots <b>*</b> · minimum 3, maximum 8</span><input id="hub-screenshots" type="file" accept="image/png,image/jpeg,image/webp" multiple><small>📎 Upload screenshots · local selection preview only.</small></label>
         </div>
-        <label><span>Your Contact Email <b>*</b></span><input id="hub-contact-email" name="contactEmail" type="email" maxlength="254" required placeholder="developer@example.com"></label>
+        <label><span>Your Contact Email <b>*</b></span><input id="hub-contact-email" aria-label="Contact email" name="contactEmail" type="email" maxlength="254" required placeholder="developer@example.com"></label>
         <div class="hub-agreements">
           <label><input type="checkbox" required> I agree to the Deployed Website Terms.</label>
           <label><input type="checkbox" required> My website does not contain malicious code.</label>
@@ -1266,8 +1299,8 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
         <form id="community-join-form" hidden novalidate>
           <label class="community-guidelines-check"><input id="community-guidelines-agree" type="checkbox" required> I have read and accept the <a href="#community-guidelines">Community Guidelines</a>.</label>
           <p id="community-email-state" class="community-email-state"></p>
-          <label class="community-field"><span>Community display name <b>*</b></span><input id="community-display-name" maxlength="40" required placeholder="How members will see you"></label>
-          <label class="community-field"><span>Short bio <small>(optional but encouraged)</small></span><textarea id="community-bio" maxlength="240" placeholder="A line or two about you"></textarea></label>
+          <label class="community-field"><span>Community display name <b>*</b></span><input id="community-display-name" aria-label="Display name" maxlength="40" required placeholder="How members will see you"></label>
+          <label class="community-field"><span>Short bio <small>(optional but encouraged)</small></span><textarea id="community-bio" aria-label="Bio" maxlength="240" placeholder="A line or two about you"></textarea></label>
           <fieldset class="community-interests"><legend>Select your interests</legend>
             <div id="community-interest-chips" class="community-interest-chips">
               <label><input type="checkbox" value="Productivity & Tools"> 🧰 Productivity &amp; Tools</label>
@@ -1318,8 +1351,8 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
         <p class="hub-team-sub">Authorized personnel only</p>
 
         <form id="team-login-form" class="hub-team-secure-card" novalidate aria-describedby="team-login-status">
-          <label><span>Team Email</span><input id="team-login-email" type="email" name="email" autocomplete="username" required placeholder="you@paragon.team"></label>
-          <label><span>Access Key</span><input id="team-login-password" type="password" name="password" autocomplete="current-password" required placeholder="●●●●●●●●●●●●"></label>
+          <label><span>Team Email</span><input id="team-login-email" aria-label="Team email" type="email" name="email" autocomplete="username" required placeholder="you@paragon.team"></label>
+          <label><span>Access Key</span><input id="team-login-password" aria-label="Team password" type="password" name="password" autocomplete="current-password" required placeholder="●●●●●●●●●●●●"></label>
           <button type="submit" class="primary-action hub-team-secure-submit">SECURE LOGIN <span aria-hidden="true">🔐</span></button>
           <p id="team-login-status" class="hub-join-status" role="status" hidden></p>
         </form>
@@ -1354,5 +1387,8 @@ try{var _m=localStorage.getItem("paragonArchive.themeMode.v2")||"auto";var _p=se
 <script src="data/catalogue-expansion-45-100.js" defer></script>
 <script src="privacy.js" defer></script>
 <script src="archive-hub.js" defer></script>
+<script src="heaven-motion.js" defer></script>
+<script src="heaven-season.js" defer></script>
+<script src="heaven-spark.js" defer></script>
 </body>
 </html>

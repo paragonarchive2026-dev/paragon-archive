@@ -10,19 +10,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-<title>Paragon Archive — The Web, Reimagined</title>
-<meta name="description" content="Paragon Archive is a curated collection of websites, updates, and a personal archive experience." />
-<meta name="theme-color" content="#2563eb" />
+<title>Paragon Archive — Curated Websites, Free Games & Built-in AI</title>
+<meta name="description" content="Paragon Archive is a curated catalogue of Paragon-built websites with Google-style search, honest reviews, collections, weekly leaderboards, free games and a built-in AI — one honest archive for the whole Paragon web." />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-180.png" />
 <!-- P-069 — official brand (Concept B faceted ◈): favicons + share meta. og:image becomes an absolute URL once the production domain is decided (CTA). -->
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png">
 <link rel="shortcut icon" href="assets/brand/favicon.ico">
-<meta property="og:title" content="Paragon Archive">
-<meta property="og:description" content="The gateway to everything Paragon.">
-<meta property="og:image" content="assets/brand/og-default.jpg">
-<meta name="twitter:card" content="summary_large_image">
 <!-- P-089 — PWA mobile-native adaptation: iOS standalone metas -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -33,6 +28,44 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="style.css" />
 <script>try{if((sessionStorage.getItem("paragonArchive.theme.v2")||localStorage.getItem("paragonArchive.theme.v2"))==="light")document.documentElement.classList.add("light");}catch(e){}</script>
+<!-- SEO-1 -->
+<meta name="robots" content="index, follow" />
+<link rel="canonical" data-seo="abs" href="/" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0a18" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f2ef" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Paragon Archive" />
+<meta property="og:title" content="Paragon Archive — Curated Websites, Free Games & Built-in AI" />
+<meta property="og:description" content="Paragon Archive is a curated catalogue of Paragon-built websites with Google-style search, honest reviews, collections, weekly leaderboards, free games and a built-in AI — one honest archive for the whole Paragon web." />
+<meta property="og:url" data-seo="abs" content="/" />
+<meta property="og:image" data-seo="abs" content="/assets/brand/og-default.jpg" />
+<meta property="og:image:width" content="1659" />
+<meta property="og:image:height" content="948" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Paragon Archive — Curated Websites, Free Games & Built-in AI" />
+<meta name="twitter:description" content="Paragon Archive is a curated catalogue of Paragon-built websites with Google-style search, honest reviews, collections, weekly leaderboards, free games and a built-in AI — one honest archive for the whole Paragon web." />
+<meta name="twitter:image" data-seo="abs" content="/assets/brand/og-default.jpg" />
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Paragon Archive",
+    "url": "__ORIGIN__/",
+    "description": "Every website you need, one archive."
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Paragon Archive",
+    "url": "__ORIGIN__/",
+    "logo": "__ORIGIN__/assets/brand/logo-full.png"
+  }
+]
+</script>
+<!-- /SEO-1 -->
 </head>
 <body>
 <a class="skip-link" href="#app">Skip to main content</a>
@@ -552,6 +585,7 @@
 <script src="paragon-leaderboards.js" defer></script>
 <script src="paragon-wallets.js" defer></script>
 <script src="app.js" defer></script>
+<script src="heaven-motion.js" defer></script>
 <script src="ads/adsense.js" defer></script>
 <script defer>
   /* P-094 — reserved ad slots render honestly in every state; live ads appear only after approval. */
@@ -569,5 +603,7 @@
   });
 </script>
 
+<script src="heaven-season.js" defer></script>
+<script src="heaven-spark.js" defer></script>
 </body>
 </html>

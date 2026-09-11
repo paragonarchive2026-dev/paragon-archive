@@ -1,0 +1,14 @@
+# Paragon Archive — robots.txt
+# Crawl everything public; keep internal desks and tooling out of the index.
+User-agent: *
+Allow: /
+Disallow: /team/
+Disallow: /config/
+Disallow: /supabase/
+Disallow: /tests/
+Disallow: /tools/
+Disallow: /vendor/
+Disallow: /uploads/
+
+# The Sitemap line is added automatically once the production domain exists:
+#   node tools/gen-sitemap.js https://your-production-domain

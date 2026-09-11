@@ -296,3 +296,128 @@ html.light .game-stage { background: linear-gradient(180deg, #ffffff, #f7f6f3); 
   .gk-board-live i { display: block; }
   .gk-board-law { padding-inline: 14px; }
 }
+
+/* ------------------------------------------------------------------ HEAVEN-05
+   Celestial light for every game room: rays, starlight, radiance,
+   pearl surfaces and divine gold — same language as the Archive. */
+:root {
+  --divine-gold: #f7cf7a;
+  --divine-gold-deep: #d9a441;
+  --halo: 0 0 0 1px rgba(255, 236, 190, 0.22), 0 0 26px rgba(255, 214, 140, 0.22);
+  --heaven-text: linear-gradient(100deg, #e9dcff 0%, #ffd9ec 34%, #ffe9b8 64%, #c9f1ff 100%);
+}
+html.light {
+  --halo: 0 0 0 1px rgba(214, 178, 102, 0.3), 0 0 26px rgba(247, 207, 122, 0.38);
+  --heaven-text: linear-gradient(100deg, #6d28d9 0%, #be185d 36%, #b45309 66%, #0e7490 100%);
+}
+html::before {
+  content: ''; position: fixed; inset: 0; z-index: -4; pointer-events: none;
+  background: repeating-conic-gradient(from -16deg at 50% -18%,
+              rgba(255, 240, 205, 0.05) 0deg 3.5deg, transparent 3.5deg 11deg);
+  -webkit-mask-image: radial-gradient(130% 85% at 50% 0%, #000 0%, transparent 64%);
+          mask-image: radial-gradient(130% 85% at 50% 0%, #000 0%, transparent 64%);
+}
+html.light::before {
+  background: repeating-conic-gradient(from -16deg at 50% -18%,
+              rgba(214, 164, 60, 0.09) 0deg 3.5deg, transparent 3.5deg 11deg);
+}
+html::after {
+  content: ''; position: fixed; inset: 0; z-index: -3; pointer-events: none;
+  background:
+    radial-gradient(1.1px 1.1px at 18% 28%, rgba(255, 255, 255, 0.8) 45%, transparent 60%) 0 0 / 240px 240px repeat,
+    radial-gradient(1px 1px at 64% 58%, rgba(255, 246, 220, 0.55) 45%, transparent 60%) 40px 90px / 340px 340px repeat;
+  animation: heaven05-twinkle 5.5s ease-in-out infinite alternate;
+}
+html.light::after { display: none; }
+@keyframes heaven05-twinkle { from { opacity: 0.5; } to { opacity: 1; } }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(255, 222, 150, 0.14), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(108, 92, 231, 0.16), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(34, 211, 238, 0.10), transparent 70%);
+}
+@media (prefers-reduced-motion: reduce) {
+  html::after { animation: none; }
+}
+
+/* pearl-lit stage + panels */
+.game-stage {
+  background-image: linear-gradient(180deg, rgba(255, 246, 220, 0.05), transparent 34%),
+    radial-gradient(120% 120% at 50% 0%, rgba(108, 92, 231, 0.10), transparent 60%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 34px rgba(255, 206, 130, 0.06);
+}
+.gk-panel-card, .gk-rules, .gk-overlay-card {
+  background-image: linear-gradient(180deg, rgba(255, 246, 220, 0.05), transparent 36%);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 30px rgba(255, 206, 130, 0.07);
+}
+.gk-overlay-card { box-shadow: var(--shadow), inset 0 14px 44px -22px rgba(255, 222, 150, 0.35); }
+
+/* divine gold actions */
+.gk-btn-primary {
+  background: linear-gradient(135deg, #ffe7ad, #f6c66a 38%, #e3a53f 62%, #ffd98a);
+  border: 0; color: #2b1c05;
+  box-shadow: 0 6px 22px rgba(246, 198, 106, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.gk-btn-primary:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 10px 30px rgba(246, 198, 106, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+.gk-btn:hover { border-color: var(--divine-gold); }
+
+/* result scores in heaven light */
+.gk-result-score {
+  background: var(--heaven-text);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 14px rgba(255, 236, 190, 0.3));
+}
+
+/* cabinets / mode cards: pearl scene, shimmer, gold halo */
+.mode-card { position: relative; overflow: hidden; }
+.mode-card { background-image: linear-gradient(180deg, rgba(255, 246, 220, 0.05), transparent 38%); }
+.mode-card::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 34%, rgba(255, 246, 220, 0.16) 50%, transparent 66%);
+  transform: translateX(-130%); transition: transform 0.75s ease;
+}
+.mode-card:hover::after { transform: translateX(130%); }
+.mode-card:hover { box-shadow: var(--halo); }
+@media (prefers-reduced-motion: reduce) {
+  .mode-card::after { transition: none; transform: none; }
+}
+/* HEAVEN-05 end */
+
+/* HEAVEN-09 — ripple/spark + seasonal kit skies */
+.gk-btn-primary, .gk-btn { position: relative; overflow: hidden; }
+.heaven-ripple {
+  position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 246, 220, 0.95), rgba(255, 214, 140, 0.45) 55%, transparent 72%);
+  transform: scale(0); opacity: 0.9; pointer-events: none;
+  animation: heavenRipple 0.6s ease-out forwards;
+}
+@keyframes heavenRipple { to { transform: scale(16); opacity: 0; } }
+.heaven-spark {
+  position: absolute; width: 5px; height: 5px; border-radius: 50%;
+  background: #fff6dc; box-shadow: 0 0 9px rgba(255, 224, 148, 0.95);
+  pointer-events: none; animation: heavenSpark 0.8s ease-out forwards;
+}
+@keyframes heavenSpark {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-20px) scale(0.2); opacity: 0; }
+}
+:root[data-season="rain"] body::before {
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(150, 255, 214, 0.13), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(16, 185, 129, 0.16), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(34, 211, 238, 0.16), transparent 70%);
+}
+:root[data-season="harmattan"] body::before {
+  background:
+    radial-gradient(140% 72% at 50% -20%, rgba(255, 190, 110, 0.2), transparent 62%),
+    radial-gradient(60vw 42vw at 90% 114%, rgba(217, 119, 6, 0.13), transparent 70%),
+    radial-gradient(52vw 38vw at -10% 110%, rgba(244, 114, 182, 0.09), transparent 70%);
+}
+:root[data-season="harmattan"]::after { opacity: 0.4; }
+@media (prefers-reduced-motion: reduce) { .heaven-ripple, .heaven-spark { display: none; } }
+/* KIT-09 end */
