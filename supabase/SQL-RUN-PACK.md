@@ -8,14 +8,19 @@
 # SQL run pack — Paragon Archive
 
 **Project ref:** `qnylhlyyzpwlfftiygcn`  
-**Where:** Supabase Dashboard → **SQL** → New query → paste file → **Run**
+**Where:** Supabase Dashboard → **SQL** → New query → paste file → **Run**  
+**Status — 2026-09-11 (P-118): ✅ ALL SQL DONE through Phase 5 + Stage 4.**
+Run order below is kept for fresh projects / audit. Next blocker is Edge deploys
+(`supabase/functions/EDGE-DEPLOY-RUNBOOK.md`), not SQL.
 
 ## Confirm what is live (full assurance)
 
 **Easiest:** paste Script A from `supabase/SUPABASE-AI-VERIFY-PROMPT.md` into Supabase SQL (or Supabase AI), copy results back to chat.  
 **Or:** Team desk → Probe SQL health.  
 **Or:** GitHub Actions → workflow `Supabase SQL health` (anon secrets only).  
-Agent sandbox **cannot** DNS-reach Supabase — GitHub secrets do not fix agent DNS.
+**Or (this interface):** ask the agent — it has a direct Supabase connector here
+and can verify/apply migrations in-chat (P-118: the old "agent can't reach
+Supabase" note is outdated; manual paste is now the fallback, not the route).
 
 ## Confirm what is live
 
@@ -27,8 +32,11 @@ Agent sandbox **cannot** DNS-reach Supabase — GitHub secrets do not fix agent 
 ### B) From SQL Editor
 Paste VERIFY from `OWNER-SQL-CHECKLIST.md`.
 
-### C) From this coding sandbox
-**Usually fails** with `Name or service not known` (no DNS to `*.supabase.co`). Do not treat sandbox failure as “SQL not run.”
+### C) From the coding agent (this interface)
+Ask in chat — the agent's Supabase connector can report live objects directly.
+The old sandbox note (**`Name or service not known`** on `*.supabase.co`) applied
+to earlier sandboxes without the connector; do not treat legacy wording in old
+docs as current. Manual paste remains a valid fallback.
 
 ---
 
@@ -38,29 +46,37 @@ Paste VERIFY from `OWNER-SQL-CHECKLIST.md`.
 |---|------|---------|
 | 0 | `schema.sql` | **DO NOT RE-RUN** (live 2026-08-18) |
 | 1 | `announcements-schema.sql` | Announcements + team members |
-| 2 | `coins-schema.sql` | Wallets, legacy ledger, purchase RPCs |
-| 3 | `coins-master-phase1.sql` | Multi-bucket accounts, flags, economy, intents |
-| 4 | `coins-master-phase2.sql
-   then `coins-master-stage1-hardening.sql` (rate limits, reserves, finance report)` | Authority RPCs (post, lock, confirm, withdraw) |
-| 5 | `coins-master-phase3.sql` | Matches, webhook inbox, provider settings, `paragon_sql_health` |
-| 6 | `coins-master-phase4.sql
-5. `coins-master-phase5.sql` — OPay/Moniepoint rails + KYC (P-107)` | Competitions settle, leaderboard rewards, creator prizes, cases, risk, pause RPC |
+| 2 | `coins-master-phase1.sql` | Multi-bucket accounts, flags, economy, intents, withdrawals v2 |
+| 3 | `coins-master-phase2.sql`, then `coins-master-stage1-hardening.sql` | Authority RPCs (post, lock, confirm, withdraw) + rate limits, reserves, finance report |
+| 4 | `coins-master-phase3.sql` | Matches, webhook inbox, provider settings, `paragon_sql_health` |
+| 5 | `coins-master-phase4.sql` | Competitions settle, leaderboard rewards, creator prizes, cases, risk, pause RPC |
+| 6 | `coins-master-phase5.sql` | OPay/Moniepoint rails + KYC (P-107) |
+| 7 | `coins-master-stage2-coin-system.sql` | Purchase intents → claim → reconcile (after #3; see `docs/COINS-STAGE2.md`) |
+| 8 | `coins-master-stage3-games.sql` | 1v1 stake games, competitive points, anti-cheat (after #5; see `docs/COINS-STAGE3.md`) |
+| 9 | `coins-master-stage4-quiz.sql` | Paid quiz, server scoring, creator prizes (after #8; see `docs/COINS-STAGE4.md`) |
 
 Skip any step whose objects already show ✅ on the probe.
 
-## Phase 3–4 Edge (after SQL #5–6)
+> ⛔ **NOT in the run order (SUPERSEDED — do not run):** `coins-schema.sql`,
+> `finance-schema.sql`, `leaderboards-schema.sql`. Earlier incompatible drafts,
+> never applied; their table shapes conflict with the live master architecture
+> (D-237). Each file carries a ⛔ banner. Earlier versions of this pack wrongly
+> listed `coins-schema.sql` as step 2 — corrected P-118.
+
+## Edge deploy (after SQL — the current blocker)
 
 - `coin-payment-webhook`, `coin-reconcile` (phase 3)
 - `competition-settle` (phase 4) — settle / leaderboard / pause / award prize
 
-## Phase 3 Edge (after SQL #5)
+See **`supabase/functions/EDGE-DEPLOY-RUNBOOK.md`** (consolidated):
 
-See `supabase/functions/COINS-PHASE3-DEPLOY.md`:
-
-- `coin-payment-webhook` — Paystack / Flutterwave / manual bank relay
+- `coin-payment-webhook` — OPay / Moniepoint / manual bank relay (+ optional Paystack/Flutterwave)
 - `coin-reconcile` — health, open intents, manual match
+- `competition-settle` — server-side competition settle + leaderboard ops
 
-Secrets: `PARAGON_COIN_WEBHOOK_SECRET`, optional `PAYSTACK_SECRET_KEY` / `FLUTTERWAVE_SECRET_KEY`.
+Secrets: `PARAGON_COIN_WEBHOOK_SECRET`, optional `OPAY_WEBHOOK_SECRET` /
+`MONIEPOINT_WEBHOOK_SECRET` / `PAYSTACK_SECRET_KEY` / `FLUTTERWAVE_SECRET_KEY`.
+Set in Dashboard → Edge Functions → Secrets. Never in Git, chat, or the browser.
 
 ## Economics
 
@@ -75,14 +91,3 @@ Secrets: `PARAGON_COIN_WEBHOOK_SECRET`, optional `PAYSTACK_SECRET_KEY` / `FLUTTE
 ## Still not SQL
 
 Brevo SMTP, production domain, gaming licence/KYC, provider account signup.
-
-
-## Stage 2 coin system
-
-After phase2 (+ stage1-hardening): run `coins-master-stage2-coin-system.sql`.
-See `docs/COINS-STAGE2.md`.
-
-
-## Stage 3 games
-
-After phase4: `coins-master-stage3-games.sql`. See `docs/COINS-STAGE3.md`.

@@ -5718,3 +5718,33 @@ The games programme has its shared framework and its first honest, playable, off
 ### Result
 
 The owner can now review three distinct real-feeling rooms: Cards, Spin and Chess. Spin and Chess are complete free releases on the shared engine, while every money/online promise remains honestly absent. Arcade is now the next unbuilt game, followed by Quiz-on-engine, Cards wave 2 and Bet last.
+
+## v1.09.0 — 2026-09-11 — Stale-SQL-docs correction, Edge runbook, Updates.txt spec, half-built game completions (P-118 / D-237)
+
+**Request reference:** SOP §11, Prompt P-118 (owner audit: stale docs point at a dead branch; agent-can't-reach-Supabase assumption outdated — direct connector live; all SQL done through Phase 5 + Stage 4 with Edge deploys next; Updates.txt games spec; complete any half-built game).
+**Status:** `[x]` repository implementation complete; Edge deploys + owner demo pass pending.
+
+### Executed actions
+
+1. **Dead-branch SQL bannered (D-237).** `supabase/coins-schema.sql`, `supabase/finance-schema.sql`, `supabase/leaderboards-schema.sql` each carry a ⛔ SUPERSEDED — DO NOT RUN banner (never applied; incompatible `paragon_withdrawals` / `paragon_economic_settings` / `paragon_leaderboard_entries` shapes vs the live master architecture). Files stay on disk because `suite-ux` (P-100), `suite-finance` (§15) and `suite-ai-team` (P-099) assert their presence + content tokens — deletion would break the suites with no benefit.
+2. **Run docs corrected.** `OWNER-SQL-CHECKLIST.md`, `SQL-RUN-PACK.md`, `SUPABASE-AI-VERIFY-PROMPT.md` rewritten: all-SQL-done status, master run order steps 0–9 (phase1→phase2→stage1-hardening→phase3→phase4→phase5→stage2→stage3-games→stage4-quiz), `coins-schema.sql` removed as a step, Script A gains phase5/stage3/stage4 rows plus a `legacy-absent` must-be-false check, Supabase-AI prompt guards the migration list. `COINS-PHASE3-DEPLOY.md` §0 fixed. Live refs in `docs/COIN-SYSTEM.md`, `docs/COINS-PHASES.md`, `docs/COINS-AUDIT-CHECKLIST.md` corrected (historical EOP/SOP entries kept as history).
+3. **Connector correction.** The "sandbox gets DNS failures / owner must paste SQL manually" assumption is retired in this interface: the agent's direct Supabase connector applies migrations + runs advisors in-chat (7 migrations done this way 2026-09-11). Manual VERIFY/probe paths stay as fallbacks.
+4. **Edge deploy runbook (the actual next blocker).** New `supabase/functions/EDGE-DEPLOY-RUNBOOK.md`: secrets table (`PARAGON_COIN_WEBHOOK_SECRET` required; `OPAY_`/`MONIEPOINT_`/`PAYSTACK_`/`FLUTTERWAVE_` conditional), CLI deploy commands (`--no-verify-jwt`), all five webhook URLs, ordered verify curls, first-live drill, fail-closed law, troubleshooting, rollback. All three `index.ts` verified complete (no TODOs; `Deno.serve` + secret-gated).
+5. **Updates.txt spec adopted.** New `docs/GAMES-UPDATES-SPEC.md`: Spin + Chess live as the new games; free tier (guest/signed-up/0 coins) beside gated bet mode; stake-matched matchmaking; in-game General/Free/Bet/Multiplayer board explicitly separate from the revenue-funded money leaderboard (phase-4 periods/entries); Supabase free-tier estimate ≈115 MB at 10k economy users (≈4× headroom; audit retention is the lever; real risks are 7-day auto-pause + audit growth, not game storage); "Firebird" clarified as a Firebase typo with D-236 (no Firebase) standing.
+6. **Half-built game audit + completions.** Cards/Spin/Chess verified genuinely complete (90, owner-demo-gated); Arcade/Quiz-on-engine/Cards-wave-2/Bet confirmed planned-not-half-built. Two real half-built pieces completed: (a) paid Quiz called `window.alert()` twice (dialog-law violation) — now an inline `#paidNotice` panel with Continue semantics (`play.html` host + `style.css` tones + `quiz.js showPaidNotice`); (b) the 1v1 desk had no stake matching — now a match-my-stake toggle (default on), STAKE MATCH rows first, honest empty state, limit raised 15→30 for matching pool (client-side; no new SQL since `paragon_competition_open_challenges` has no stake param).
+7. **Governance + tests.** Cache v91 → **v92** (P-016; app.js shell changed) with all suite assertions bumped. `tests/suite-games.test.js` 233 → **280 checks** (47-check P-118 fixture: banners, run docs, runbook, quiz dialog law, stake matching, spec doc, cache). SOP D-237 + P-118, CTA §13 (master SQL done; dead RUN items removed; Edge next), CHANGES.md P-118 entry, NEXT-AGENT §7s, file tree regenerated. All five suites green.
+
+### Acceptance boundaries
+
+- [x] No run doc routes through `coins-schema.sql` / `finance-schema.sql` / `leaderboards-schema.sql`; banners cite D-237.
+- [x] Old fixtures still green (dead files kept for their token assertions).
+- [x] Zero `window.alert/prompt/confirm` calls in `paragon-quiz/js/quiz.js`.
+- [x] Stake-matched pairing ships with no new SQL and no fake opponents.
+- [x] No stake inputs added to game rooms; browser still never settles money.
+- [ ] Edge Functions deployed + secrets set (owner, via runbook).
+- [ ] Owner demo pass; only then Cards/Spin/Chess 90 → 100.
+- [ ] OPay/Moniepoint account numbers; production domain; Brevo hold; licence/KYC.
+
+### Result
+
+The repo no longer tells anyone to run the dead branch, the agent-connector truth is recorded so future SQL work skips the manual detour, the Edge path is a single executable runbook, the Updates.txt games spec is pinned to built reality with a concrete capacity estimate, and the two genuinely half-built game pieces are finished and regression-locked. Next build order stands: **Arcade → Quiz onto the engine → Cards wave 2 → Bet LAST.**

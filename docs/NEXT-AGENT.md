@@ -320,3 +320,17 @@ authoritative match/money store; use compact server records when online modes sh
 **NEXT:** owner demo Cards + Spin + Chess; move each 90 → 100 only after approval. Then build
 **Arcade → Quiz onto engine → Cards wave 2 (solitaire/memory) → Bet last**. See
 `docs/P-117-GAMES-WAVE.md` and each game's `SPEC.md`.
+
+## 7s. WHERE WE STOPPED — after P-118 / EOP v1.09.0 (2026-09-11)
+
+**Owner audit turn — docs truth, Edge next, spec pinned, half-built games finished (D-237):**
+
+- **Dead branch closed:** `supabase/coins-schema.sql`, `finance-schema.sql`, `leaderboards-schema.sql` are ⛔ SUPERSEDED (never applied; incompatible shapes vs live master). Kept on disk ONLY because suite-ux/finance/ai-team assert their presence + tokens. Never route anyone through them again.
+- **Run docs corrected:** `OWNER-SQL-CHECKLIST.md` / `SQL-RUN-PACK.md` / `SUPABASE-AI-VERIFY-PROMPT.md` state ALL SQL DONE (Phase 1–5 + Stage 1-hardening/2/3/4), master order 0–9, legacy-absence check, Supabase-AI guard. `COINS-PHASE3-DEPLOY.md` §0 fixed. Live refs in COIN-SYSTEM/COINS-PHASES/COINS-AUDIT-CHECKLIST fixed.
+- **CONNECTOR LAW CHANGE:** the "agent can't reach Supabase / DNS failure / paste manually" assumption is RETIRED in this interface — the agent has a direct Supabase connector (applied 7 migrations + advisors in-chat 2026-09-11). Default route = agent in-chat; manual VERIFY = fallback. Do not reintroduce the old wording as current.
+- **Next blocker = Edge:** `supabase/functions/EDGE-DEPLOY-RUNBOOK.md` is the single executable path (3 functions, `PARAGON_COIN_WEBHOOK_SECRET` + conditional OPay/Moniepoint/Paystack/Flutterwave secrets, verify curls, live drill, rollback). All three `index.ts` verified complete.
+- **Updates.txt spec pinned:** `docs/GAMES-UPDATES-SPEC.md` — Spin/Chess live; free tier + gated bet; stake-matched matchmaking; in-game board vs money leaderboard; free-tier estimate ≈115 MB @ 10k users (4× headroom; watch 7-day pause + audit retention); "Firebird" = Firebase typo, D-236 no-Firebase stands.
+- **Half-built completions:** paid Quiz `window.alert` × 2 → inline `#paidNotice` (dialog law); 1v1 desk match-my-stake toggle + STAKE MATCH rows (client-side, no new SQL). Cards/Spin/Chess verified complete @ 90. Arcade/Quiz-engine/Cards-w2/Bet = planned, not half-built.
+- **State:** cache **v92**; suite-games **280** (233 + 47 P-118); 5/5 suites green; SOP D-237 + P-118; CTA §13 (Edge next); CHANGES P-118 entry; tree regenerated.
+
+**NEXT (owner-side first):** Edge deploys + secrets → OPay/Moniepoint numbers → Cards/Spin/Chess demo (90 → 100 each after approval). **Build order stands:** Arcade → Quiz onto engine → Cards wave 2 → Bet LAST. Standing money rule + storage decision from §7r still hold (note: the "no real matchmaking list" line now means no FAKE/sample lists — the honest stake-matched open-challenge desk is live and server-backed).

@@ -11,6 +11,19 @@
 --       when the betting/competition stage lands and the leaderboard-settle Edge Function
 --       is deployed — it is idempotent (ON CONFLICT / IF NOT EXISTS) and safe to re-run.
 --       It does NOT activate anything by itself; nothing here fabricates points or money.
+--
+-- ═══════════════════════════════════════════════════════════════════════════
+-- ⛔ SUPERSEDED — DO NOT RUN (P-118 / D-237, 2026-09-11)
+-- This file is an EARLIER, INCOMPATIBLE draft. It was NEVER applied to the live
+-- project and MUST NOT be applied now: its table shapes (paragon_leaderboards,
+-- paragon_leaderboard_entries, paragon_rewards, paragon_economic_settings)
+-- conflict with the live coins-master-phase4 architecture, which defines
+-- paragon_leaderboard_periods / paragon_leaderboard_entries DIFFERENTLY.
+-- Running this after the master migrations would break the live leaderboard.
+-- The money leaderboard already lives in phase4 (periods + entries + settle RPCs);
+-- the device engine (paragon-leaderboards.js + Team settlement desk) is unaffected.
+-- Kept as a read-only reference. For run order see supabase/SQL-RUN-PACK.md.
+-- ═══════════════════════════════════════════════════════════════════════════
 
 -- 0. Team membership gate (shared with announcements-schema.sql; safe if that ran already).
 create table if not exists public.paragon_team_members (

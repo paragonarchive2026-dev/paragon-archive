@@ -4,6 +4,18 @@ Owner note: "Maybe I should start building all the games — let's think on how 
 This plan is written against what ALREADY exists in the repo, so each game plugs into real engines
 instead of inventing new money/leaderboard logic.
 
+> **STATUS — 2026-09-11 (P-118).** All SQL is done through Phase 5 + Stage 4; the next
+> blocker is Edge Function deploys (`supabase/functions/EDGE-DEPLOY-RUNBOOK.md`). The Updates.txt
+> spec is mapped in `docs/GAMES-UPDATES-SPEC.md`: Spin + Chess live as the new games, free tier
+> (guest/signed-up/0 coins) beside gated bet mode, **stake-matched 1v1 matchmaking completed**
+> (match-my-stake desk, equal-stake pairing), in-game General/Free/Bet/Multiplayer board live and
+> explicitly separate from the revenue-funded money leaderboard (phase-4 periods/entries).
+> Supabase free-tier estimate: ≈115 MB @ 10k economy users (4× headroom); Firebase not added
+> (D-236 stands; "Firebird" clarified as Firebase typo). Two half-built pieces completed: Quiz
+> paid-path `window.alert` calls are now inline panels, and the desk matches by stake amount.
+> Cards/Spin/Chess stay at `buildProgress: 90` pending the owner demo. Remaining order is still
+> **Arcade → Quiz onto the engine → Cards wave 2 (solitaire/memory) → Bet LAST**.
+>
 > **STATUS — 2026-09-06 (P-117).** The shared framework and anti-cheat/UX shell are built.
 > Three honest free game rooms are now live: **Paragon Cards** (Higher·Lower + Blackjack 21),
 > **Paragon Spin** (Precision Wheel) and **Paragon Chess** (full-rule computer chess at three

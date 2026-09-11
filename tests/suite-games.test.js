@@ -497,9 +497,86 @@
     check(built > 0 && built < 100, game.name + " remains below 100 until the owner's demo pass");
   });
   const sw = read("service-worker.js");
-  check(sw.includes("paragon-archive-v91") && sw.includes('"./games/spin/play.html"') && sw.includes('"./games/chess/play.html"'), "cache v91 precaches both new free game rooms for offline play");
+  check(sw.includes("paragon-archive-v92") && sw.includes('"./games/spin/play.html"') && sw.includes('"./games/chess/play.html"'), "cache v91 precaches both new free game rooms for offline play");
   const vercel = JSON.parse(read("vercel.json"));
   check(!("errorDocument" in vercel) && !("$comment" in vercel), "Vercel config removes the unsupported keys that blocked deployment");
 
   console.log("\n🎉 " + passed + " games checks passed.");
+})();
+
+/* ================= FIXTURE: P-118 — stale SQL docs, dead-branch banners, Edge runbook, half-built game completions ================= */
+(function () {
+  const fs = require("fs");
+  const path = require("path");
+  const root = path.resolve(__dirname, "..");
+  function assert(value, message) { if (!value) throw new Error("P-118: " + message); }
+  let passed = 0;
+  function check(value, label) { assert(value, label); passed += 1; console.log("  ✅ " + label); }
+  const read = p => fs.readFileSync(path.join(root, p), "utf8");
+  const exists = p => fs.existsSync(path.join(root, p));
+
+  /* ---------- 1. Dead-branch SQL files are bannered, not runnable-by-mistake ---------- */
+  ["supabase/coins-schema.sql", "supabase/finance-schema.sql", "supabase/leaderboards-schema.sql"].forEach(file => {
+    const sql = read(file);
+    check(sql.includes("SUPERSEDED") && sql.includes("DO NOT RUN"), file + " carries the SUPERSEDED banner");
+    check(sql.includes("D-237"), file + " cites decision D-237");
+    check(sql.includes("PARAGON ARCHIVE — EXPORT IDENTITY"), file + " keeps its identity header");
+  });
+
+  /* ---------- 2. Run docs no longer route through the dead branch ---------- */
+  const runPack = read("supabase/SQL-RUN-PACK.md");
+  check(!runPack.includes("| 2 | `coins-schema.sql`"), "SQL-RUN-PACK no longer lists coins-schema.sql as step 2");
+  check(runPack.includes("SUPERSEDED") && runPack.includes("coins-master-stage4-quiz.sql"), "SQL-RUN-PACK marks the drafts superseded and lists the full master order");
+  check(runPack.includes("EDGE-DEPLOY-RUNBOOK.md"), "SQL-RUN-PACK points at the Edge deploy runbook");
+  const checklist = read("supabase/OWNER-SQL-CHECKLIST.md");
+  check(checklist.includes("ALL SQL") && checklist.includes("DONE"), "OWNER-SQL-CHECKLIST states all SQL is done");
+  check(checklist.includes("direct Supabase connector"), "OWNER-SQL-CHECKLIST records the connector correction");
+  check(!checklist.includes("**File:** `supabase/coins-schema.sql`"), "OWNER-SQL-CHECKLIST no longer files coins-schema.sql as a run step");
+  const verifyPrompt = read("supabase/SUPABASE-AI-VERIFY-PROMPT.md");
+  check(verifyPrompt.includes("Supabase connector"), "VERIFY-PROMPT records the connector correction");
+  check(verifyPrompt.includes("legacy-absent"), "VERIFY-PROMPT checks the dead-branch tables stay absent");
+  check(verifyPrompt.includes("Do NOT list coins-schema.sql"), "VERIFY-PROMPT guards the Supabase-AI migration list");
+  const phase3deploy = read("supabase/functions/COINS-PHASE3-DEPLOY.md");
+  check(!phase3deploy.includes("2. `coins-schema.sql`"), "COINS-PHASE3-DEPLOY no longer lists coins-schema.sql as its SQL step");
+
+  /* ---------- 3. Edge deploy runbook is the documented next blocker ---------- */
+  check(exists("supabase/functions/EDGE-DEPLOY-RUNBOOK.md"), "EDGE-DEPLOY-RUNBOOK.md exists");
+  const runbook = read("supabase/functions/EDGE-DEPLOY-RUNBOOK.md");
+  ["coin-payment-webhook", "coin-reconcile", "competition-settle"].forEach(fn => {
+    check(runbook.includes(fn), "runbook covers " + fn);
+    const src = read("supabase/functions/" + fn + "/index.ts");
+    check(src.includes("Deno.serve"), fn + "/index.ts is a complete served function");
+    check(!/TODO|FIXME|not implemented/i.test(src), fn + "/index.ts has no half-built markers");
+  });
+  check(runbook.includes("PARAGON_COIN_WEBHOOK_SECRET"), "runbook documents the shared webhook secret");
+  check(runbook.includes("OPAY_WEBHOOK_SECRET") && runbook.includes("MONIEPOINT_WEBHOOK_SECRET"), "runbook documents the OPay/Moniepoint secrets");
+  check(runbook.includes("--no-verify-jwt"), "runbook gives the deploy commands");
+
+  /* ---------- 4. Half-built completion A — Quiz paid path keeps the dialog law ---------- */
+  const quizJs = read("paragon-quiz/js/quiz.js");
+  check(!/window\.(alert|prompt|confirm)\s*\(/.test(quizJs), "quiz.js has zero window.alert/prompt/confirm calls");
+  check(quizJs.includes("showPaidNotice") && quizJs.includes("paidNotice"), "quiz.js routes paid notices through an inline panel");
+  check(read("paragon-quiz/play.html").includes('id="paidNotice"'), "play.html hosts the inline paid notice");
+  check(read("paragon-quiz/css/style.css").includes(".paid-notice"), "quiz style.css styles the inline paid notice");
+
+  /* ---------- 5. Half-built completion B — stake-matched 1v1 matchmaking ---------- */
+  const app = read("app.js");
+  check(app.includes('id="compete-match-stake"'), "1v1 desk has the match-my-stake toggle");
+  check(app.includes("STAKE MATCH"), "1v1 desk labels equal-stake pairings");
+  check(app.includes("match-my-stake") && app.includes("myStake"), "1v1 desk matches open challenges against the stake input");
+
+  /* ---------- 6. Updates.txt spec doc + capacity + Firebase note ---------- */
+  check(exists("docs/GAMES-UPDATES-SPEC.md"), "docs/GAMES-UPDATES-SPEC.md exists");
+  const spec = read("docs/GAMES-UPDATES-SPEC.md");
+  check(spec.includes("Paragon Spin") && spec.includes("Paragon Chess"), "spec covers Spin + Chess as the new games");
+  check(spec.includes("match-my-stake") || spec.includes("matching stake"), "spec covers stake-matched matchmaking");
+  check(spec.includes("In-game leaderboard") && spec.includes("Money leaderboard"), "spec keeps the in-game and money leaderboards separate");
+  check(spec.includes("115 MB") || spec.includes("500 MB"), "spec gives a concrete Supabase free-tier estimate");
+  check(spec.includes("Firebird") && spec.includes("Firebase"), "spec clarifies Firebird vs Firebase");
+  check(read("GAMES-BUILD-PLAN.md").includes("P-118"), "GAMES-BUILD-PLAN status block records P-118");
+
+  /* ---------- 7. Cache bump for the shell change ---------- */
+  check(read("service-worker.js").includes("paragon-archive-v92"), "cache is v92 after the app.js + docs shell change");
+
+  console.log("\nPASS: " + passed + " checks — P-118 stale-SQL-docs correction, dead-branch banners, Edge runbook, Quiz dialogs, stake-matched matchmaking");
 })();

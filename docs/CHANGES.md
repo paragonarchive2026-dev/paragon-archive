@@ -1,5 +1,46 @@
 # 📦 Changed files
 
+## 2026-09-11 — P-118 stale-SQL-docs correction, Edge runbook, Updates spec, half-built game completions
+
+**Dead branch closed (D-237):** `supabase/coins-schema.sql`, `finance-schema.sql` and
+`leaderboards-schema.sql` are earlier incompatible drafts that were never applied — each now
+carries a ⛔ SUPERSEDED — DO NOT RUN banner. They stay on disk only because the P-099/P-100
+regression fixtures assert their presence + content tokens. `OWNER-SQL-CHECKLIST.md`,
+`SQL-RUN-PACK.md` and `SUPABASE-AI-VERIFY-PROMPT.md` are rewritten: all SQL done through Phase 5
++ Stage 4, master run order steps 0–9, a `legacy-absent` must-be-false check, and a guarded
+Supabase-AI migration list. `COINS-PHASE3-DEPLOY.md` no longer routes through `coins-schema.sql`.
+
+**Connector correction:** the "sandbox can't reach Supabase / paste SQL manually" assumption is
+retired in this interface — the agent's direct Supabase connector applied 7 migrations + security
+advisors in-chat. Manual VERIFY/probe paths remain as fallbacks, not the default route.
+
+**Edge runbook (the actual next blocker):** new `supabase/functions/EDGE-DEPLOY-RUNBOOK.md` —
+one executable path for `coin-payment-webhook`, `coin-reconcile` and `competition-settle` with
+the secrets table, deploy commands, webhook URLs, verify curls, first-live drill, fail-closed
+law and rollback. All three functions verified complete with no half-built markers.
+
+**Updates.txt spec pinned:** new `docs/GAMES-UPDATES-SPEC.md` maps Spin + Chess (live), the free
+tier beside gated bet mode, stake-matched matchmaking, the in-game board vs the revenue-funded
+money leaderboard, a concrete free-tier estimate (≈115 MB at 10k economy users, ≈4× headroom),
+and the Firebird-vs-Firebase clarification (typo; no-Firebase decision stands).
+
+**Half-built games completed:** paid Quiz replaced two `window.alert()` calls (dialog-law
+violation) with an inline `#paidNotice` panel; the 1v1 desk gained a match-my-stake toggle with
+STAKE MATCH rows first and an honest empty state (client-side equal-stake pairing, no new SQL).
+Cards/Spin/Chess verified complete at `buildProgress: 90` (owner demo still gates 100);
+Arcade/Quiz-on-engine/Cards-wave-2/Bet confirmed planned, not half-built.
+
+**Wiring/tests:** cache v91 → **v92**; `tests/suite-games.test.js` 233 → **280 checks**
+(47-check P-118 fixture). All five suites green.
+
+**New:** `supabase/functions/EDGE-DEPLOY-RUNBOOK.md`; `docs/GAMES-UPDATES-SPEC.md`.
+**Changed:** three dead-branch SQL banners; three supabase run docs; phase-3 deploy doc;
+`app.js` (stake matching); `paragon-quiz/{play.html,css/style.css,js/quiz.js}` (inline notices);
+`GAMES-BUILD-PLAN.md`; `docs/{COIN-SYSTEM,COINS-PHASES,COINS-AUDIT-CHECKLIST}.md`; SOP (D-237,
+P-118, CTA); EOP v1.09.0; NEXT-AGENT §7s; service worker + suite cache assertions; file tree.
+
+---
+
 ## 2026-09-06 — P-117 premium games wave: Paragon Spin + Paragon Chess
 
 **Two new live free rooms:** `games/spin/` ships Precision Wheel (twelve sectors, six turns,

@@ -588,6 +588,33 @@ if (document.getElementById("startScreen")) {
   function show(id) { el(id).style.display = ""; }
   function hide(id) { el(id).style.display = "none"; }
 
+  /* P-118: paid-mode notices are inline panels — the repo forbids window.alert/
+     prompt/confirm everywhere (dialog law). The notice carries one Continue
+     button so "user acknowledged" keeps the same meaning the alert() had. */
+  function showPaidNotice(text, tone, onContinue) {
+    var host = el("paidNotice");
+    var startBtn = el("startQuizBtn");
+    if (!host) {
+      if (typeof onContinue === "function") onContinue();
+      return;
+    }
+    host.className = "paid-notice" + (tone === "warn" ? " warn" : "");
+    host.innerHTML = "<p>" + PQ.escapeHTML(text) + "</p>";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn btn-primary";
+    btn.textContent = "Continue";
+    btn.addEventListener("click", function () {
+      hide("paidNotice");
+      if (startBtn) startBtn.disabled = false;
+      if (typeof onContinue === "function") onContinue();
+    });
+    host.appendChild(btn);
+    show("paidNotice");
+    if (startBtn) startBtn.disabled = true;
+    host.scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" });
+  }
+
   if (!quiz) {
     hide("startScreen");
     show("notFoundScreen");
@@ -812,15 +839,15 @@ if (document.getElementById("startScreen")) {
           paidMode = true;
           paidAttemptId = attempt && attempt.id;
           if (attempt && attempt.metadata && attempt.metadata.is_creator_self_play) {
-            window.alert("Creator self-play: you can practice paid mode but you cannot win this quiz prize or farm leaderboard points from it.");
+            showPaidNotice("Creator self-play: you can practice paid mode but you cannot win this quiz prize or farm leaderboard points from it.", "info", beginPlay);
+            return;
           }
           beginPlay();
         })
         .catch(function (err) {
-          window.alert("Paid attempt could not start (" + (err && err.message ? err.message : err) + "). Starting free play instead.");
           paidMode = false;
           paidAttemptId = null;
-          beginPlay();
+          showPaidNotice("Paid attempt could not start (" + (err && err.message ? err.message : err) + "). Starting free play instead — no coins moved.", "warn", beginPlay);
         });
       return;
     }
