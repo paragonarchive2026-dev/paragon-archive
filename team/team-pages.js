@@ -4656,16 +4656,20 @@ if (paragonTeamPage() === "settings.html") {
   }
 
 
-  function financeRest(path, options) {
+  async function financeRest(path, options) {
     var cfg = window.ParagonConfig || {};
     var base = String(cfg.supabaseUrl || "").replace(/\/$/, "");
     var key = cfg.supabaseAnonKey || "";
     if (!base || !key) return Promise.reject(new Error("No Supabase config"));
+    // getSession refreshes expired tokens asynchronously; never send the Promise as auth.
+    var session = window.ParagonAuth && typeof window.ParagonAuth.getSession === "function"
+      ? await window.ParagonAuth.getSession() : null;
     var headers = Object.assign({
-      apikey: key,
-      Authorization: "Bearer " + key,
       "Content-Type": "application/json"
-    }, (options && options.headers) || {});
+    }, (options && options.headers) || {}, {
+      apikey: key,
+      Authorization: "Bearer " + ((session && session.access_token) || key)
+    });
     return fetch(base + path, Object.assign({}, options || {}, { headers: headers })).then(function (r) {
       return r.text().then(function (text) {
         var data = null;

@@ -121,29 +121,39 @@ function normalizeFlutterwave(payload: Record<string, unknown>): Normalized | nu
   };
 }
 
-/** OPay business webhook / transfer notice (shape varies — normalize defensively). */
+/** Explicit-unit adapter contract, not a claim about native provider payloads.
+ * Bare amount/orderAmount/transactionAmount fields are deliberately unsupported
+ * until each provider's sandbox schema and units have been verified.
+ * The ledger accepts whole naira: reject fractions rather than rounding money.
+ */
+function explicitAmountNaira(data: Record<string, unknown>, payload: Record<string, unknown>): number | null {
+  const candidates: number[] = [];
+  for (const record of data === payload ? [data] : [data, payload]) {
+    for (const [field, divisor] of [["amountNaira", 1], ["amount_naira", 1], ["amountInKobo", 100]] as const) {
+      if (record[field] === undefined) continue;
+      const raw = record[field];
+      if (typeof raw !== "number" && typeof raw !== "string") return null;
+      if (typeof raw === "string" && !/^\d+(?:\.\d+)?$/.test(raw)) return null;
+      const amount = Number(raw) / divisor;
+      if (!Number.isSafeInteger(amount) || amount <= 0) return null;
+      candidates.push(amount);
+    }
+  }
+  if (!candidates.length || candidates.some(amount => amount !== candidates[0])) return null;
+  return candidates[0];
+}
+
+/** OPay: only explicit-unit adapter amounts are accepted pending sandbox verification. */
 function normalizeOpay(payload: Record<string, unknown>): Normalized | null {
   const data = (payload.data || payload.transaction || payload) as Record<string, unknown>;
   const status = String(data.status || payload.status || data.orderStatus || "").toLowerCase();
-  if (status && !/(success|successful|paid|completed|credit)/.test(status)) return null;
-  const amount = Number(
-    data.amount || data.orderAmount || data.transAmount || payload.amount_naira || payload.amount || 0
-  );
-  // OPay amounts sometimes in kobo
-  let naira = amount;
-  if (amount >= 1000 && String(data.currency || payload.currency || "NGN").toUpperCase() === "NGN" && data.amountInKobo) {
-    naira = Math.round(Number(data.amountInKobo) / 100);
-  } else if (data.amountInKobo) {
-    naira = Math.round(Number(data.amountInKobo) / 100);
-  } else {
-    naira = Math.round(amount > 50000 && !data.amountNaira ? amount / 100 : amount);
-    if (data.amountNaira) naira = Math.round(Number(data.amountNaira));
-  }
+  if (!/^(success|successful|paid|completed|credit)$/.test(status)) return null;
+  const naira = explicitAmountNaira(data, payload);
   const txId = String(
     data.orderNo || data.reference || data.transactionId || data.transId ||
     payload.provider_transaction_id || payload.reference || ""
   );
-  if (!txId || naira <= 0) return null;
+  if (!txId || naira === null) return null;
   return {
     provider: "opay",
     providerTransactionId: txId,
@@ -159,17 +169,13 @@ function normalizeOpay(payload: Record<string, unknown>): Normalized | null {
 function normalizeMoniepoint(payload: Record<string, unknown>): Normalized | null {
   const data = (payload.data || payload.transaction || payload) as Record<string, unknown>;
   const status = String(data.status || payload.status || data.transactionStatus || "").toLowerCase();
-  if (status && !/(success|successful|paid|completed|credit|successful_credit)/.test(status)) return null;
-  const amount = Number(
-    data.amount || data.transactionAmount || data.settlementAmount ||
-    payload.amount_naira || payload.amount || 0
-  );
-  const naira = Math.round(Number(data.amountNaira || amount));
+  if (!/^(success|successful|paid|completed|credit|successful_credit)$/.test(status)) return null;
+  const naira = explicitAmountNaira(data, payload);
   const txId = String(
     data.transactionReference || data.paymentReference || data.reference ||
     data.sessionId || payload.provider_transaction_id || payload.reference || ""
   );
-  if (!txId || naira <= 0) return null;
+  if (!txId || naira === null) return null;
   return {
     provider: "moniepoint",
     providerTransactionId: txId,
@@ -253,13 +259,16 @@ Deno.serve(async (request) => {
   }
 
   let normalized: Normalized | null = null;
-  if (providerHint === "opay") normalized = normalizeOpay(payload) || normalizeGeneric(payload, "opay");
-  else if (providerHint === "moniepoint") normalized = normalizeMoniepoint(payload) || normalizeGeneric(payload, "moniepoint");
+  if (providerHint === "opay") normalized = normalizeOpay(payload);
+  else if (providerHint === "moniepoint") normalized = normalizeMoniepoint(payload);
   else if (providerHint === "manual_bank" || providerHint === "manual") normalized = normalizeGeneric(payload, "manual_bank");
   else if (providerHint === "paystack") normalized = normalizePaystack(payload);
   else if (providerHint === "flutterwave") normalized = normalizeFlutterwave(payload);
   else normalized = normalizeGeneric(payload, providerHint);
 
+  if (!normalized && (providerHint === "opay" || providerHint === "moniepoint")) {
+    return json({ error: "Unsupported or unsuccessful provider event; explicit whole-naira amount (amountNaira/amount_naira) or amountInKobo required. No credit recorded." }, 422);
+  }
   if (!normalized) {
     return json({ ok: true, ignored: true, reason: "event not a successful charge or missing fields" });
   }
