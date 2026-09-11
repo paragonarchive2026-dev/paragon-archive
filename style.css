@@ -4680,3 +4680,130 @@ html { scrollbar-color: var(--divine-gold-deep) transparent; }
   box-shadow: 0 0 22px rgba(247,207,122,0.35);
 }
 /* HEAVEN-02 end */
+
+/* ============================================================
+   HEAVEN-03 — heaven pass on cards, detail view, stat boxes,
+   reviews and the updates timeline. Still pure design.
+   ============================================================ */
+
+/* --- website cards: light from above, shimmer on hover -------- */
+.card, .featured-card {
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, rgba(255,246,220,0.05), transparent 34%);
+}
+.card:hover, .featured-card:hover {
+  border-color: color-mix(in srgb, var(--divine-gold) 38%, var(--border-strong));
+  box-shadow: var(--halo), var(--shadow-float);
+}
+.card::after, .featured-card::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 34%, rgba(255,246,220,0.16) 50%, transparent 66%);
+  transform: translateX(-130%); transition: transform 0.75s ease;
+}
+.card:hover::after, .featured-card:hover::after { transform: translateX(130%); }
+.card { position: relative; }
+.featured-card { position: relative; }
+.card .thumb::before, .featured-card .feat-img::before {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,240,205,0.16), transparent 32%);
+}
+.card .info .meta .stars, .review-stars, .star-fill {
+  text-shadow: 0 0 9px rgba(251,191,36,0.5);
+}
+
+/* --- trending ranks: podium numbers in gold light -------------- */
+.trending-rank-card { position: relative; overflow: hidden; }
+.trending-rank-card:hover {
+  border-color: color-mix(in srgb, var(--divine-gold) 38%, var(--border-strong));
+  box-shadow: var(--halo);
+}
+.trending-rank-card:nth-child(-n+3) .trending-rank-number {
+  background: linear-gradient(180deg, #ffe9b8, var(--divine-gold-deep));
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; text-shadow: none;
+  filter: drop-shadow(0 0 8px rgba(247,207,122,0.45));
+}
+
+/* --- detail view: ring of light + lit info bar ------------------ */
+.detail-header {
+  box-shadow: 0 0 0 1px rgba(255,236,190,0.28), 0 18px 52px rgba(8,6,24,0.55),
+              0 0 46px rgba(255,206,130,0.14);
+}
+.detail-header::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  pointer-events: none; z-index: 1; mix-blend-mode: screen;
+  background: linear-gradient(180deg, rgba(255,240,205,0.16), transparent 30%, transparent 74%, rgba(124,58,237,0.16));
+}
+.detail-hero-info h1 { text-shadow: 0 0 26px rgba(255,236,190,0.32), 0 8px 24px rgba(0,0,0,0.6); }
+.info-bar {
+  background-color: var(--card);
+  background-image: radial-gradient(120% 140% at 50% -60%, rgba(255,222,150,0.12), transparent 62%);
+}
+.info-bar .icon-large { box-shadow: var(--halo); }
+.info-bar .open-btn {
+  background: linear-gradient(135deg, #ffe7ad, #f6c66a 38%, #e3a53f 62%, #ffd98a);
+  border: 0; color: #2b1c05;
+  box-shadow: 0 6px 22px rgba(246,198,106,0.35), inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.info-bar .open-btn:hover {
+  box-shadow: 0 10px 30px rgba(246,198,106,0.5), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+/* --- stat boxes: divine numerals, radiance from the top --------- */
+.stat-box {
+  background-color: var(--card);
+  background-image: radial-gradient(120% 90% at 50% -30%, rgba(255,222,150,0.14), transparent 60%);
+}
+.stat-box:hover { box-shadow: var(--halo), var(--shadow-card); }
+.stat-box .num {
+  background: var(--heaven-text);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; text-shadow: none;
+  filter: drop-shadow(0 0 12px rgba(255,236,190,0.25));
+}
+
+/* --- reviews: pearl cards, halo avatars -------------------------- */
+.review-card {
+  background-color: rgba(255,255,255,0.03);
+  background-image: linear-gradient(180deg, rgba(255,246,220,0.045), transparent 40%);
+  border-color: rgba(233,225,255,0.10);
+  transition: transform 0.18s, border-color 0.2s, box-shadow 0.2s;
+}
+.review-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--divine-gold) 32%, var(--border-strong));
+  box-shadow: var(--halo);
+}
+.review-avatar { box-shadow: 0 0 0 2px rgba(255,236,190,0.25), 0 0 14px rgba(255,214,140,0.25); border-radius: 50%; }
+
+/* --- timeline: golden dots, lit cards, dawn dividers -------------- */
+.timeline-dot {
+  background: linear-gradient(135deg, #ffe7ad, #f2b95c 55%, #ffd98a);
+  animation: dotPulse 3s infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(255,236,190,0.08), 0 0 12px rgba(247,207,122,0.5); }
+  50%      { box-shadow: 0 0 0 8px rgba(255,214,140,0.16), 0 0 22px rgba(247,207,122,0.8); }
+}
+.timeline-card {
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, rgba(255,246,220,0.05), transparent 36%);
+}
+.timeline-card:hover {
+  border-color: color-mix(in srgb, var(--divine-gold) 35%, var(--border-strong));
+  box-shadow: var(--halo), var(--shadow-float);
+}
+.timeline-card .t-thumb { box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0 14px rgba(255,214,140,0.12); }
+.divider-date::before, .divider-date::after {
+  background: linear-gradient(90deg, transparent, rgba(247,207,122,0.55));
+  height: 1px;
+}
+.divider-date::after { background: linear-gradient(90deg, rgba(247,207,122,0.55), transparent); }
+.divider-date { color: var(--divine-gold); text-shadow: 0 0 14px rgba(247,207,122,0.35); }
+.saved-update-star { box-shadow: 0 0 16px rgba(251,191,36,0.4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card::after, .featured-card::after, .trending-rank-card::after { transition: none; transform: none; }
+  .timeline-dot { animation: none; box-shadow: 0 0 12px rgba(247,207,122,0.5); }
+}
+/* HEAVEN-03 end */
