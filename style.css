@@ -4950,3 +4950,58 @@ html.light .board-topbar { box-shadow: 0 1px 0 rgba(214,164,60,0.25), 0 8px 28px
   .hero .wotd-badge, .account-hero .logo-mark { animation: none; }
 }
 /* HEAVEN-06 end */
+
+/* ============================================================
+   HEAVEN-07 — "heavenly day" light refinement + WCAG audit.
+   Audit (computed ratios, this round): dark mode passes AA
+   everywhere; light mode failed on divider gold (1.32), podium
+   rank gold (2.25), stars (1.67), scrollbar (2.01), and the
+   amber heaven-text stop sat at 4.49 for 10px eyebrows.
+   Every fix below swaps to #92400e/#b45309-range golds that
+   measure 4.5:1+ (3:1+ for graphics/UI) on light surfaces.
+   ============================================================ */
+
+html.light {
+  --heaven-text: linear-gradient(100deg, #6d28d9 0%, #be185d 36%, #92400e 66%, #0e7490 100%);
+  --border: rgba(120,90,20,0.10);
+  --border-strong: rgba(120,90,20,0.18);
+}
+
+/* dawn dividers readable in daylight (was 1.32:1) */
+html.light .divider-date { color: #92400e; text-shadow: 0 0 12px rgba(146,64,14,0.25); }
+html.light .divider-date::before { background: linear-gradient(90deg, transparent, rgba(146,64,14,0.5)); }
+html.light .divider-date::after { background: linear-gradient(90deg, rgba(146,64,14,0.5), transparent); }
+
+/* podium ranks in deep gold on white (was 2.25:1) */
+html.light .trending-rank-card:nth-child(-n+3) .trending-rank-number {
+  background: linear-gradient(180deg, #b45309, #92400e);
+  -webkit-background-clip: text; background-clip: text;
+  filter: drop-shadow(0 0 8px rgba(146,64,14,0.3));
+}
+
+/* stars keep their meaning in daylight (was 1.67:1) */
+html.light .card .info .meta .stars,
+html.light .review-stars,
+html.light .star-fill { color: #b45309; text-shadow: 0 0 9px rgba(180,83,9,0.35); }
+html.light .saved-update-star { color: #b45309; background: rgba(180,83,9,0.12); border-color: rgba(180,83,9,0.4); }
+html.light .update-badge.badge-gold { color: #92400e; border-color: rgba(146,64,14,0.4); background: rgba(146,64,14,0.10); }
+
+/* heaven scrollbar in deep gold on ivory (was 2.01:1) */
+html.light { scrollbar-color: #b45309 transparent; }
+html.light ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #b45309, #92400e); background-clip: padding-box; }
+
+/* golden timeline dots stay visible on pearl surfaces */
+html.light .timeline-dot { background: linear-gradient(135deg, #f2b95c, #b45309 60%, #d9a441); }
+
+/* game kit: stake chip + best line readable in daylight */
+html.light .gk-chip-stake { color: #92400e; border-color: rgba(146,64,14,0.4); background: rgba(146,64,14,0.08); }
+html.light .gk-result-best { color: #92400e; }
+
+/* heavenly-day warmth: borders and top light tuned for ivory */
+html.light .card, html.light .featured-card, html.light .timeline-card, html.light .review-card {
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.65), transparent 40%);
+}
+html.light .hero::after, html.light .detail-header::after {
+  background: linear-gradient(180deg, rgba(255,214,140,0.22), transparent 30%, transparent 76%, rgba(109,40,217,0.10));
+}
+/* HEAVEN-07 end */
