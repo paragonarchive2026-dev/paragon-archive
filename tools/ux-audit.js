@@ -41,7 +41,7 @@ console.log("== 1. local file links ==");
       const clean = h.split(/[?#]/)[0];
       if (!clean) continue;
       checked++;
-      const base = path.join(path.dirname(f), clean);
+      const base = clean.startsWith("/") ? path.join(ROOT, clean) : path.join(path.dirname(f), clean);
       /* vercel.json cleanUrls: /x serves x.html, /x/ serves x/index.html */
       const ok = clean === "/" || fs.existsSync(base) ||
         fs.existsSync(base + ".html") || fs.existsSync(path.join(base, "index.html"));
