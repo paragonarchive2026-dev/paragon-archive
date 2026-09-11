@@ -4,6 +4,14 @@ Owner note: "Maybe I should start building all the games — let's think on how 
 This plan is written against what ALREADY exists in the repo, so each game plugs into real engines
 instead of inventing new money/leaderboard logic.
 
+> **STATUS — 2026-09-11 (P-119).** **Paragon Arcade is built and complete:** five live
+> cabinets (Reflex Tap, Memory Match, Timing Bar, Sequence Repeat, Target Sprint) on the shared
+> engine — seeded rounds, honest resume per cabinet, per-cabinet bests, in-game board, published
+> win/draw/loss thresholds, full regression cover. `buildProgress: 90` pending the owner demo,
+> like Cards/Spin/Chess. Remaining order is now **Quiz onto the engine → Cards wave 2
+> (solitaire/memory) → Bet LAST**. Stake inputs, live opponent search and `paragon_game_settle`
+> UI wiring remain deliberately deferred until real money is ON.
+>
 > **STATUS — 2026-09-11 (P-118).** All SQL is done through Phase 5 + Stage 4; the next
 > blocker is Edge Function deploys (`supabase/functions/EDGE-DEPLOY-RUNBOOK.md`). The Updates.txt
 > spec is mapped in `docs/GAMES-UPDATES-SPEC.md`: Spin + Chess live as the new games, free tier
@@ -88,9 +96,11 @@ Free/stake split the engine enforces:
    en passant, four promotions, check/mate and draw rules), three alpha-beta computer strengths,
    hints, move ledger and resume. Free is player versus computer; future stake is human versus
    human only and remains locked.
-4. **Paragon Arcade — NEXT.** Build 3–5 reflex/timing/memory games in one arcade shell; free
-   performance can appear on its game board, but coins only ever move through future server-led
-   competitions.
+4. **Paragon Arcade — DONE (P-119).** `games/arcade/` ships five complete cabinets —
+   Reflex Tap (5 reaction rounds), Memory Match (6 seeded pairs + combo), Timing Bar (5 bullseye
+   stops), Sequence Repeat (patterns 3→10 over 8 rounds) and Target Sprint (25-second aim) — on
+   one `play.html?v=` router with honest per-cabinet resume, bests and board. Free performance
+   can appear on its game board, but coins only ever move through future server-led competitions.
 5. **Paragon Quiz — AFTER ARCADE.** Upgrade the existing `paragon-quiz/` product onto this engine:
    timed rounds and streak multipliers first. Paid-entry UI remains deferred with real money.
 6. **Paragon Cards wave 2 — AFTER QUIZ.** Solitaire and memory first; Snap can follow with live

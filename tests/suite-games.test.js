@@ -497,7 +497,7 @@
     check(built > 0 && built < 100, game.name + " remains below 100 until the owner's demo pass");
   });
   const sw = read("service-worker.js");
-  check(sw.includes("paragon-archive-v92") && sw.includes('"./games/spin/play.html"') && sw.includes('"./games/chess/play.html"'), "cache v91 precaches both new free game rooms for offline play");
+  check(sw.includes("paragon-archive-v93") && sw.includes('"./games/spin/play.html"') && sw.includes('"./games/chess/play.html"'), "cache v91 precaches both new free game rooms for offline play");
   const vercel = JSON.parse(read("vercel.json"));
   check(!("errorDocument" in vercel) && !("$comment" in vercel), "Vercel config removes the unsupported keys that blocked deployment");
 
@@ -576,7 +576,120 @@
   check(read("GAMES-BUILD-PLAN.md").includes("P-118"), "GAMES-BUILD-PLAN status block records P-118");
 
   /* ---------- 7. Cache bump for the shell change ---------- */
-  check(read("service-worker.js").includes("paragon-archive-v92"), "cache is v92 after the app.js + docs shell change");
+  check(read("service-worker.js").includes("paragon-archive-v93"), "cache is v92 after the app.js + docs shell change");
 
   console.log("\nPASS: " + passed + " checks — P-118 stale-SQL-docs correction, dead-branch banners, Edge runbook, Quiz dialogs, stake-matched matchmaking");
+})();
+
+/* ================= FIXTURE: P-119 — Paragon Arcade (five cabinets, complete) ================= */
+(function () {
+  const fs = require("fs");
+  const path = require("path");
+  const vm = require("vm");
+  const root = path.resolve(__dirname, "..");
+  function assert(value, message) { if (!value) throw new Error("P-119: " + message); }
+  let passed = 0;
+  function check(value, label) { assert(value, label); passed += 1; console.log("  ✅ " + label); }
+  const read = p => fs.readFileSync(path.join(root, p), "utf8");
+  const exists = p => fs.existsSync(path.join(root, p));
+
+  /* ---------- 1. All arcade files exist with identity headers ---------- */
+  ["games/arcade/index.html", "games/arcade/play.html", "games/arcade/SPEC.md",
+   "games/arcade/css/style.css", "games/arcade/js/arcade.js", "games/arcade/js/home.js"].forEach(file => {
+    check(exists(file), file + " exists");
+    check(read(file).includes("PARAGON ARCHIVE — EXPORT IDENTITY"), file + " carries the identity header");
+  });
+
+  /* ---------- 2. Pure rules load in a DOM-free context ---------- */
+  const storage = {};
+  const localStorage = {
+    getItem: key => (key in storage ? storage[key] : null),
+    setItem: (key, value) => { storage[key] = String(value); },
+    removeItem: key => { delete storage[key]; },
+    key: index => Object.keys(storage)[index] || null,
+    get length() { return Object.keys(storage).length; }
+  };
+  const documentStub = {
+    readyState: "complete", title: "",
+    getElementById: () => null, querySelector: () => null, querySelectorAll: () => [],
+    createElement: () => ({ classList: { add() {}, toggle() {} }, setAttribute() {}, addEventListener() {}, querySelector: () => null, querySelectorAll: () => [], appendChild() {} }),
+    body: { appendChild() {} }, addEventListener() {}
+  };
+  const context = { console, localStorage, document: documentStub, window: null, URLSearchParams };
+  context.window = context;
+  context.globalThis = context;
+  vm.createContext(context);
+  vm.runInContext(read("games/manifest.js"), context, { filename: "games/manifest.js" });
+  vm.runInContext(read("games/arcade/js/arcade.js"), context, { filename: "games/arcade/js/arcade.js" });
+  const A = context.ParagonArcade;
+  check(!!A, "window.ParagonArcade exports in a DOM-free context");
+
+  /* ---------- 3. Reflex Tap scoring ---------- */
+  check(A.scoreReflex(200, false) === 800, "reflex: 200ms scores 800");
+  check(A.scoreReflex(0, false) === 1000, "reflex: instant tap caps at 1000");
+  check(A.scoreReflex(5000, false) === 50, "reflex: very slow tap floors at 50");
+  check(A.scoreReflex(180, true) === 0, "reflex: foul scores 0");
+  check(A.reflexOutcome(3200) === "win" && A.reflexOutcome(2000) === "draw" && A.reflexOutcome(900) === "loss", "reflex: 3000+/1500+ win/draw thresholds");
+
+  /* ---------- 4. Memory Match scoring ---------- */
+  check(A.memoryMatchPoints(0) === 100 && A.memoryMatchPoints(3) === 175, "memory: 100 + 25/combo");
+  check(A.memoryBonus(12) === 120 && A.memoryBonus(18) === 0 && A.memoryBonus(25) === 0, "memory: (18-moves)x20 bonus, none above 18");
+  check(Array.isArray(A.MEMORY_GLYPHS) && A.MEMORY_GLYPHS.length === 6, "memory: six pair glyphs declared");
+
+  /* ---------- 5. Timing Bar scoring ---------- */
+  check(A.timingPoints(50) === 200 && A.timingPoints(53.9) === 200, "timing: bullseye ±4 scores 200");
+  check(A.timingPoints(58) === 120 && A.timingPoints(65) === 60 && A.timingPoints(20) === 0, "timing: zones 120/60/0");
+  check(A.timingOutcome(800) === "win" && A.timingOutcome(400) === "draw" && A.timingOutcome(100) === "loss", "timing: 700+/350+ win/draw thresholds");
+
+  /* ---------- 6. Sequence Repeat scoring ---------- */
+  check(A.sequenceRoundPoints(1, 3) === 80 && A.sequenceRoundPoints(8, 10) === 500, "sequence: 50xround + 10/pad");
+  check(A.sequenceOutcome(8) === "win" && A.sequenceOutcome(5) === "draw" && A.sequenceOutcome(2) === "loss", "sequence: 8/4+ win/draw thresholds");
+
+  /* ---------- 7. Target Sprint scoring ---------- */
+  check(A.targetsScore(10, 0) === 1000 && A.targetsScore(10, 4) === 900, "targets: hits x100 minus misses x25");
+  check(A.targetsScore(0, 9) === 0, "targets: total never below zero");
+  check(A.targetsOutcome(20) === "win" && A.targetsOutcome(12) === "draw" && A.targetsOutcome(5) === "loss", "targets: 18+/10+ win/draw thresholds");
+  check(A.VARIANTS.join(",") === "reflex,memory,timing,sequence,targets", "all five variants exported");
+
+  /* ---------- 8. Manifest row is live with five ruled variants ---------- */
+  const manifest = context.ParagonGameManifest;
+  const arcade = manifest.find("arcade");
+  check(arcade && arcade.status === "live", "manifest: arcade is live");
+  check(arcade.path === "games/arcade/index.html" && arcade.playPath === "games/arcade/play.html", "manifest: arcade paths are real");
+  check(arcade.variants.length === 5, "manifest: arcade ships five variants");
+  arcade.variants.forEach(v => {
+    check(Array.isArray(v.rules) && v.rules.length >= 4, "manifest: " + v.key + " publishes its rules");
+    check(!!v.scoreUnit, "manifest: " + v.key + " declares its score unit");
+  });
+
+  /* ---------- 9. Catalogue + home + offline wiring ---------- */
+  const catalogue = read("data/catalogue-expansion-45-100.js");
+  const row = catalogue.split("\n").find(line => line.includes('name: "Paragon Arcade"'));
+  check(!!row && row.includes('siteUrl: "games/arcade/index.html"') && row.includes("live: true"), "catalogue: Arcade opens its real live floor");
+  check(!row.includes("Snake") && row.includes("Reflex Tap"), "catalogue: Arcade lists the five real cabinets, not the old concept list");
+  const built = Number((row.match(/buildProgress:\s*(\d+)/) || [])[1] || 0);
+  check(built === 90, "catalogue: Arcade at 90 pending the owner demo pass");
+  const indexHtml = read("games/arcade/index.html");
+  ["?v=reflex", "?v=memory", "?v=timing", "?v=sequence", "?v=targets"].forEach(link => {
+    check(indexHtml.includes(link), "arcade home links " + link);
+  });
+  check(indexHtml.includes('id="game-leaderboard"'), "arcade home mounts the in-game leaderboard");
+  check(indexHtml.includes("paragon-arcade.png"), "arcade home uses the official Arcade icon art");
+  check(indexHtml.includes("points are not Paragon Coins") || indexHtml.includes("not Paragon Coins"), "arcade home states plainly that points are not coins");
+  const playHtml = read("games/arcade/play.html");
+  check(playHtml.includes('id="game-hud"') && playHtml.includes('id="game-stage"'), "arcade play.html provides the HUD + stage the kit expects");
+  const sw = read("service-worker.js");
+  check(sw.includes("paragon-archive-v93") && sw.includes('"./games/arcade/play.html"') && sw.includes('"./games/arcade/js/arcade.js"'), "cache v93 precaches the arcade floor for offline play");
+
+  /* ---------- 10. Platform laws inside arcade.js ---------- */
+  const src = read("games/arcade/js/arcade.js");
+  check(!/window\.(alert|prompt|confirm)\s*\(/.test(src), "arcade.js keeps the no-browser-dialogs law");
+  check(!/Math\.random\s*\(/.test(src), "arcade.js draws only through the seeded engine (no Math.random)");
+  check(!/addCoins|spendCoins|recordResult|ParagonWallets|ParagonLeaderboards/.test(src), "arcade.js never touches coins, wallets or the money leaderboard");
+  check((src.match(/engine\.checkpoint\(/g) || []).length >= 5, "arcade.js checkpoints every cabinet for resume");
+  check((src.match(/engine\.action\(/g) || []).length >= 8, "arcade.js audits gameplay actions");
+  check(read("games/arcade/SPEC.md").includes("P-119"), "arcade SPEC.md records the P-119 build");
+  check(read("GAMES-BUILD-PLAN.md").includes("P-119"), "GAMES-BUILD-PLAN status block records P-119");
+
+  console.log("\nPASS: " + passed + " checks — P-119 Paragon Arcade (five cabinets, complete)");
 })();

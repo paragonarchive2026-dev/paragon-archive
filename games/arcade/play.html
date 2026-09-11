@@ -1,0 +1,74 @@
+<!--
+  PARAGON ARCHIVE — EXPORT IDENTITY
+  REAL FILE NAME: play.html
+  EXPECTED PROJECT PATH: /games/arcade/play.html
+  ROLE: Paragon Arcade play screen — game-kit HUD (mode chip, stats, rules card, quit panel)
+        plus the game stage that js/arcade.js renders into. ?v=reflex (default), memory,
+        timing, sequence or targets selects the cabinet.
+  RESTORE-LOAD NOTE: Loads site-kit.css, ../_shared/game-kit.css, css/style.css, then
+        site-kit.js, ../manifest.js, ../engine.js, ../_shared/game-kit.js and js/arcade.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paragon Arcade — Play</title>
+  <meta name="description" content="Five quick skill cabinets — Reflex Tap, Memory Match, Timing Bar, Sequence Repeat, Target Sprint. Free, fair and seeded.">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon-32.png">
+  <link rel="shortcut icon" href="../../assets/brand/favicon.ico">
+  <link rel="apple-touch-icon" href="../../assets/brand/apple-touch-180.png">
+  <link rel="stylesheet" href="../../sites/_shared/site-kit.css">
+  <link rel="stylesheet" href="../_shared/game-kit.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="arcade-play">
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-link" href="../../paragon-archive.html?site=Paragon%20Arcade" title="View Paragon Arcade in the Paragon Archive">
+        <img class="brand-logo" src="../../assets/site-icons/paragon-arcade.png" alt="">
+        <span class="brand-name">Paragon Arcade</span>
+      </a>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link">Floor</a>
+      <a href="play.html?v=reflex" class="nav-link" data-nav="reflex">Reflex</a>
+      <a href="play.html?v=memory" class="nav-link" data-nav="memory">Memory</a>
+      <a href="play.html?v=timing" class="nav-link" data-nav="timing">Timing</a>
+      <a href="play.html?v=sequence" class="nav-link" data-nav="sequence">Sequence</a>
+      <a href="play.html?v=targets" class="nav-link" data-nav="targets">Targets</a>
+    </nav>
+  </header>
+
+  <main class="game-main">
+    <h2 id="variant-title" class="arcade-variant-title">Cabinet</h2>
+    <div id="game-hud"></div>
+    <section id="game-stage" class="game-stage arcade-stage" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer">
+    <p><strong>Paragon Arcade</strong> · free Paragon game · no coins move in free play</p>
+    <p>
+      <a href="index.html">Arcade floor</a>
+      · <a href="../../paragon-archive.html?site=Paragon%20Arcade">Open in Paragon Archive</a>
+    </p>
+  </footer>
+
+  <script src="../../sites/_shared/site-kit.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../engine.js"></script>
+  <script src="../_shared/game-kit.js"></script>
+  <script src="js/arcade.js"></script>
+  <script>
+    /* Underline the live cabinet in the topbar — markup only, no behaviour invented. */
+    (function () {
+      try {
+        var asked = new URLSearchParams(window.location.search).get("v") || "reflex";
+        document.querySelectorAll("[data-nav]").forEach(function (link) {
+          link.classList.toggle("active", link.getAttribute("data-nav") === asked);
+        });
+      } catch (error) { /* search unsupported */ }
+    })();
+  </script>
+</body>
+</html>

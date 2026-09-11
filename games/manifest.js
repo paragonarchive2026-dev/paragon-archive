@@ -67,11 +67,87 @@
     {
       key: "arcade",
       name: "Paragon Arcade", icon: "🕹️", group: "Games",
-      path: "", playPath: "", status: "planned",
-      blurb: "Tiny reflex, timing and memory games in one arcade shell.",
+      path: "games/arcade/index.html", playPath: "games/arcade/play.html", status: "live",
+      blurb: "Five quick reflex, timing and memory cabinets in one neon arcade shell.",
       supportsFree: true, supportsStake: true,
       minStake: 100, maxStake: 10000, stakeStep: 50, minDurationMs: 5000,
-      variants: [{ key: "reflex", name: "Reflex set", seats: "solo", summary: "Planned — tap-timing, memory match and reaction games.", rules: [] }]
+      variants: [
+        {
+          key: "reflex",
+          name: "Reflex Tap",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 6000,
+          summary: "Five rounds of wait-then-tap. The panel turns green after a seeded delay — tap fast, but a tap while it is red is a foul and scores nothing for that round.",
+          rules: [
+            "Five rounds. Each round shows WAIT (red), then TAP (green) after a seeded 900–2600 ms delay.",
+            "Tap while the panel is red and the round is a foul: 0 points, no retry.",
+            "Round points = 1000 minus your reaction milliseconds, minimum 50 for a completed tap (a 200 ms tap scores 800).",
+            "Total 3000+ is a win, 1500–2999 a draw, below that a loss. Keyboard Space or Enter taps too.",
+            "Quitting mid-game resumes at the start of the current round — completed rounds are kept."
+          ]
+        },
+        {
+          key: "memory",
+          name: "Memory Match",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 5000,
+          summary: "Twelve cards, six seeded pairs. Flip two at a time; matches stay open and consecutive matches build a combo bonus.",
+          rules: [
+            "Twelve cards hide six pairs in a seeded shuffle — the same seed replays the same board.",
+            "Flip two cards. A match stays open and scores 100 plus 25 per combo step; a miss closes both and resets the combo.",
+            "Finishing in 18 moves or fewer adds an efficiency bonus of (18 − moves) × 20.",
+            "Clearing the board is always a win. A half-open pair closes if you quit and resume.",
+            "Every flip is logged to the session audit trail with the seed."
+          ]
+        },
+        {
+          key: "timing",
+          name: "Timing Bar",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 8000,
+          summary: "Five rounds on a sweeping marker. Stop it as close to the centre bullseye as you can — each round sweeps at a seeded speed.",
+          rules: [
+            "Five rounds. The marker sweeps the bar at a seeded speed (1200–2200 ms per sweep).",
+            "Press STOP (button or Space). Within 4 of centre scores 200 (bullseye), within 10 scores 120, within 20 scores 60, farther scores 0.",
+            "Total 700+ is a win, 350–699 a draw, below that a loss.",
+            "Zones are labelled in text as well as colour, and the centre line is always marked.",
+            "Quitting mid-game resumes at the start of the current round with a fresh seeded sweep."
+          ]
+        },
+        {
+          key: "sequence",
+          name: "Sequence Repeat",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 8000,
+          summary: "Watch the four numbered pads light in a seeded pattern, then repeat it. Patterns grow from 3 to 10 steps over eight rounds — one wrong pad ends the run.",
+          rules: [
+            "Eight rounds maximum. Round N shows a seeded pattern of N + 2 steps (3 up to 10).",
+            "Watch the pads light, then repeat with clicks/taps or keys 1–4. Pads are numbered, never colour-only.",
+            "Each correct pad scores 10; clearing a round adds a 50 × round bonus.",
+            "One wrong pad ends the run and keeps your score: clearing all 8 is a win, 4–7 a draw, fewer a loss.",
+            "Quitting mid-round resumes that round with a fresh seeded pattern."
+          ]
+        },
+        {
+          key: "targets",
+          name: "Target Sprint",
+          seats: "solo",
+          scoreUnit: "points",
+          minDurationMs: 20000,
+          summary: "A 25-second sprint. One seeded target at a time — tap it for 100 points; tapping empty arena costs 25. Most hits wins.",
+          rules: [
+            "One 25-second sprint on a wall clock. One target appears at a time at a seeded position and size.",
+            "Tapping the target scores 100 and spawns the next. Tapping empty arena is a miss: −25, total never below 0.",
+            "18+ hits is a win, 10–17 a draw, fewer a loss.",
+            "Quitting restarts the sprint — timer games cannot resume fairly, so this is stated, not hidden.",
+            "Reduced-motion players get the same sprint with instant (non-animated) target changes."
+          ]
+        }
+      ]
     },
     {
       key: "chess",

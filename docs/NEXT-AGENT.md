@@ -334,3 +334,9 @@ authoritative match/money store; use compact server records when online modes sh
 - **State:** cache **v92**; suite-games **280** (233 + 47 P-118); 5/5 suites green; SOP D-237 + P-118; CTA §13 (Edge next); CHANGES P-118 entry; tree regenerated.
 
 **NEXT (owner-side first):** Edge deploys + secrets → OPay/Moniepoint numbers → Cards/Spin/Chess demo (90 → 100 each after approval). **Build order stands:** Arcade → Quiz onto engine → Cards wave 2 → Bet LAST. Standing money rule + storage decision from §7r still hold (note: the "no real matchmaking list" line now means no FAKE/sample lists — the honest stake-matched open-challenge desk is live and server-backed).
+
+## 7t. WHERE WE STOPPED — after P-119 / EOP v1.10.0 (2026-09-11)
+
+**Arcade built completely (D-238):** `games/arcade/` — five live cabinets (reflex/memory/timing/sequence/targets) on one `play.html?v=` router, manifest live with five ruled variants, catalogue live at 90 (old Snake/Tetris concept list retired), home + board + SPEC + `LIVE_SITES`, cache **v93**, suite-games **343** (233 + 47 P-118 + 63 P-119), jsdom boot (12) + full playthroughs green (Reflex win/board/audit; Memory perfect 1215; Timing stops; Sequence clear + fail-keep-80; Targets 25 s win). Pure exports in `window.ParagonArcade`; resume map: Memory exact, Reflex/Timing restart round, Sequence redeals, Sprint restarts.
+
+**Demo queue (owner):** Cards + Spin + Chess + Arcade, each 90 → 100 only after approval. **Build order now:** Quiz onto the engine → Cards wave 2 (solitaire/memory) → Bet LAST. Money/storage laws from §7r/§7s still hold. File tree regenerated (453 files).

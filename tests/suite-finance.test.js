@@ -60,7 +60,7 @@ check(app.includes("paragon_coin_create_payment_intent") && app.includes("Not cr
 check(app.includes("one credit per claim") || app.includes("one credit per payment"), "duplicate claim copy is honest (one credit per transfer)");
 check(!/[←→↗]/.test(app), "Stage 6 app.js additions respect the no-textual-arrows law");
 const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-check(sw.includes('"./paragon-wallets.js"') && sw.includes("paragon-archive-v92"), "service worker precaches the wallet engine at cache v89");
+check(sw.includes('"./paragon-wallets.js"') && sw.includes("paragon-archive-v93"), "service worker precaches the wallet engine at cache v89");
 const css = fs.readFileSync(path.join(root, "style.css"), "utf8");
 check(css.includes(".wallet-field") && css.includes(".wd-summary") && css.includes(".kill-switch"), "withdrawal/desk styles are present");
 

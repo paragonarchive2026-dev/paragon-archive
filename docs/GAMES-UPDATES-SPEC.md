@@ -79,8 +79,7 @@ Storage; the CDN path is free and faster.
 
 ## 4. What is still planned (NOT half-built — build order stands)
 
-Per `GAMES-BUILD-PLAN.md` §3: **Arcade → Quiz onto the engine → Cards wave 2
-(solitaire/memory) → Bet LAST.** These were never started, so there was nothing
-half-built to complete; P-118 completed the two genuinely half-built pieces
-instead (Quiz paid-path dialogs → inline panels; stake-matched matchmaking).
-Only the owner moves Cards/Spin/Chess 90 → 100 after the demo pass.
+Per `GAMES-BUILD-PLAN.md` §3 (P-119 update): **Arcade is DONE** — five live cabinets
+at `buildProgress: 90` pending the owner demo. Remaining: **Quiz onto the engine →
+Cards wave 2 (solitaire/memory) → Bet LAST.** Only the owner moves Cards/Spin/Chess/
+Arcade 90 → 100 after the demo pass.

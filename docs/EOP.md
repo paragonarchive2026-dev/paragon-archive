@@ -5748,3 +5748,29 @@ The owner can now review three distinct real-feeling rooms: Cards, Spin and Ches
 ### Result
 
 The repo no longer tells anyone to run the dead branch, the agent-connector truth is recorded so future SQL work skips the manual detour, the Edge path is a single executable runbook, the Updates.txt games spec is pinned to built reality with a concrete capacity estimate, and the two genuinely half-built game pieces are finished and regression-locked. Next build order stands: **Arcade → Quiz onto the engine → Cards wave 2 → Bet LAST.**
+
+## v1.10.0 — 2026-09-11 — Paragon Arcade: five cabinets, complete (P-119 / D-238)
+
+**Request reference:** SOP §11, Prompt P-119 (owner: build the recommended next game completely — Arcade per the P-118 guidance).
+**Status:** `[x]` repository implementation complete + jsdom playthrough-verified; owner demo pass pending.
+
+### Executed actions
+
+1. **Five cabinets, one router.** `games/arcade/` ships Reflex Tap (5 seeded 900–2600 ms reaction rounds, fouls 0, 1000−ms points), Memory Match (12 cards / 6 seeded pairs, 100+25×combo, (18−moves)×20 bonus), Timing Bar (5 seeded 1200–2200 ms sweeps, 200/120/60/0 zones), Sequence Repeat (4 numbered pads, seeded patterns 3→10 over 8 rounds, 10/pad + 50×round, one mistake ends the run) and Target Sprint (25 s wall clock, seeded positions/sizes, +100/−25 floored at 0) behind `play.html?v=`, each with per-cabinet stats, manifest rules card, quit/resume panels and result overlay.
+2. **Honest resume per cabinet** (all stated in the manifest rules): Memory exact (half-open pair closes, initial board checkpointed); Reflex/Timing restart the current round; Sequence redeals the round pattern; Sprint restarts. Keyboard play (Space/Enter, 1–4), reduced-motion paths, labelled-not-colour-only zones/pads.
+3. **Wiring:** manifest row live with five ruled variants (scoreUnit + thresholds published); catalogue row live at `buildProgress: 90` with the five REAL features (old Snake/Tetris concept list retired — no licensed clones, no fake rows); Arcade icon art in headers; home counters + per-cabinet bests + shared in-game board; `LIVE_SITES` learns Arcade; service worker precaches the floor — cache **v93** (P-016); `SPEC.md` acceptance checklist.
+4. **Tests:** `tests/suite-games.test.js` +63 P-119 checks (**343 total**: scoring tables for all five cabinets, manifest/catalogue/home/offline wiring, no-dialogs/no-Math.random/no-coins laws, checkpoints + audit, SPEC/plan records). jsdom boot suite (12 checks) + full playthroughs all green: Reflex 5-round win with board row + 5-action audit; Memory perfect game = exactly 1215; Timing 5 stops; Sequence round-1 clear + wrong-pad ends run keeping 80; Targets full 25 s sprint win. One defect found and fixed pre-demo (Memory initial checkpoint).
+5. **Docs:** GAMES-BUILD-PLAN status + §3.4 (Arcade DONE; next Quiz-on-engine), GAMES-UPDATES-SPEC §4, SOP D-238 + P-119, CHANGES P-119 entry, NEXT-AGENT §7t, file tree regenerated. All five suites green.
+
+### Acceptance boundaries
+
+- [x] Guest, member and zero-coin free access; no coin calls in arcade.js.
+- [x] Win/draw/loss thresholds published in manifest rules, enforced by pure functions.
+- [x] Bet/Multiplayer board tabs stay honestly empty (solo cabinets; no fake opponents).
+- [x] No stake input, live search or browser settlement introduced.
+- [x] No `window.alert/prompt/confirm`; all gameplay draws seeded (`Date.now` measures time only).
+- [ ] Owner demo pass; only then Arcade 90 → 100 (joins Cards/Spin/Chess in the demo queue).
+
+### Result
+
+The Arcade floor is a fourth live game: five complete, honest, offline-capable cabinets with the money path gated exactly as platform law demands. Next in the build order: **Quiz onto the engine → Cards wave 2 (solitaire/memory) → Bet LAST**.

@@ -1,5 +1,27 @@
 # 📦 Changed files
 
+## 2026-09-11 — P-119 Paragon Arcade: five cabinets, complete
+
+**Fourth live game:** `games/arcade/` ships Reflex Tap (5 seeded reaction rounds), Memory Match
+(6 seeded pairs + combo), Timing Bar (5 bullseye stops), Sequence Repeat (patterns 3→10 over
+8 rounds) and Target Sprint (25-second aim) on one `play.html?v=` router — seeded rounds, honest
+per-cabinet resume, per-cabinet bests, in-game board, published win/draw/loss thresholds. The old
+catalogue concept list (Snake/Tetris/…) was replaced with the five real cabinets. Live at
+`buildProgress: 90` pending the owner demo, like Cards/Spin/Chess.
+
+**Verified beyond static tests:** jsdom boot suite (12 checks) + full playthroughs — Reflex win
+with board row + audit, Memory perfect game at exactly 1215, Timing stops, Sequence clear +
+wrong-pad keeps 80, Targets full-sprint win. One defect fixed pre-demo (Memory initial checkpoint).
+
+**Wiring/tests:** manifest live with five ruled variants; `LIVE_SITES` learns Arcade; cache v92 →
+**v93**; `tests/suite-games.test.js` +63 P-119 checks (**343 total**). All five suites green.
+
+**New:** `games/arcade/{index.html,play.html,SPEC.md,css/style.css,js/arcade.js,js/home.js}`.
+**Changed:** manifest, catalogue, service worker + suite cache assertions, suite-ux LIVE_SITES,
+GAMES-BUILD-PLAN, GAMES-UPDATES-SPEC, SOP (D-238, P-119), EOP v1.10.0, NEXT-AGENT §7t, file tree.
+
+---
+
 ## 2026-09-11 — P-118 stale-SQL-docs correction, Edge runbook, Updates spec, half-built game completions
 
 **Dead branch closed (D-237):** `supabase/coins-schema.sql`, `finance-schema.sql` and
