@@ -301,3 +301,14 @@ th { color: var(--text-muted); font-size: 11.5px; letter-spacing: 0.4px; text-tr
 @media (max-width: 800px) {
   .split { grid-template-columns: 1fr; }
 }
+
+/* KIT-08 — one placeholder voice + heavenly focus ring on kit pages */
+::placeholder { color: var(--text-faint); opacity: 1; }
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--divine-gold, #f7cf7a) 65%, var(--border));
+  box-shadow: 0 0 0 3px rgba(247, 207, 122, 0.22);
+}
+html select { color-scheme: dark; }
+html.light select { color-scheme: light; }
+/* KIT-08 end */

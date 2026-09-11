@@ -163,5 +163,31 @@ console.log("== 6. contrast ratios (text pairs, both modes) ==");
   console.log(`  checked ${pairs.length} pairs, failing: ${bad}`);
 }
 
+console.log("== 7. form controls have accessible names ==");
+{
+  let checked = 0, gaps = 0;
+  for (const f of htmls) {
+    const html = fs.readFileSync(f, "utf8");
+    const labelFor = new Set([...html.matchAll(/<label[^>]*for="([^"]+)"/g)].map((m) => m[1]));
+    for (const m of html.matchAll(/<(input|select|textarea)([^>]*)>/g)) {
+      const t = m[2];
+      if (/type="(hidden|file|radio|checkbox|date|range|color)"/.test(t)) continue;
+      checked++;
+      const id = (t.match(/id="([^"]+)"/) || [])[1];
+      if (/aria-label=/.test(t) || (id && labelFor.has(id))) continue;
+      gaps++; fail(`${path.relative(ROOT, f)} :: <${m[1]}${t.slice(0, 60)}`);
+    }
+  }
+  console.log(`  checked ${checked}, unlabeled: ${gaps}`);
+}
+
+console.log("== 8. category chips expose --category-color ==");
+{
+  const app = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+  const ok = app.includes("--category-color:${c.color}");
+  if (!ok) fail("cat-chip template no longer sets --category-color");
+  console.log(`  category hue token: ${ok ? "wired ✅" : "MISSING"}`);
+}
+
 console.log(failures ? `\nAUDIT: ${failures} issue(s) found` : "\nAUDIT: clean ✅");
 process.exit(0);

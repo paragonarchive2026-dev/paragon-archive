@@ -1438,7 +1438,7 @@ function renderCategories() {
   const container = document.getElementById("cat-scroll");
   if (!container) return;
   container.innerHTML = categoryDefinitions.map(c => `
-    <a href="#" class="cat-chip" onclick="filterCategory('${c.name}'); return false;" style="border-color:${c.color}22;">
+    <a href="#" class="cat-chip" onclick="filterCategory('${c.name}'); return false;" style="--category-color:${c.color};">
       <span class="emoji">${CATEGORY_ICON_ART[c.name] ? `<img class="cat-icon-img" src="assets/category-icons/${CATEGORY_ICON_ART[c.name]}.png" alt="" loading="lazy">` : c.icon}</span>
       <span class="label">${c.name}</span>
       ${c.status === "planned" ? `<span class="category-status">Planned</span>` : ""}

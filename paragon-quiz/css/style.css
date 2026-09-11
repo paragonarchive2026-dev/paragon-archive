@@ -468,3 +468,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 html.light .header { background: rgba(243,242,239,0.85); }
 .quiz-brand-link { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; transition: transform 0.15s ease; }
 .quiz-brand-link:hover, .quiz-brand-link:focus-visible { transform: translateY(-1px); }
+
+/* QUIZ-08 — one placeholder voice + focus ring, matching the Archive */
+::placeholder { color: var(--text-faint, #8d8ea0); opacity: 1; }
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  border-color: rgba(247, 207, 122, 0.65);
+  box-shadow: 0 0 0 3px rgba(247, 207, 122, 0.22);
+}
+/* QUIZ-08 end */

@@ -48,19 +48,19 @@
   <section id="apply-section" class="team-dash-section team-settings-card">
     <h2 class="team-dash-sectitle">💼 Apply as a developer</h2>
     <div class="team-settings-grid">
-      <label>Developer username *<input id="app-username" type="text" maxlength="40" placeholder="e.g. JohnDev"></label>
-      <label>Email *<input id="app-email" type="email" maxlength="80" placeholder="you@example.com"></label>
-      <label>Portfolio link<input id="app-portfolio" type="url" placeholder="https://…"></label>
+      <label>Developer username *<input id="app-username" aria-label="Username" type="text" maxlength="40" placeholder="e.g. JohnDev"></label>
+      <label>Email *<input id="app-email" aria-label="Email address" type="email" maxlength="80" placeholder="you@example.com"></label>
+      <label>Portfolio link<input id="app-portfolio" aria-label="Portfolio URL" type="url" placeholder="https://…"></label>
       <label>Experience *
-        <select id="app-exp">
+        <select id="app-exp" aria-label="Experience level">
           <option value="beginner">🌱 Beginner</option>
           <option value="intermediate">🌿 Intermediate</option>
           <option value="expert">🌳 Expert</option>
         </select>
       </label>
     </div>
-    <label style="display:block;">Skills *<input id="app-skills" type="text" maxlength="160" placeholder="HTML, CSS, JavaScript…" style="width:100%;"></label>
-    <label style="display:block;">What do you want to build or bring? *<textarea id="app-pitch" rows="3" maxlength="500" style="width:100%;"></textarea></label>
+    <label style="display:block;">Skills *<input id="app-skills" aria-label="Skills" type="text" maxlength="160" placeholder="HTML, CSS, JavaScript…" style="width:100%;"></label>
+    <label style="display:block;">What do you want to build or bring? *<textarea id="app-pitch" aria-label="Your pitch" rows="3" maxlength="500" style="width:100%;"></textarea></label>
     <p id="apply-error" class="portal-lockout" style="display:none;"></p>
     <div class="team-site-actions" style="padding-left:0;">
       <button type="button" id="apply-submit" class="primary-action">💼 Submit application</button>
@@ -74,17 +74,17 @@
     <p id="dev-welcome" class="team-site-sub"></p>
     <h3 class="team-dash-sectitle" style="margin-top:14px;">🚀 Submit a website for review</h3>
     <div class="team-settings-grid">
-      <label>Website name *<input id="sub-name" type="text" maxlength="60"></label>
-      <label>Icon (emoji)<input id="sub-icon" type="text" maxlength="4" placeholder="🚀"></label>
-      <label>Live URL<input id="sub-url" type="url" placeholder="https://…"></label>
+      <label>Website name *<input id="sub-name" aria-label="Website name" type="text" maxlength="60"></label>
+      <label>Icon (emoji)<input id="sub-icon" aria-label="Website icon" type="text" maxlength="4" placeholder="🚀"></label>
+      <label>Live URL<input id="sub-url" aria-label="Hosted URL" type="url" placeholder="https://…"></label>
       <label>Pricing
-        <select id="sub-pricing">
+        <select id="sub-pricing" aria-label="Pricing model">
           <option value="Free">Free</option>
           <option value="Free + Premium features">Free + Premium features (disclosed)</option>
         </select>
       </label>
     </div>
-    <label style="display:block;">Description *<textarea id="sub-desc" rows="2" maxlength="240" style="width:100%;"></textarea></label>
+    <label style="display:block;">Description *<textarea id="sub-desc" aria-label="Website description" rows="2" maxlength="240" style="width:100%;"></textarea></label>
     <p id="sub-error" class="portal-lockout" style="display:none;"></p>
     <div class="team-site-actions" style="padding-left:0;">
       <button type="button" id="sub-submit" class="primary-action">🚀 Submit for the 8-point review</button>
